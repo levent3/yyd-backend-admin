@@ -4,6 +4,7 @@ const galleryController = require('./gallery.controller');
 const authMiddleware = require('../../middlewares/authMiddleware');
 const { checkPermission } = require('../../middlewares/permissionMiddleware');
 const { cacheMiddleware } = require('../../middlewares/cacheMiddleware');
+const { validationMiddleware } = require('../../validators/dynamicValidator');
 
 /**
  * @swagger
@@ -73,12 +74,14 @@ router.get(
 router.post(
   '/',
   checkPermission('gallery', 'create'),
+  validationMiddleware('gallery'),
   galleryController.createGalleryItem
 );
 
 router.put(
   '/:id',
   checkPermission('gallery', 'update'),
+  validationMiddleware('gallery'),
   galleryController.updateGalleryItem
 );
 

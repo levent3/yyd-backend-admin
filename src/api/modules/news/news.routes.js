@@ -4,6 +4,7 @@ const newsController = require('./news.controller');
 const authMiddleware = require('../../middlewares/authMiddleware');
 const { checkPermission } = require('../../middlewares/permissionMiddleware');
 const { cacheMiddleware } = require('../../middlewares/cacheMiddleware');
+const { validationMiddleware } = require('../../validators/dynamicValidator');
 
 /**
  * @swagger
@@ -93,12 +94,14 @@ router.get(
 router.post(
   '/',
   checkPermission('news', 'create'),
+  validationMiddleware('news'),
   newsController.createNews
 );
 
 router.put(
   '/:id',
   checkPermission('news', 'update'),
+  validationMiddleware('news'),
   newsController.updateNews
 );
 

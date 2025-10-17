@@ -3,6 +3,7 @@ const projectController = require('./project.controller');
 const authMiddleware = require('../../middlewares/authMiddleware');
 const { checkPermission } = require('../../middlewares/rbacMiddleware');
 const { cacheMiddleware } = require('../../middlewares/cacheMiddleware');
+const { validationMiddleware } = require('../../validators/dynamicValidator');
 const router = express.Router();
 
 // ========== PUBLIC ROUTES (Auth GEREKMİYOR) ==========
@@ -268,7 +269,7 @@ router.get('/:id', authMiddleware, checkPermission('projects', 'read'), projectC
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.post('/', authMiddleware, checkPermission('projects', 'create'), projectController.createProject);
+router.post('/', authMiddleware, checkPermission('projects', 'create'), validationMiddleware('project'), projectController.createProject);
 
 /**
  * @swagger
@@ -366,7 +367,7 @@ router.post('/', authMiddleware, checkPermission('projects', 'create'), projectC
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.put('/:id', authMiddleware, checkPermission('projects', 'update'), projectController.updateProject);
+router.put('/:id', authMiddleware, checkPermission('projects', 'update'), validationMiddleware('project'), projectController.updateProject);
 
 /**
  * @swagger

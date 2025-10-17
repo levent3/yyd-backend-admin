@@ -143,6 +143,147 @@ const getDefaultTemplates = () => {
         },
         priority: 2
       }
+    ],
+
+    // ===== PROJECTS =====
+    title: [
+      {
+        ruleType: 'required',
+        ruleValue: null,
+        errorMessage: {
+          tr: 'Başlık zorunludur',
+          en: 'Title is required',
+          ar: 'العنوان مطلوب'
+        },
+        priority: 1
+      },
+      {
+        ruleType: 'minLength',
+        ruleValue: '3',
+        errorMessage: {
+          tr: 'Başlık en az 3 karakter olmalıdır',
+          en: 'Title must be at least 3 characters',
+          ar: 'يجب أن يكون العنوان 3 أحرف على الأقل'
+        },
+        priority: 2
+      },
+      {
+        ruleType: 'maxLength',
+        ruleValue: '200',
+        errorMessage: {
+          tr: 'Başlık en fazla 200 karakter olabilir',
+          en: 'Title must be at most 200 characters',
+          ar: 'يجب أن يكون العنوان 200 حرفًا كحد أقصى'
+        },
+        priority: 3
+      }
+    ],
+
+    description: [
+      {
+        ruleType: 'maxLength',
+        ruleValue: '1000',
+        errorMessage: {
+          tr: 'Açıklama en fazla 1000 karakter olabilir',
+          en: 'Description must be at most 1000 characters',
+          ar: 'يجب أن يكون الوصف 1000 حرف كحد أقصى'
+        },
+        priority: 1
+      }
+    ],
+
+    budget: [
+      {
+        ruleType: 'min',
+        ruleValue: '0',
+        errorMessage: {
+          tr: 'Bütçe negatif olamaz',
+          en: 'Budget cannot be negative',
+          ar: 'لا يمكن أن تكون الميزانية سالبة'
+        },
+        priority: 1
+      }
+    ],
+
+    // ===== USERS =====
+    username: [
+      {
+        ruleType: 'required',
+        ruleValue: null,
+        errorMessage: {
+          tr: 'Kullanıcı adı zorunludur',
+          en: 'Username is required',
+          ar: 'اسم المستخدم مطلوب'
+        },
+        priority: 1
+      },
+      {
+        ruleType: 'minLength',
+        ruleValue: '3',
+        errorMessage: {
+          tr: 'Kullanıcı adı en az 3 karakter olmalıdır',
+          en: 'Username must be at least 3 characters',
+          ar: 'يجب أن يكون اسم المستخدم 3 أحرف على الأقل'
+        },
+        priority: 2
+      },
+      {
+        ruleType: 'regex',
+        ruleValue: '^[a-zA-Z0-9_]+$',
+        errorMessage: {
+          tr: 'Kullanıcı adı sadece harf, rakam ve alt çizgi içerebilir',
+          en: 'Username can only contain letters, numbers and underscores',
+          ar: 'يمكن أن يحتوي اسم المستخدم على أحرف وأرقام وشرطات سفلية فقط'
+        },
+        priority: 3
+      }
+    ],
+
+    password: [
+      {
+        ruleType: 'required',
+        ruleValue: null,
+        errorMessage: {
+          tr: 'Şifre zorunludur',
+          en: 'Password is required',
+          ar: 'كلمة المرور مطلوبة'
+        },
+        priority: 1
+      },
+      {
+        ruleType: 'minLength',
+        ruleValue: '6',
+        errorMessage: {
+          tr: 'Şifre en az 6 karakter olmalıdır',
+          en: 'Password must be at least 6 characters',
+          ar: 'يجب أن تكون كلمة المرور 6 أحرف على الأقل'
+        },
+        priority: 2
+      }
+    ],
+
+    // ===== NEWS =====
+    content: [
+      {
+        ruleType: 'required',
+        ruleValue: null,
+        errorMessage: {
+          tr: 'İçerik zorunludur',
+          en: 'Content is required',
+          ar: 'المحتوى مطلوب'
+        },
+        priority: 1
+      },
+      {
+        ruleType: 'minLength',
+        ruleValue: '10',
+        errorMessage: {
+          tr: 'İçerik en az 10 karakter olmalıdır',
+          en: 'Content must be at least 10 characters',
+          ar: 'يجب أن يكون المحتوى 10 أحرف على الأقل'
+        },
+        priority: 2
+      }
     ]
   };
 };

@@ -2,6 +2,7 @@ const express = require('express');
 const userController = require('./user.controller');
 const authMiddleware = require('../../middlewares/authMiddleware');
 const { checkPermission } = require('../../middlewares/rbacMiddleware');
+const { validationMiddleware } = require('../../validators/dynamicValidator');
 const router = express.Router();
 
 // Tüm route'lar authentication gerektirir
@@ -183,7 +184,7 @@ router.get('/:id', checkPermission('users', 'read'), userController.getUserById)
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.post('/', checkPermission('users', 'create'), userController.createUser);
+router.post('/', checkPermission('users', 'create'), validationMiddleware('user'), userController.createUser);
 
 /**
  * @swagger
@@ -265,7 +266,7 @@ router.post('/', checkPermission('users', 'create'), userController.createUser);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.put('/:id', checkPermission('users', 'update'), userController.updateUser);
+router.put('/:id', checkPermission('users', 'update'), validationMiddleware('user'), userController.updateUser);
 
 /**
  * @swagger
