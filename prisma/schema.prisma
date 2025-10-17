@@ -1,0 +1,591 @@
+// Bu, Prisma şema dosyanızdır.
+// Daha fazla bilgi için: https://pris.ly/d/prisma-schema
+
+// Prisma Client'ın nasıl üretileceğini tanımlar.
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Veritabanı bağlantı bilgilerini tanımlar.
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ===============================================
+// YÖNETİM PANELİ, ROLLER VE DİNAMİK MENÜ MODELLERİ
+// ===============================================
+
+// Sidebar'daki her bir menü öğesini (ve alt öğeyi) temsil eder.
+model AdminModule {
+  id           Int     @id @default(autoincrement())
+  name         String // Menüde görünecek isim, örn: "Proje Yönetimi"
+  moduleKey    String  @unique // Programatik anahtar, örn: "projects"
+  path         String? // Frontend route'ı, örn: "/admin/projects"
+  icon         String? // Menü ikonu, örn: "briefcase-outline"
+  displayOrder Int     @default(0) // Menüdeki sıralaması
+
+  // Hiyerarşi için (alt menüler) -> Kendi kendine ilişki
+  parentId   Int?
+  parent     AdminModule?  @relation("SubModules", fields: [parentId], references: [id], onDelete: Cascade)
+  subModules AdminModule[] @relation("SubModules")
+
+  // Bu modüle hangi rollerin erişebildiğini gösteren bağlantı
+  permissions RoleModulePermission[]
+}
+
+// Bir Rol'ün bir AdminModule üzerindeki yetkilerini tanımlayan bağlantı tablosu.
+model RoleModulePermission {
+  roleId Int
+  role   Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  moduleId Int
+  module   AdminModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  // Bu modül için spesifik izinler
+  // örn: { "read": true, "create": true, "update": false, "delete": false }
+  permissions Json @default("{\"read\": false, \"create\": false, \"update\": false, \"delete\": false}")
+
+  @@id([roleId, moduleId]) // İki sütunu birincil anahtar (composite key) yapar
+}
+
+// Yönetim paneli rollerini tanımlar (Süper Admin, Editör vb.)
+model Role {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  users User[]
+
+  // Bir rolün hangi modüllere erişimi olduğunu gösteren bağlantı
+  accessibleModules RoleModulePermission[]
+}
+
+// Yönetim paneli kullanıcılarını tanımlar.
+model User {
+  id           Int      @id @default(autoincrement())
+  username     String   @unique
+  passwordHash String
+  email        String   @unique
+  fullName     String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  role   Role @relation(fields: [roleId], references: [id])
+  roleId Int
+
+  // Bir kullanıcının oluşturduğu içerikler (opsiyonel ilişkiler)
+  createdProjects      Project[]
+  authoredNews         News[]
+  uploadedGalleryItems GalleryItem[]
+
+  @@index([email])
+  @@index([username])
+  @@index([roleId])
+}
+
+// ===============================================
+// SİTE İÇERİK MODELLERİ
+// ===============================================
+
+model Project {
+  id    Int    @id @default(autoincrement())
+  title String
+  slug  String @unique
+
+  // İçerik
+  description String? @db.Text // Kısa açıklama
+  content     String? @db.Text // Detaylı içerik
+
+  // Görseller
+  coverImage String? // Ana kapak görseli
+  imageUrl   String? // Yedek görsel alanı
+
+  // Proje Detayları
+  category String? // Kategoriler: "Sağlık", "Eğitim", "Acil Yardım" vb.
+  location String? // Proje yeri: "Yemen", "Gazze", "Tanzanya" vb.
+  country  String? // Ülke
+
+  // Proje Durumu
+  status   String @default("active") // active, completed, paused, planning
+  priority String @default("medium") // low, medium, high, urgent
+
+  // Tarih ve Bütçe
+  startDate DateTime?
+  endDate   DateTime?
+  budget    Float?
+
+  // İstatistikler (opsiyonel)
+  targetAmount     Float? // Hedef bağış tutarı
+  collectedAmount  Float? @default(0) // Toplanan tutar
+  beneficiaryCount Int? // Faydalanan kişi sayısı
+
+  // Görünürlük
+  isActive     Boolean @default(true)
+  isFeatured   Boolean @default(false) // Öne çıkan proje
+  displayOrder Int     @default(0) // Sıralama
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // İlişkiler
+  author            User?              @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  authorId          Int?
+  galleryItems      GalleryItem[]
+  donationCampaigns DonationCampaign[]
+
+  @@index([slug])
+  @@index([status])
+  @@index([isActive])
+  @@index([isFeatured])
+  @@index([category])
+  @@index([createdAt])
+}
+
+model News {
+  id          Int       @id @default(autoincrement())
+  title       String
+  slug        String    @unique
+  summary     String?
+  content     String?
+  imageUrl    String?
+  status      String    @default("draft")
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  author   User? @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  authorId Int?
+
+  @@index([slug])
+  @@index([status])
+  @@index([publishedAt])
+  @@index([createdAt])
+}
+
+model GalleryItem {
+  id        Int      @id @default(autoincrement())
+  title     String?
+  mediaType String // "image" veya "video"
+  fileUrl   String
+  createdAt DateTime @default(now())
+
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId Int?
+
+  uploader   User? @relation(fields: [uploaderId], references: [id], onDelete: SetNull)
+  uploaderId Int?
+
+  @@index([mediaType])
+  @@index([projectId])
+  @@index([createdAt])
+}
+
+model Donor {
+  id                 Int                 @id @default(autoincrement())
+  fullName           String
+  email              String              @unique
+  phoneNumber        String?
+  address            String?             @db.Text
+  city               String?
+  country            String?             @default("Türkiye")
+  taxNumber          String? // TC Kimlik No veya Vergi No
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  donations          Donation[]
+  recurringDonations RecurringDonation[]
+
+  @@index([email])
+  @@index([createdAt])
+}
+
+model DonationCampaign {
+  id              Int       @id @default(autoincrement())
+  title           String    @unique
+  slug            String    @unique
+  description     String?   @db.Text
+  targetAmount    Float?
+  collectedAmount Float?    @default(0)
+  imageUrl        String?
+  category        String? // "Sağlık", "Eğitim", "Acil Yardım" vb.
+  isActive        Boolean   @default(true)
+  isFeatured      Boolean   @default(false)
+  displayOrder    Int       @default(0)
+  startDate       DateTime?
+  endDate         DateTime?
+
+  // İstatistikler (dinamik olarak güncellenir)
+  donorCount       Int? @default(0)
+  beneficiaryCount Int? @default(0)
+
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  donations          Donation[]
+  recurringDonations RecurringDonation[]
+  cartItems          CartItem[]
+
+  // Proje ile ilişkilendirme (opsiyonel)
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  projectId Int?
+
+  // Kampanya ayarları (1-to-1 ilişki)
+  settings CampaignSettings?
+
+  @@index([slug])
+  @@index([isActive])
+  @@index([isFeatured])
+  @@index([category])
+}
+
+model Donation {
+  id       String @id @default(uuid())
+  amount   Float
+  currency String @default("TRY") // TRY, USD, EUR
+
+  // Ödeme Bilgileri
+  paymentMethod  String // credit_card, bank_transfer, cash, sms, etc.
+  paymentStatus  String  @default("pending") // pending, completed, failed, refunded
+  transactionId  String? @unique
+  paymentGateway String? // iyzico, paytr, stripe, etc.
+
+  // Gateway Response (JSON)
+  gatewayResponse Json? // Ödeme gateway'inden gelen tam cevap
+
+  // Bağışçı Bilgileri (misafir bağış için)
+  donorName  String?
+  donorEmail String?
+  donorPhone String?
+
+  // Bağış Detayları
+  message     String? @db.Text // Bağışçının mesajı
+  isAnonymous Boolean @default(false)
+  receiptSent Boolean @default(false) // Makbuz gönderildi mi?
+  receiptUrl  String? // PDF makbuz URL'i
+
+  // Adanmış Bağış Özellikleri (Dedication/Memorial Donations)
+  isDedicated       Boolean @default(false)
+  dedicatedTo       String? // Kimin adına yapıldı
+  dedicationType    String? // "memory_of", "honor_of", "gift_to", "celebration"
+  dedicationMessage String? @db.Text // Özel adanmış mesaj
+
+  // Tekrar/Taksit Bilgisi
+  installment Int? @default(1) // Taksit sayısı
+  repeatCount Int? @default(1) // Tekrar sayısı (2-18)
+
+  // SMS Bağış Bilgileri (opsiyonel)
+  smsShortCode String? // SMS kısa kodu
+  smsKeyword   String? // SMS keyword'ü
+
+  // IP ve User Agent (Fraud detection için)
+  ipAddress String?
+  userAgent String? @db.Text
+
+  // Timestamps
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  completedAt DateTime? // Ödeme tamamlanma tarihi
+  failedAt    DateTime? // Ödeme başarısız olma tarihi
+
+  // İlişkiler
+  donor      Donor?            @relation(fields: [donorId], references: [id], onDelete: SetNull)
+  donorId    Int?
+  campaign   DonationCampaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  campaignId Int?
+
+  // Ödeme işlem geçmişi
+  paymentTransactions PaymentTransaction[]
+
+  @@index([paymentStatus])
+  @@index([donorId])
+  @@index([campaignId])
+  @@index([createdAt])
+  @@index([completedAt])
+  @@index([paymentGateway])
+  @@index([isDedicated])
+}
+
+model RecurringDonation {
+  id        Int    @id @default(autoincrement())
+  amount    Float
+  currency  String @default("TRY")
+  frequency String @default("monthly") // monthly, quarterly, yearly
+
+  // Ödeme Bilgileri
+  paymentMethod  String  @default("credit_card")
+  paymentGateway String? @default("iyzico") // iyzico, paytr, stripe
+  cardToken      String? @db.Text // Kart bilgisi için token (güvenli - encrypted)
+  cardMask       String? // Maskelenmiş kart numarası (örn: 5890****1234)
+  cardBrand      String? // VISA, MASTERCARD, AMEX
+
+  // Durum ve Takip
+  status          String    @default("active") // active, paused, cancelled, completed
+  nextPaymentDate DateTime?
+  lastPaymentDate DateTime?
+
+  // İstatistikler
+  totalPaymentsMade    Int     @default(0) // Yapılan ödeme sayısı
+  totalPaymentsPlanned Int? // Planlanan toplam ödeme sayısı (örn: 12 ay)
+  failedAttempts       Int     @default(0) // Başarısız deneme sayısı
+  lastFailureReason    String? @db.Text // Son başarısızlık nedeni
+
+  // Bildirimler
+  notificationSent Boolean @default(false) // Ödeme hatırlatması gönderildi mi?
+
+  // Timestamps
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  startedAt DateTime  @default(now()) // Başlangıç tarihi
+  endedAt   DateTime? // Bitiş tarihi (cancelled veya completed)
+  pausedAt  DateTime? // Duraklatılma tarihi
+
+  // İlişkiler
+  donor      Donor             @relation(fields: [donorId], references: [id], onDelete: Cascade)
+  donorId    Int
+  campaign   DonationCampaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  campaignId Int?
+
+  // Ödeme işlem geçmişi
+  paymentTransactions PaymentTransaction[]
+
+  @@index([donorId])
+  @@index([status])
+  @@index([nextPaymentDate])
+  @@index([campaignId])
+}
+
+model BankAccount {
+  id            Int      @id @default(autoincrement())
+  bankName      String
+  accountName   String
+  iban          String   @unique
+  swift         String?
+  accountNumber String?
+  branch        String?
+  currency      String   @default("TRY")
+  isActive      Boolean  @default(true)
+  displayOrder  Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Volunteer {
+  id          Int      @id @default(autoincrement())
+  fullName    String
+  email       String
+  phoneNumber String?
+  message     String?
+  status      String   @default("new")
+  submittedAt DateTime @default(now())
+}
+
+model CareerApplication {
+  id          Int      @id @default(autoincrement())
+  fullName    String
+  email       String
+  phoneNumber String?
+  position    String?
+  coverLetter String?
+  cvUrl       String
+  status      String   @default("new")
+  submittedAt DateTime @default(now())
+}
+
+model ContactMessage {
+  id          Int      @id @default(autoincrement())
+  fullName    String
+  email       String
+  phoneNumber String?
+  subject     String
+  message     String   @db.Text
+  status      String   @default("new") // new, read, replied, archived
+  submittedAt DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ===============================================
+// ÖDEME VE SEPET MODELLERİ
+// ===============================================
+
+// Ödeme işlem geçmişi - Her bir ödeme denemesini kaydeder
+model PaymentTransaction {
+  id String @id @default(uuid())
+
+  // İşlem Bilgileri
+  amount   Float
+  currency String @default("TRY")
+  status   String @default("pending") // pending, success, failed
+
+  // Gateway Bilgileri
+  paymentGateway       String // iyzico, paytr, stripe
+  gatewayTransactionId String? // Gateway'den dönen transaction ID
+  gatewayResponse      Json? // Gateway'den gelen tam cevap
+  gatewayErrorCode     String? // Hata kodu
+  gatewayErrorMessage  String? @db.Text // Hata mesajı
+
+  // 3D Secure
+  threeDSecure   Boolean @default(false)
+  conversationId String? // iyzico conversation ID
+
+  // Deneme Bilgileri
+  attemptNumber Int     @default(1) // Kaçıncı deneme
+  retryable     Boolean @default(false) // Tekrar denenebilir mi?
+
+  // IP ve Güvenlik
+  ipAddress String?
+  userAgent String? @db.Text
+
+  // Timestamps
+  createdAt   DateTime  @default(now())
+  processedAt DateTime? // İşlem tamamlanma zamanı
+
+  // İlişkiler
+  donation            Donation?          @relation(fields: [donationId], references: [id], onDelete: Cascade)
+  donationId          String?
+  recurringDonation   RecurringDonation? @relation(fields: [recurringDonationId], references: [id], onDelete: Cascade)
+  recurringDonationId Int?
+
+  @@index([status])
+  @@index([paymentGateway])
+  @@index([donationId])
+  @@index([recurringDonationId])
+  @@index([createdAt])
+}
+
+// Sepet sistemi - Kullanıcı sepete bağış ekleyebilir
+model CartItem {
+  id        String @id @default(uuid())
+  sessionId String // Oturum ID'si (guest kullanıcılar için)
+
+  // Bağış Bilgileri
+  amount       Float
+  currency     String @default("TRY")
+  donationType String @default("one_time") // one_time, monthly
+  repeatCount  Int?   @default(1) // Tekrar sayısı (2-18)
+
+  // Kampanya Bilgisi
+  campaign   DonationCampaign? @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  campaignId Int?
+
+  // Bağışçı Bilgileri (Opsiyonel - sepette saklanabilir)
+  donorName  String?
+  donorEmail String?
+  donorPhone String?
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  expiresAt DateTime // Sepet öğesi 30 dakika sonra silinir
+
+  @@index([sessionId])
+  @@index([campaignId])
+  @@index([expiresAt])
+}
+
+// ===============================================
+// DİNAMİK YAPILANDIRMA VE VALIDATION MODELLERİ
+// ===============================================
+
+// Dinamik form validation kuralları - Admin panelden yönetilebilir
+model ValidationRule {
+  id Int @id @default(autoincrement())
+
+  // Hangi model/form için
+  entityType String // "donation", "donor", "campaign", "volunteer", "contact" etc.
+  fieldName  String // "donorName", "email", "phoneNumber", "amount" etc.
+
+  // Kural bilgileri
+  ruleType  String // "regex", "minLength", "maxLength", "required", "custom", "enum"
+  ruleValue String? @db.Text // Regex pattern, min/max değer, veya JSON config
+
+  // Hata mesajları (çoklu dil desteği için JSON)
+  errorMessage Json // { "tr": "Geçerli bir isim giriniz", "en": "Enter a valid name", "ar": "..." }
+
+  // Öncelik ve durum
+  priority Int     @default(0) // Hangi sırada çalışacak
+  isActive Boolean @default(true)
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([entityType, fieldName, ruleType])
+  @@index([entityType])
+  @@index([fieldName])
+  @@index([isActive])
+}
+
+// Dinamik kampanya ayarları ve özel özellikler
+model CampaignSettings {
+  id Int @id @default(autoincrement())
+
+  // Kampanya ilişkisi
+  campaign   DonationCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  campaignId Int              @unique
+
+  // Önceden tanımlı bağış tutarları (dinamik)
+  presetAmounts Json? // [100, 200, 500, 1000] gibi array
+
+  // Minimum/Maximum tutarlar
+  minAmount Float?
+  maxAmount Float?
+
+  // Tekrar sayısı konfigürasyonu
+  allowRepeat    Boolean @default(true)
+  minRepeatCount Int?    @default(2)
+  maxRepeatCount Int?    @default(18)
+
+  // Bağış tipleri
+  allowOneTime       Boolean @default(true)
+  allowRecurring     Boolean @default(true)
+  allowedFrequencies Json? // ["monthly", "quarterly", "yearly"]
+
+  // Özel özellikler
+  allowDedication Boolean @default(false) // Adanmış bağış
+  allowAnonymous  Boolean @default(true)
+  requireMessage  Boolean @default(false)
+
+  // İstatistikler
+  showProgress      Boolean @default(true)
+  showDonorCount    Boolean @default(true)
+  showBeneficiaries Boolean @default(true)
+
+  // Impact metrics (dinamik)
+  impactMetrics  Json? // [{ "type": "people_helped", "value": 1500, "label": "Kişiye Ulaştık" }]
+  successStories Json? // [{ "title": "...", "description": "...", "imageUrl": "..." }]
+
+  // Görsel ayarları
+  customCss String? @db.Text
+  customJs  String? @db.Text
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Sistem geneli ayarlar (site-wide configuration)
+model SystemSettings {
+  id Int @id @default(autoincrement())
+
+  // Ayar anahtarı (unique)
+  settingKey String @unique // "default_currency", "payment_gateways", "languages" etc.
+
+  // Ayar değeri (JSON - her türlü veriyi tutabilir)
+  settingValue Json // { "enabled": true, "options": [...] } gibi
+
+  // Açıklama
+  description String? @db.Text
+  category    String? // "payment", "donation", "general", "notification" etc.
+
+  // Durum
+  isActive Boolean @default(true)
+  isPublic Boolean @default(false) // Public API'den erişilebilir mi?
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category])
+  @@index([isActive])
+  @@index([isPublic])
+}
+
+// Donation model'e adanmış bağış özellikleri ekleniyor
+// NOT: Mevcut Donation model'i extend ediliyor, yeni model değil!

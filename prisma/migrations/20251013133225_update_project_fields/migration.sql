@@ -1,0 +1,16 @@
+-- AlterTable
+ALTER TABLE "Project" ADD COLUMN     "beneficiaryCount" INTEGER,
+ADD COLUMN     "budget" DOUBLE PRECISION,
+ADD COLUMN     "category" TEXT,
+ADD COLUMN     "collectedAmount" DOUBLE PRECISION DEFAULT 0,
+ADD COLUMN     "country" TEXT,
+ADD COLUMN     "coverImage" TEXT,
+ADD COLUMN     "description" TEXT,
+ADD COLUMN     "displayOrder" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN     "endDate" TIMESTAMP(3),
+ADD COLUMN     "isFeatured" BOOLEAN NOT NULL DEFAULT false,
+ADD COLUMN     "location" TEXT,
+ADD COLUMN     "priority" TEXT NOT NULL DEFAULT 'medium',
+ADD COLUMN     "startDate" TIMESTAMP(3),
+ADD COLUMN     "status" TEXT NOT NULL DEFAULT 'active',
+ADD COLUMN     "targetAmount" DOUBLE PRECISION;

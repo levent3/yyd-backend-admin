@@ -1,0 +1,61 @@
+# Node modules
+node_modules/
+
+# Environment variables - ÖNEMLI: Bu dosya asla GitHub'a yüklenmemeli!
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Prisma
+/src/generated/prisma
+prisma/migrations/.DS_Store
+
+# Uploads (Kullanıcı yüklediği dosyalar)
+uploads/*
+# Uploads klasör yapısını koru ama içeriği ignore et
+!uploads/.gitkeep
+!uploads/*/.gitkeep
+
+# Coverage directory
+coverage/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker volumes (production'da farklı olabilir)
+postgres_data/
+redis_data/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Build outputs (eğer varsa)
+dist/
+build/
+
+# Scripts (temizleme scripti gibi)
+src/cleanup-images.js
+src/check-projects.js
