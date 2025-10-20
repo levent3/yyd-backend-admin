@@ -1,4 +1,5 @@
 const donationService = require('./donation.service');
+const { invalidateCache } = require('../../middlewares/cacheMiddleware');
 
 // ========== DONATIONS ==========
 
@@ -26,6 +27,11 @@ const getDonationById = async (req, res, next) => {
 const createDonation = async (req, res, next) => {
   try {
     const donation = await donationService.createDonation(req.body);
+
+    // Cache'leri temizle (bağış oluşturulunca istatistikler değişir)
+    await invalidateCache('cache:/api/donations/campaigns*');
+    await invalidateCache('cache:/api/dashboard*');
+
     res.status(201).json({ message: 'Bağış kaydı oluşturuldu', donation });
   } catch (error) {
     next(error);
@@ -35,6 +41,11 @@ const createDonation = async (req, res, next) => {
 const updateDonation = async (req, res, next) => {
   try {
     const donation = await donationService.updateDonation(req.params.id, req.body);
+
+    // Cache'leri temizle (bağış güncellenince istatistikler değişebilir)
+    await invalidateCache('cache:/api/donations/campaigns*');
+    await invalidateCache('cache:/api/dashboard*');
+
     res.status(200).json({ message: 'Bağış güncellendi', donation });
   } catch (error) {
     next(error);
@@ -44,6 +55,11 @@ const updateDonation = async (req, res, next) => {
 const deleteDonation = async (req, res, next) => {
   try {
     await donationService.deleteDonation(req.params.id);
+
+    // Cache'leri temizle (bağış silinince istatistikler değişir)
+    await invalidateCache('cache:/api/donations/campaigns*');
+    await invalidateCache('cache:/api/dashboard*');
+
     res.status(200).json({ message: 'Bağış silindi' });
   } catch (error) {
     next(error);
@@ -88,6 +104,12 @@ const getCampaignBySlug = async (req, res, next) => {
 const createCampaign = async (req, res, next) => {
   try {
     const campaign = await donationService.createCampaign(req.body);
+
+    // Cache'leri temizle (doğru path ile)
+    await invalidateCache('cache:/campaigns*');
+    await invalidateCache('cache:/statistics*');
+    await invalidateCache('cache:/recent-activities*');
+
     res.status(201).json({ message: 'Kampanya oluşturuldu', campaign });
   } catch (error) {
     next(error);
@@ -97,6 +119,12 @@ const createCampaign = async (req, res, next) => {
 const updateCampaign = async (req, res, next) => {
   try {
     const campaign = await donationService.updateCampaign(parseInt(req.params.id), req.body);
+
+    // Cache'leri temizle (doğru path ile)
+    await invalidateCache('cache:/campaigns*');
+    await invalidateCache('cache:/statistics*');
+    await invalidateCache('cache:/recent-activities*');
+
     res.status(200).json({ message: 'Kampanya güncellendi', campaign });
   } catch (error) {
     next(error);
@@ -106,6 +134,12 @@ const updateCampaign = async (req, res, next) => {
 const deleteCampaign = async (req, res, next) => {
   try {
     await donationService.deleteCampaign(parseInt(req.params.id));
+
+    // Cache'leri temizle (doğru path ile)
+    await invalidateCache('cache:/campaigns*');
+    await invalidateCache('cache:/statistics*');
+    await invalidateCache('cache:/recent-activities*');
+
     res.status(200).json({ message: 'Kampanya silindi' });
   } catch (error) {
     next(error);

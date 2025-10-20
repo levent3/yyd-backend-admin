@@ -1,18 +1,20 @@
 const prisma = require('../../../config/prismaClient');
 
-const findMany = (filters = {}) => {
-  const where = {};
-
-  if (filters.status) {
-    where.status = filters.status;
-  }
+const findMany = (options = {}) => {
+  const { skip, take, where } = options;
 
   return prisma.contactMessage.findMany({
+    skip,
+    take,
     where,
     orderBy: {
       submittedAt: 'desc'
     }
   });
+};
+
+const count = (where = {}) => {
+  return prisma.contactMessage.count({ where });
 };
 
 const findById = (id) => {
@@ -53,6 +55,7 @@ const getUnreadCount = () => {
 
 module.exports = {
   findMany,
+  count,
   findById,
   create,
   update,

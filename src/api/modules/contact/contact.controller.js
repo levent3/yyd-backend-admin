@@ -3,12 +3,8 @@ const contactService = require('./contact.service');
 // GET /api/contact - Get all messages (admin)
 const getAllMessages = async (req, res, next) => {
   try {
-    const filters = {
-      status: req.query.status // new, read, replied, archived
-    };
-
-    const messages = await contactService.getAllMessages(filters);
-    res.json(messages);
+    const result = await contactService.getAllMessages(req.query);
+    res.json(result);
   } catch (error) {
     next(error);
   }

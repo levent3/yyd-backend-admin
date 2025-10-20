@@ -1,7 +1,19 @@
 const contactRepo = require('./contact.repository');
+const { parsePagination, createPaginatedResponse } = require('../../../utils/pagination');
 
-const getAllMessages = (filters) => {
-  return contactRepo.findMany(filters);
+const getAllMessages = async (queryParams = {}) => {
+  const { page, limit, status, ...rest } = queryParams;
+  const { skip, limit: take } = parsePagination(page, limit);
+
+  const where = {};
+  if (status) where.status = status;
+
+  const [data, total] = await Promise.all([
+    contactRepo.findMany({ skip, take, where }),
+    contactRepo.count(where),
+  ]);
+
+  return createPaginatedResponse(data, total, parseInt(page) || 1, take);
 };
 
 const getMessageById = (id) => {
