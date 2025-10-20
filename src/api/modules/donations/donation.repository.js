@@ -86,6 +86,11 @@ const createDonation = (data) => {
       dedicatedTo: data.dedicatedTo || null,
       dedicationType: data.dedicationType || null,
       dedicationMessage: data.dedicationMessage || null,
+      // Kurban Bağışı
+      isSacrifice: data.isSacrifice || false,
+      sacrificeType: data.sacrificeType || null,
+      shareCount: data.shareCount || 1,
+      sharePrice: data.sharePrice || null,
       // SMS Bağış
       smsShortCode: data.smsShortCode || null,
       smsKeyword: data.smsKeyword || null,
@@ -116,6 +121,12 @@ const updateDonation = (id, data) => {
   if (data.dedicatedTo !== undefined) updateData.dedicatedTo = data.dedicatedTo;
   if (data.dedicationType !== undefined) updateData.dedicationType = data.dedicationType;
   if (data.dedicationMessage !== undefined) updateData.dedicationMessage = data.dedicationMessage;
+
+  // Sacrifice fields
+  if (data.isSacrifice !== undefined) updateData.isSacrifice = data.isSacrifice;
+  if (data.sacrificeType !== undefined) updateData.sacrificeType = data.sacrificeType;
+  if (data.shareCount !== undefined) updateData.shareCount = data.shareCount;
+  if (data.sharePrice !== undefined) updateData.sharePrice = data.sharePrice;
 
   // SMS fields
   if (data.smsShortCode !== undefined) updateData.smsShortCode = data.smsShortCode;

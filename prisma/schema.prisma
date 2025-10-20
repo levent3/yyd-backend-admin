@@ -271,6 +271,12 @@ model Donation {
   installment Int? @default(1) // Taksit sayısı
   repeatCount Int? @default(1) // Tekrar sayısı (2-18)
 
+  // Kurban Bağışı Özellikleri (Sacrifice Donation)
+  isSacrifice   Boolean @default(false)
+  sacrificeType String? // "buyukbas" (büyükbaş/large), "kucukbas" (küçükbaş/small)
+  shareCount    Int?    @default(1) // Kaç hisse satın alındı
+  sharePrice    Float? // Hisse başına fiyat
+
   // SMS Bağış Bilgileri (opsiyonel)
   smsShortCode String? // SMS kısa kodu
   smsKeyword   String? // SMS keyword'ü
@@ -541,6 +547,10 @@ model CampaignSettings {
   allowDedication Boolean @default(false) // Adanmış bağış
   allowAnonymous  Boolean @default(true)
   requireMessage  Boolean @default(false)
+
+  // Kurban kampanyası ayarları
+  isSacrifice     Boolean @default(false) // Kurban kampanyası mı?
+  sacrificeConfig Json? // Kurban konfigürasyonu: { "types": [{ "type": "buyukbas", "shares": 7, "pricePerShare": 500 }] }
 
   // İstatistikler
   showProgress      Boolean @default(true)

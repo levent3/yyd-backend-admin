@@ -31,6 +31,8 @@ const create = (data) => {
       allowDedication: data.allowDedication || false,
       allowAnonymous: data.allowAnonymous !== undefined ? data.allowAnonymous : true,
       requireMessage: data.requireMessage || false,
+      isSacrifice: data.isSacrifice || false,
+      sacrificeConfig: data.sacrificeConfig || null,
       showProgress: data.showProgress !== undefined ? data.showProgress : true,
       showDonorCount: data.showDonorCount !== undefined ? data.showDonorCount : true,
       showBeneficiaries: data.showBeneficiaries !== undefined ? data.showBeneficiaries : true,
@@ -60,6 +62,8 @@ const update = (campaignId, data) => {
   if (data.allowDedication !== undefined) updateData.allowDedication = data.allowDedication;
   if (data.allowAnonymous !== undefined) updateData.allowAnonymous = data.allowAnonymous;
   if (data.requireMessage !== undefined) updateData.requireMessage = data.requireMessage;
+  if (data.isSacrifice !== undefined) updateData.isSacrifice = data.isSacrifice;
+  if (data.sacrificeConfig !== undefined) updateData.sacrificeConfig = data.sacrificeConfig;
   if (data.showProgress !== undefined) updateData.showProgress = data.showProgress;
   if (data.showDonorCount !== undefined) updateData.showDonorCount = data.showDonorCount;
   if (data.showBeneficiaries !== undefined) updateData.showBeneficiaries = data.showBeneficiaries;
