@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const volunteerController = require('./volunteer.controller');
 const authMiddleware = require('../../middlewares/authMiddleware');
-const { checkPermission } = require('../../middlewares/permissionMiddleware');
+const { checkPermission } = require('../../middlewares/rbacMiddleware');
 
 /**
  * @swagger

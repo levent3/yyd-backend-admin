@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const contactController = require('./contact.controller');
 const authMiddleware = require('../../middlewares/authMiddleware');
-const { checkPermission } = require('../../middlewares/permissionMiddleware');
+const { checkPermission } = require('../../middlewares/rbacMiddleware');
 
 // Public route - anyone can submit a contact message
 router.post('/', contactController.createMessage);

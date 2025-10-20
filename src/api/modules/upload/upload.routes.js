@@ -3,7 +3,7 @@ const router = express.Router();
 const uploadController = require('./upload.controller');
 const uploadMiddleware = require('../../middlewares/uploadMiddleware');
 const authMiddleware = require('../../middlewares/authMiddleware');
-const { checkPermission } = require('../../middlewares/permissionMiddleware');
+const { checkPermission } = require('../../middlewares/rbacMiddleware');
 
 // Tüm upload işlemleri için auth gerekli
 router.use(authMiddleware);

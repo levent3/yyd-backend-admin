@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const newsController = require('./news.controller');
 const authMiddleware = require('../../middlewares/authMiddleware');
-const { checkPermission } = require('../../middlewares/permissionMiddleware');
+const { checkPermission } = require('../../middlewares/rbacMiddleware');
 const { cacheMiddleware } = require('../../middlewares/cacheMiddleware');
 const { validationMiddleware } = require('../../validators/dynamicValidator');
 
