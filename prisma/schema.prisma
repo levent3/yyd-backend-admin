@@ -76,6 +76,7 @@ model User {
   createdProjects      Project[]
   authoredNews         News[]
   uploadedGalleryItems GalleryItem[]
+  authoredPages        Page[]
 
   @@index([email])
   @@index([username])
@@ -178,6 +179,52 @@ model GalleryItem {
   @@index([mediaType])
   @@index([projectId])
   @@index([createdAt])
+}
+
+// Statik sayfalar (About Us, Terms, Privacy, FAQ, vb.)
+model Page {
+  id   Int    @id @default(autoincrement())
+  title String
+  slug  String @unique
+
+  // İçerik
+  content String? @db.Text // Zengin metin içeriği (HTML/Markdown)
+  excerpt String? @db.Text // Kısa özet/öne çıkan metin
+
+  // SEO
+  metaTitle       String? // SEO başlığı
+  metaDescription String? @db.Text // SEO açıklaması
+  metaKeywords    String? // SEO anahtar kelimeleri
+
+  // Sayfa türü ve durum
+  pageType String @default("general") // about, terms, privacy, faq, contact, team, etc.
+  status   String @default("draft") // draft, published
+
+  // Görünürlük
+  isPublic Boolean @default(true) // Public API'den erişilebilir mi?
+  isActive Boolean @default(true) // Aktif mi?
+
+  // Sıralama (menü için)
+  displayOrder Int @default(0)
+
+  // Görsel
+  featuredImage String? // Kapak görseli (opsiyonel)
+
+  // Timestamps
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  publishedAt DateTime? // Yayınlanma tarihi
+
+  // İlişkiler
+  author   User? @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  authorId Int?
+
+  @@index([slug])
+  @@index([pageType])
+  @@index([status])
+  @@index([isPublic])
+  @@index([isActive])
+  @@index([publishedAt])
 }
 
 model Donor {

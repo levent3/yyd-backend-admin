@@ -34,6 +34,8 @@ const uploadRoutes = require('./api/modules/upload/upload.routes');
 const validationRuleRoutes = require('./api/modules/validation-rules/validation-rule.routes');
 const campaignSettingsRoutes = require('./api/modules/campaign-settings/campaign-settings.routes');
 const systemSettingsRoutes = require('./api/modules/system-settings/system-settings.routes');
+const dashboardRoutes = require('./api/modules/dashboard/dashboard.routes');
+const pageRoutes = require('./api/modules/pages/page.routes');
 
 const app = express();
 
@@ -147,6 +149,8 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/validation-rules', validationRuleRoutes);
 app.use('/api/campaign-settings', campaignSettingsRoutes);
 app.use('/api/system-settings', systemSettingsRoutes);
+app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/pages', pageRoutes);
 
 // Hata Yönetimi (en sonda olmalı)
 app.use(errorHandler);
