@@ -59,8 +59,9 @@ const mutationLimiter = rateLimit({
 const speedLimiter = slowDown({
   windowMs: 15 * 60 * 1000, // 15 dakika
   delayAfter: 50, // 50 istekten sonra yavaşlatmaya başla
-  delayMs: 500, // Her istekte 500ms gecikme ekle
+  delayMs: () => 500, // Her istekte 500ms gecikme ekle (v2 uyumlu)
   maxDelayMs: 20000, // Maksimum 20 saniye gecikme
+  validate: { delayMs: false }, // Warning'i kapat
 });
 
 // Public endpoint limiter - Herkese açık API'ler için (bagış, sepet, kampanyalar)
