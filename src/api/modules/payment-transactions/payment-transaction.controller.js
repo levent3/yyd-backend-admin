@@ -1,14 +1,33 @@
-const paymentTransactionService = require('./payment-transaction.service');
+/**
+ * Payment Transaction Controller
+ *
+ * REFACTORING NOTU:
+ * -----------------
+ * Bu controller artık generic controllerFactory kullanıyor.
+ * Standard CRUD işlemleri factory'den geliyor.
+ * Özel metodlar: getStatistics, getStatisticsByGateway, getFailedTransactions, getPendingTransactions,
+ *                getByDonation, getByRecurringDonation, getByGateway, markAsSuccess, markAsFailed, retryTransaction
+ */
 
-// GET /api/payment-transactions - Get all transactions (admin)
-const getAllTransactions = async (req, res, next) => {
-  try {
-    const result = await paymentTransactionService.getAllTransactions(req.query);
-    res.status(200).json(result);
-  } catch (error) {
-    next(error);
-  }
+const paymentTransactionService = require('./payment-transaction.service');
+const { createCRUDController } = require('../../../utils/controllerFactory');
+
+// ========== STANDARD CRUD OPERATIONS (Factory ile) ==========
+
+const paymentTransactionServiceAdapter = {
+  getAll: (query) => paymentTransactionService.getAllTransactions(query),
+  getById: (id) => paymentTransactionService.getTransactionById(id),
+  create: (data) => paymentTransactionService.createTransaction(data),
+  update: (id, data) => paymentTransactionService.updateTransaction(id, data),
+  delete: (id) => paymentTransactionService.deleteTransaction(id),
 };
+
+const crudController = createCRUDController(paymentTransactionServiceAdapter, {
+  entityName: 'İşlem',
+  entityNamePlural: 'İşlemler',
+});
+
+// ========== ÖZEL METODLAR ==========
 
 // GET /api/payment-transactions/statistics - Get statistics
 const getStatistics = async (req, res, next) => {
@@ -52,22 +71,6 @@ const getPendingTransactions = async (req, res, next) => {
   }
 };
 
-// GET /api/payment-transactions/:id - Get transaction by ID
-const getTransactionById = async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    const transaction = await paymentTransactionService.getTransactionById(id);
-
-    if (!transaction) {
-      return res.status(404).json({ message: 'İşlem bulunamadı' });
-    }
-
-    res.json(transaction);
-  } catch (error) {
-    next(error);
-  }
-};
-
 // GET /api/payment-transactions/donation/:donationId - Get by donation
 const getByDonation = async (req, res, next) => {
   try {
@@ -96,44 +99,6 @@ const getByGateway = async (req, res, next) => {
     const { gateway } = req.params;
     const transactions = await paymentTransactionService.getTransactionsByGateway(gateway);
     res.json(transactions);
-  } catch (error) {
-    next(error);
-  }
-};
-
-// POST /api/payment-transactions - Create transaction
-const createTransaction = async (req, res, next) => {
-  try {
-    const transaction = await paymentTransactionService.createTransaction(req.body);
-    res.status(201).json({
-      message: 'İşlem kaydı oluşturuldu',
-      transaction
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-// PUT /api/payment-transactions/:id - Update transaction
-const updateTransaction = async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    const transaction = await paymentTransactionService.updateTransaction(id, req.body);
-    res.json({
-      message: 'İşlem güncellendi',
-      transaction
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-// DELETE /api/payment-transactions/:id - Delete transaction
-const deleteTransaction = async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    await paymentTransactionService.deleteTransaction(id);
-    res.json({ message: 'İşlem silindi' });
   } catch (error) {
     next(error);
   }
@@ -181,20 +146,25 @@ const retryTransaction = async (req, res, next) => {
   }
 };
 
+// ========== EXPORT ==========
+
 module.exports = {
-  getAllTransactions,
+  // Standard CRUD (factory'den)
+  getAllTransactions: crudController.getAll,
+  getTransactionById: crudController.getById,
+  createTransaction: crudController.create,
+  updateTransaction: crudController.update,
+  deleteTransaction: crudController.delete,
+
+  // Özel metodlar
   getStatistics,
   getStatisticsByGateway,
   getFailedTransactions,
   getPendingTransactions,
-  getTransactionById,
   getByDonation,
   getByRecurringDonation,
   getByGateway,
-  createTransaction,
-  updateTransaction,
-  deleteTransaction,
   markAsSuccess,
   markAsFailed,
-  retryTransaction
+  retryTransaction,
 };

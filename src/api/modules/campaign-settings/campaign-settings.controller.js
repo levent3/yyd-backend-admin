@@ -1,6 +1,34 @@
-const campaignSettingsService = require('./campaign-settings.service');
+/**
+ * Campaign Settings Controller
+ *
+ * REFACTORING NOTU:
+ * -----------------
+ * Bu controller CRU operations (Create, Read, Update) kullanıyor.
+ * campaignId bazlı işlemler olduğu için sadece create, update, delete factory'ye uygun.
+ * Özel metodlar: getSettingsByCampaign, upsertSettings
+ */
 
-// GET /api/campaign-settings/:campaignId
+const campaignSettingsService = require('./campaign-settings.service');
+const { createCRUDController } = require('../../../utils/controllerFactory');
+
+// ========== CRUD OPERATIONS (Factory ile - kısmi) ==========
+
+const campaignSettingsServiceAdapter = {
+  getAll: null, // campaignId bazlı
+  getById: null, // campaignId bazlı
+  create: (data) => campaignSettingsService.createSettings(data),
+  update: (id, data) => campaignSettingsService.updateSettings(id, data),
+  delete: (id) => campaignSettingsService.deleteSettings(id),
+};
+
+const crudController = createCRUDController(campaignSettingsServiceAdapter, {
+  entityName: 'Campaign settings',
+  entityNamePlural: 'Campaign settings',
+});
+
+// ========== ÖZEL METODLAR ==========
+
+// GET /api/campaign-settings/:campaignId - Get settings by campaign
 const getSettingsByCampaign = async (req, res, next) => {
   try {
     const { campaignId } = req.params;
@@ -22,48 +50,7 @@ const getSettingsByCampaign = async (req, res, next) => {
   }
 };
 
-// POST /api/campaign-settings
-const createSettings = async (req, res, next) => {
-  try {
-    const settings = await campaignSettingsService.createSettings(req.body);
-
-    res.status(201).json({
-      message: 'Campaign settings created successfully',
-      settings
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-// PUT /api/campaign-settings/:campaignId
-const updateSettings = async (req, res, next) => {
-  try {
-    const { campaignId } = req.params;
-    const settings = await campaignSettingsService.updateSettings(campaignId, req.body);
-
-    res.json({
-      message: 'Campaign settings updated successfully',
-      settings
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-// DELETE /api/campaign-settings/:campaignId
-const deleteSettings = async (req, res, next) => {
-  try {
-    const { campaignId } = req.params;
-    await campaignSettingsService.deleteSettings(campaignId);
-
-    res.json({ message: 'Campaign settings deleted successfully' });
-  } catch (error) {
-    next(error);
-  }
-};
-
-// POST /api/campaign-settings/:campaignId/upsert
+// POST /api/campaign-settings/:campaignId/upsert - Upsert settings
 const upsertSettings = async (req, res, next) => {
   try {
     const { campaignId } = req.params;
@@ -78,10 +65,13 @@ const upsertSettings = async (req, res, next) => {
   }
 };
 
+// ========== EXPORT ==========
+
 module.exports = {
+  // Özel metodlar (campaignId bazlı)
   getSettingsByCampaign,
-  createSettings,
-  updateSettings,
-  deleteSettings,
-  upsertSettings
+  createSettings: crudController.create,
+  updateSettings: crudController.update,
+  deleteSettings: crudController.delete,
+  upsertSettings,
 };

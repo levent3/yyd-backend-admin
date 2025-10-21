@@ -1,74 +1,38 @@
-const careerService = require('./career.service');
+/**
+ * Career Controller
+ *
+ * REFACTORING NOTU:
+ * -----------------
+ * Bu controller artık generic controllerFactory kullanıyor.
+ * Standard CRUD işlemleri factory'den geliyor.
+ * Özel metodlar (getPendingCount, getByStatus, getByPosition) elle tanımlanmış.
+ */
 
-// GET /api/careers - Get all applications (admin)
-const getAllApplications = async (req, res, next) => {
-  try {
-    const result = await careerService.getAllApplications(req.query);
-    res.status(200).json(result);
-  } catch (error) {
-    next(error);
-  }
+const careerService = require('./career.service');
+const { createCRUDController } = require('../../../utils/controllerFactory');
+
+// ========== STANDARD CRUD OPERATIONS (Factory ile) ==========
+
+const careerServiceAdapter = {
+  getAll: (query) => careerService.getAllApplications(query),
+  getById: (id) => careerService.getApplicationById(id),
+  create: (data) => careerService.createApplication(data),
+  update: (id, data) => careerService.updateApplication(id, data),
+  delete: (id) => careerService.deleteApplication(id),
 };
+
+const crudController = createCRUDController(careerServiceAdapter, {
+  entityName: 'Başvuru',
+  entityNamePlural: 'Başvurular',
+});
+
+// ========== ÖZEL METODLAR ==========
 
 // GET /api/careers/pending-count - Get pending applications count
 const getPendingCount = async (req, res, next) => {
   try {
     const count = await careerService.getPendingCount();
     res.json({ count });
-  } catch (error) {
-    next(error);
-  }
-};
-
-// GET /api/careers/:id - Get application by ID
-const getApplicationById = async (req, res, next) => {
-  try {
-    const id = parseInt(req.params.id);
-    const application = await careerService.getApplicationById(id);
-
-    if (!application) {
-      return res.status(404).json({ message: 'Başvuru bulunamadı' });
-    }
-
-    res.json(application);
-  } catch (error) {
-    next(error);
-  }
-};
-
-// POST /api/careers - Create career application (public)
-const createApplication = async (req, res, next) => {
-  try {
-    const application = await careerService.createApplication(req.body);
-    res.status(201).json({
-      message: 'Kariyer başvurunuz alındı',
-      application
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-// PUT /api/careers/:id - Update application (admin)
-const updateApplication = async (req, res, next) => {
-  try {
-    const id = parseInt(req.params.id);
-    const application = await careerService.updateApplication(id, req.body);
-    res.json({
-      message: 'Başvuru güncellendi',
-      application
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-// DELETE /api/careers/:id - Delete application (admin)
-const deleteApplication = async (req, res, next) => {
-  try {
-    const id = parseInt(req.params.id);
-    await careerService.deleteApplication(id);
-    res.json({ message: 'Başvuru silindi' });
   } catch (error) {
     next(error);
   }
@@ -96,13 +60,18 @@ const getApplicationsByPosition = async (req, res, next) => {
   }
 };
 
+// ========== EXPORT ==========
+
 module.exports = {
-  getAllApplications,
+  // Standard CRUD (factory'den)
+  getAllApplications: crudController.getAll,
+  getApplicationById: crudController.getById,
+  createApplication: crudController.create,
+  updateApplication: crudController.update,
+  deleteApplication: crudController.delete,
+
+  // Özel metodlar
   getPendingCount,
-  getApplicationById,
-  createApplication,
-  updateApplication,
-  deleteApplication,
   getApplicationsByStatus,
-  getApplicationsByPosition
+  getApplicationsByPosition,
 };

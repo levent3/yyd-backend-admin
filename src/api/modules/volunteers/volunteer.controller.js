@@ -1,14 +1,32 @@
-const volunteerService = require('./volunteer.service');
+/**
+ * Volunteer Controller
+ *
+ * REFACTORING NOTU:
+ * -----------------
+ * Bu controller artık generic controllerFactory kullanıyor.
+ * Standard CRUD işlemleri factory'den geliyor.
+ * Özel metod (getPendingCount) elle tanımlanmış.
+ */
 
-// GET /api/volunteers - Get all applications (admin)
-const getAllApplications = async (req, res, next) => {
-  try {
-    const result = await volunteerService.getAllApplications(req.query);
-    res.status(200).json(result);
-  } catch (error) {
-    next(error);
-  }
+const volunteerService = require('./volunteer.service');
+const { createCRUDController } = require('../../../utils/controllerFactory');
+
+// ========== STANDARD CRUD OPERATIONS (Factory ile) ==========
+
+const volunteerServiceAdapter = {
+  getAll: (query) => volunteerService.getAllApplications(query),
+  getById: (id) => volunteerService.getApplicationById(id),
+  create: (data) => volunteerService.createApplication(data),
+  update: (id, data) => volunteerService.updateApplication(id, data),
+  delete: (id) => volunteerService.deleteApplication(id),
 };
+
+const crudController = createCRUDController(volunteerServiceAdapter, {
+  entityName: 'Başvuru',
+  entityNamePlural: 'Başvurular',
+});
+
+// ========== ÖZEL METODLAR ==========
 
 // GET /api/volunteers/pending-count - Get pending applications count
 const getPendingCount = async (req, res, next) => {
@@ -20,59 +38,16 @@ const getPendingCount = async (req, res, next) => {
   }
 };
 
-// GET /api/volunteers/:id - Get application by ID
-const getApplicationById = async (req, res, next) => {
-  try {
-    const id = parseInt(req.params.id);
-    const application = await volunteerService.getApplicationById(id);
-
-    if (!application) {
-      return res.status(404).json({ message: 'Başvuru bulunamadı' });
-    }
-
-    res.json(application);
-  } catch (error) {
-    next(error);
-  }
-};
-
-// POST /api/volunteers - Create volunteer application (public)
-const createApplication = async (req, res, next) => {
-  try {
-    const application = await volunteerService.createApplication(req.body);
-    res.status(201).json(application);
-  } catch (error) {
-    next(error);
-  }
-};
-
-// PUT /api/volunteers/:id - Update application
-const updateApplication = async (req, res, next) => {
-  try {
-    const id = parseInt(req.params.id);
-    const application = await volunteerService.updateApplication(id, req.body);
-    res.json(application);
-  } catch (error) {
-    next(error);
-  }
-};
-
-// DELETE /api/volunteers/:id - Delete application
-const deleteApplication = async (req, res, next) => {
-  try {
-    const id = parseInt(req.params.id);
-    await volunteerService.deleteApplication(id);
-    res.json({ message: 'Başvuru silindi' });
-  } catch (error) {
-    next(error);
-  }
-};
+// ========== EXPORT ==========
 
 module.exports = {
-  getAllApplications,
+  // Standard CRUD (factory'den)
+  getAllApplications: crudController.getAll,
+  getApplicationById: crudController.getById,
+  createApplication: crudController.create,
+  updateApplication: crudController.update,
+  deleteApplication: crudController.delete,
+
+  // Özel metodlar
   getPendingCount,
-  getApplicationById,
-  createApplication,
-  updateApplication,
-  deleteApplication
 };

@@ -1,18 +1,34 @@
+/**
+ * System Settings Controller
+ *
+ * REFACTORING NOTU:
+ * -----------------
+ * Bu controller artık generic controllerFactory kullanıyor.
+ * Standard CRUD işlemleri factory'den geliyor.
+ * Özel metodlar: getPublicSettings, getSettingByKey, getSettingsByCategory, upsertSetting, initializeDefaults
+ */
+
 const systemSettingsService = require('./system-settings.service');
+const { createCRUDController } = require('../../../utils/controllerFactory');
 
-// GET /api/system-settings
-const getAllSettings = async (req, res, next) => {
-  try {
-    const { category, isActive, isPublic } = req.query;
-    const settings = await systemSettingsService.getAllSettings({ category, isActive, isPublic });
+// ========== STANDARD CRUD OPERATIONS (Factory ile) ==========
 
-    res.json(settings);
-  } catch (error) {
-    next(error);
-  }
+const systemSettingsServiceAdapter = {
+  getAll: (query) => systemSettingsService.getAllSettings(query),
+  getById: null, // Key-based, not ID-based
+  create: (data) => systemSettingsService.createSetting(data),
+  update: (id, data) => systemSettingsService.updateSetting(id, data),
+  delete: (id) => systemSettingsService.deleteSetting(id),
 };
 
-// GET /api/system-settings/public
+const crudController = createCRUDController(systemSettingsServiceAdapter, {
+  entityName: 'System setting',
+  entityNamePlural: 'System settings',
+});
+
+// ========== ÖZEL METODLAR ==========
+
+// GET /api/system-settings/public - Get public settings
 const getPublicSettings = async (req, res, next) => {
   try {
     const settings = await systemSettingsService.getPublicSettings();
@@ -29,7 +45,7 @@ const getPublicSettings = async (req, res, next) => {
   }
 };
 
-// GET /api/system-settings/:key
+// GET /api/system-settings/:key - Get setting by key
 const getSettingByKey = async (req, res, next) => {
   try {
     const { key } = req.params;
@@ -45,7 +61,7 @@ const getSettingByKey = async (req, res, next) => {
   }
 };
 
-// GET /api/system-settings/category/:category
+// GET /api/system-settings/category/:category - Get settings by category
 const getSettingsByCategory = async (req, res, next) => {
   try {
     const { category } = req.params;
@@ -57,48 +73,7 @@ const getSettingsByCategory = async (req, res, next) => {
   }
 };
 
-// POST /api/system-settings
-const createSetting = async (req, res, next) => {
-  try {
-    const setting = await systemSettingsService.createSetting(req.body);
-
-    res.status(201).json({
-      message: 'System setting created successfully',
-      setting
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-// PUT /api/system-settings/:key
-const updateSetting = async (req, res, next) => {
-  try {
-    const { key } = req.params;
-    const setting = await systemSettingsService.updateSetting(key, req.body);
-
-    res.json({
-      message: 'System setting updated successfully',
-      setting
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-// DELETE /api/system-settings/:key
-const deleteSetting = async (req, res, next) => {
-  try {
-    const { key } = req.params;
-    await systemSettingsService.deleteSetting(key);
-
-    res.json({ message: 'System setting deleted successfully' });
-  } catch (error) {
-    next(error);
-  }
-};
-
-// POST /api/system-settings/:key/upsert
+// POST /api/system-settings/:key/upsert - Upsert setting
 const upsertSetting = async (req, res, next) => {
   try {
     const { key } = req.params;
@@ -113,7 +88,7 @@ const upsertSetting = async (req, res, next) => {
   }
 };
 
-// POST /api/system-settings/initialize
+// POST /api/system-settings/initialize - Initialize default settings
 const initializeDefaults = async (req, res, next) => {
   try {
     const created = await systemSettingsService.initializeDefaults();
@@ -128,14 +103,19 @@ const initializeDefaults = async (req, res, next) => {
   }
 };
 
+// ========== EXPORT ==========
+
 module.exports = {
-  getAllSettings,
+  // Standard CRUD (factory'den)
+  getAllSettings: crudController.getAll,
+  createSetting: crudController.create,
+  updateSetting: crudController.update,
+  deleteSetting: crudController.delete,
+
+  // Özel metodlar
   getPublicSettings,
   getSettingByKey,
   getSettingsByCategory,
-  createSetting,
-  updateSetting,
-  deleteSetting,
   upsertSetting,
-  initializeDefaults
+  initializeDefaults,
 };

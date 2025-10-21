@@ -1,7 +1,41 @@
+/**
+ * Page Controller
+ *
+ * REFACTORING NOTU:
+ * -----------------
+ * Bu controller artık generic controllerFactory kullanıyor.
+ *
+ * NOT: getAllPages ve createPage özel yapıda olduğu için elle tanımlandı.
+ * - getAllPages: Karmaşık filter yapısı var
+ * - createPage: pageService.createPage(body, userId) formatında (iki parametre)
+ *
+ * Diğer CRUD işlemleri (getById, update, delete) factory'den geliyor.
+ * Public endpoint'ler ayrı tanımlanmış.
+ */
+
 const pageService = require('./page.service');
+const { createCRUDController } = require('../../../utils/controllerFactory');
 
-// ========== ADMIN CONTROLLERS ==========
+// ========== STANDARD CRUD OPERATIONS (Factory ile - kısmi) ==========
 
+const pageServiceAdapter = {
+  // getAllPages özel olduğu için factory'de kullanmıyoruz
+  getAll: null,
+  getById: (id) => pageService.getPageById(id),
+  // createPage özel olduğu için factory'de kullanmıyoruz
+  create: null,
+  update: (id, data) => pageService.updatePage(id, data),
+  delete: (id) => pageService.deletePage(id),
+};
+
+const crudController = createCRUDController(pageServiceAdapter, {
+  entityName: 'Sayfa',
+  entityNamePlural: 'Sayfalar',
+});
+
+// ========== ADMIN CONTROLLERS (Özel yapıda olanlar) ==========
+
+// GET /api/pages - Karmaşık filter yapısı nedeniyle elle tanımlı
 const getAllPages = async (req, res, next) => {
   try {
     const filters = {
@@ -28,15 +62,7 @@ const getAllPages = async (req, res, next) => {
   }
 };
 
-const getPageById = async (req, res, next) => {
-  try {
-    const page = await pageService.getPageById(req.params.id);
-    res.status(200).json(page);
-  } catch (error) {
-    next(error);
-  }
-};
-
+// GET /api/pages/slug/:slug
 const getPageBySlug = async (req, res, next) => {
   try {
     const page = await pageService.getPageBySlug(req.params.slug);
@@ -46,29 +72,12 @@ const getPageBySlug = async (req, res, next) => {
   }
 };
 
+// POST /api/pages - Service signature farklı olduğu için elle tanımlı
 const createPage = async (req, res, next) => {
   try {
     const userId = req.user?.userId; // From authMiddleware
     const page = await pageService.createPage(req.body, userId);
     res.status(201).json(page);
-  } catch (error) {
-    next(error);
-  }
-};
-
-const updatePage = async (req, res, next) => {
-  try {
-    const page = await pageService.updatePage(req.params.id, req.body);
-    res.status(200).json(page);
-  } catch (error) {
-    next(error);
-  }
-};
-
-const deletePage = async (req, res, next) => {
-  try {
-    await pageService.deletePage(req.params.id);
-    res.status(200).json({ message: 'Page deleted successfully' });
   } catch (error) {
     next(error);
   }
@@ -107,13 +116,18 @@ const getPublicPagesByType = async (req, res, next) => {
   }
 };
 
+// ========== EXPORT ==========
+
 module.exports = {
-  getAllPages,
-  getPageById,
-  getPageBySlug,
-  createPage,
-  updatePage,
-  deletePage,
+  // Admin endpoints
+  getAllPages, // Elle tanımlı
+  getPageById: crudController.getById, // Factory'den
+  getPageBySlug, // Elle tanımlı
+  createPage, // Elle tanımlı
+  updatePage: crudController.update, // Factory'den
+  deletePage: crudController.delete, // Factory'den
+
+  // Public endpoints
   getPublicPages,
   getPublicPageBySlug,
   getPublicPagesByType,

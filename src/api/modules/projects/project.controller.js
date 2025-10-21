@@ -1,5 +1,20 @@
+/**
+ * Project Controller
+ *
+ * REFACTORING NOTU:
+ * -----------------
+ * Bu controller artık generic controllerFactory kullanıyor.
+ *
+ * ÖNEMLİ: mapProjectToFrontend fonksiyonu transformData olarak factory'ye geçiliyor.
+ * Bu sayede tüm CRUD işlemlerinde otomatik mapping yapılıyor.
+ *
+ * beforeCreate hook: authorId'yi req.user'dan ekliyor.
+ * Public endpoint'ler ayrı tanımlanmış.
+ */
+
 const projectService = require('./project.service');
 const upload = require('../../../config/multer');
+const { createCRUDController } = require('../../../utils/controllerFactory');
 
 // Helper to map schema to frontend format
 const mapProjectToFrontend = (project) => ({
@@ -27,61 +42,29 @@ const mapProjectToFrontend = (project) => ({
   updatedAt: project.updatedAt
 });
 
-const getAllProjects = async (req, res, next) => {
-  try {
-    const result = await projectService.getAllProjects(req.query);
-    const mappedProjects = result.data.map(mapProjectToFrontend);
-    res.status(200).json({
-      data: mappedProjects,
-      pagination: result.pagination,
-    });
-  } catch (error) {
-    next(error);
-  }
+// ========== STANDARD CRUD OPERATIONS (Factory ile) ==========
+
+const projectServiceAdapter = {
+  getAll: (query) => projectService.getAllProjects(query),
+  getById: (id) => projectService.getProjectById(id),
+  create: (data) => projectService.createProject(data),
+  update: (id, data) => projectService.updateProject(id, data),
+  delete: (id) => projectService.deleteProject(id),
 };
 
-const createProject = async (req, res, next) => {
-  try {
-    const authorId = req.user.userId;
-    const projectData = { ...req.body, authorId };
-    const newProject = await projectService.createProject(projectData);
-    res.status(201).json(mapProjectToFrontend(newProject));
-  } catch (error) {
-    next(error);
-  }
-};
+const crudController = createCRUDController(projectServiceAdapter, {
+  entityName: 'Proje',
+  entityNamePlural: 'Projeler',
+  // transformData: Tüm response'larda mapping uygula
+  transformData: mapProjectToFrontend,
+  // beforeCreate hook: authorId'yi req.user'dan al
+  beforeCreate: async (req, data) => ({
+    ...data,
+    authorId: req.user.userId, // From auth middleware
+  }),
+});
 
-const getProjectById = async (req, res, next) => {
-  try {
-    const project = await projectService.getProjectById(parseInt(req.params.id));
-    if (!project) {
-      return res.status(404).json({ message: 'Proje bulunamadı' });
-    }
-    res.status(200).json(mapProjectToFrontend(project));
-  } catch (error) {
-    next(error);
-  }
-};
-
-const updateProject = async (req, res, next) => {
-  try {
-    const updatedProject = await projectService.updateProject(parseInt(req.params.id), req.body);
-    res.status(200).json(mapProjectToFrontend(updatedProject));
-  } catch (error) {
-    next(error);
-  }
-};
-
-const deleteProject = async (req, res, next) => {
-  try {
-    await projectService.deleteProject(parseInt(req.params.id));
-    res.status(204).send();
-  } catch (error) {
-    next(error);
-  }
-};
-
-// ========== PUBLIC ENDPOINTS (Auth gerektirmez) ==========
+// ========== ÖZEL METODLAR (Public endpoints & upload) ==========
 
 // Public: Tüm aktif projeleri listele
 const getPublicProjects = async (req, res, next) => {
@@ -162,14 +145,21 @@ const uploadImage = async (req, res, next) => {
   }
 };
 
+// ========== EXPORT ==========
+
 module.exports = {
-  getAllProjects,
-  getProjectById,
-  createProject,
-  updateProject,
-  deleteProject,
+  // Standard CRUD (factory'den - mapping otomatik uygulanıyor)
+  getAllProjects: crudController.getAll,
+  getProjectById: crudController.getById,
+  createProject: crudController.create,
+  updateProject: crudController.update,
+  deleteProject: crudController.delete,
+
+  // Public endpoints (özel)
   getPublicProjects,
   getPublicProjectBySlug,
+
+  // Upload
   uploadImage,
-  upload // Multer middleware'ini export et
+  upload, // Multer middleware'ini export et
 };

@@ -1,35 +1,50 @@
-const newsService = require('./news.service');
+/**
+ * News Controller
+ *
+ * REFACTORING NOTU:
+ * -----------------
+ * Bu controller artık generic controllerFactory kullanıyor.
+ * Bu sayede kod tekrarı azaldı ve tutarlılık arttı.
+ *
+ * Standard CRUD işlemleri (getAll, getById, create, update, delete) factory'den geliyor.
+ * Özel metodlar (getPublishedNews, getBySlug) ise aşağıda manuel tanımlanmış.
+ *
+ * Frontend'e gönderilen response formatı DEĞİŞMEDİ!
+ */
 
-// GET /api/news - Get all news (admin)
-const getAllNews = async (req, res, next) => {
-  try {
-    const result = await newsService.getAllNews(req.query);
-    res.status(200).json(result);
-  } catch (error) {
-    next(error);
-  }
+const newsService = require('./news.service');
+const { createCRUDController } = require('../../../utils/controllerFactory');
+
+// ========== STANDARD CRUD OPERATIONS (Factory ile) ==========
+
+// Service metodlarını factory'nin beklediği formata adapt ediyoruz
+const newsServiceAdapter = {
+  getAll: (query) => newsService.getAllNews(query),
+  getById: (id) => newsService.getNewsById(id),
+  create: (data) => newsService.createNews(data),
+  update: (id, data) => newsService.updateNews(id, data),
+  delete: (id) => newsService.deleteNews(id),
 };
+
+// Factory ile controller oluştur
+const crudController = createCRUDController(newsServiceAdapter, {
+  entityName: 'Haber',
+  entityNamePlural: 'Haberler',
+  // beforeCreate hook: authorId'yi req.user'dan al
+  beforeCreate: async (req, data) => ({
+    ...data,
+    authorId: req.user.id, // From auth middleware
+  }),
+  // Cache pattern'leri (gelecekte eklenebilir)
+  // cachePatterns: ['cache:/news*'],
+});
+
+// ========== ÖZEL METODLAR (Elle tanımlı) ==========
 
 // GET /api/news/published - Get published news (public)
 const getPublishedNews = async (req, res, next) => {
   try {
-    const news = await newsService.getPublishedNews();
-    res.json(news);
-  } catch (error) {
-    next(error);
-  }
-};
-
-// GET /api/news/:id - Get news by ID
-const getNewsById = async (req, res, next) => {
-  try {
-    const id = parseInt(req.params.id);
-    const news = await newsService.getNewsById(id);
-
-    if (!news) {
-      return res.status(404).json({ message: 'Haber bulunamadı' });
-    }
-
+    const news = await newsService.getPublishedNews(req.query);
     res.json(news);
   } catch (error) {
     next(error);
@@ -51,49 +66,17 @@ const getNewsBySlug = async (req, res, next) => {
   }
 };
 
-// POST /api/news - Create news
-const createNews = async (req, res, next) => {
-  try {
-    const newsData = {
-      ...req.body,
-      authorId: req.user.id // From auth middleware
-    };
-
-    const news = await newsService.createNews(newsData);
-    res.status(201).json(news);
-  } catch (error) {
-    next(error);
-  }
-};
-
-// PUT /api/news/:id - Update news
-const updateNews = async (req, res, next) => {
-  try {
-    const id = parseInt(req.params.id);
-    const news = await newsService.updateNews(id, req.body);
-    res.json(news);
-  } catch (error) {
-    next(error);
-  }
-};
-
-// DELETE /api/news/:id - Delete news
-const deleteNews = async (req, res, next) => {
-  try {
-    const id = parseInt(req.params.id);
-    await newsService.deleteNews(id);
-    res.json({ message: 'Haber silindi' });
-  } catch (error) {
-    next(error);
-  }
-};
+// ========== EXPORT ==========
 
 module.exports = {
-  getAllNews,
+  // Standard CRUD (factory'den)
+  getAllNews: crudController.getAll,
+  getNewsById: crudController.getById,
+  createNews: crudController.create,
+  updateNews: crudController.update,
+  deleteNews: crudController.delete,
+
+  // Özel metodlar
   getPublishedNews,
-  getNewsById,
   getNewsBySlug,
-  createNews,
-  updateNews,
-  deleteNews
 };

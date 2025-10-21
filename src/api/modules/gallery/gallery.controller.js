@@ -1,14 +1,38 @@
-const galleryService = require('./gallery.service');
+/**
+ * Gallery Controller
+ *
+ * REFACTORING NOTU:
+ * -----------------
+ * Bu controller artık generic controllerFactory kullanıyor.
+ * Standard CRUD işlemleri factory'den geliyor.
+ * beforeCreate hook: uploaderId'yi req.user'dan ekliyor.
+ * Özel metod: getPublicGallery
+ */
 
-// GET /api/gallery - Get all gallery items (admin)
-const getAllGalleryItems = async (req, res, next) => {
-  try {
-    const result = await galleryService.getAllGalleryItems(req.query);
-    res.status(200).json(result);
-  } catch (error) {
-    next(error);
-  }
+const galleryService = require('./gallery.service');
+const { createCRUDController } = require('../../../utils/controllerFactory');
+
+// ========== STANDARD CRUD OPERATIONS (Factory ile) ==========
+
+const galleryServiceAdapter = {
+  getAll: (query) => galleryService.getAllGalleryItems(query),
+  getById: (id) => galleryService.getGalleryItemById(id),
+  create: (data) => galleryService.createGalleryItem(data),
+  update: (id, data) => galleryService.updateGalleryItem(id, data),
+  delete: (id) => galleryService.deleteGalleryItem(id),
 };
+
+const crudController = createCRUDController(galleryServiceAdapter, {
+  entityName: 'Galeri öğesi',
+  entityNamePlural: 'Galeri öğeleri',
+  // beforeCreate hook: uploaderId'yi req.user'dan al
+  beforeCreate: async (req, data) => ({
+    ...data,
+    uploaderId: req.user.id, // From auth middleware
+  }),
+});
+
+// ========== ÖZEL METODLAR ==========
 
 // GET /api/gallery/public - Get public gallery items
 const getPublicGallery = async (req, res, next) => {
@@ -25,64 +49,16 @@ const getPublicGallery = async (req, res, next) => {
   }
 };
 
-// GET /api/gallery/:id - Get gallery item by ID
-const getGalleryItemById = async (req, res, next) => {
-  try {
-    const id = parseInt(req.params.id);
-    const galleryItem = await galleryService.getGalleryItemById(id);
-
-    if (!galleryItem) {
-      return res.status(404).json({ message: 'Galeri öğesi bulunamadı' });
-    }
-
-    res.json(galleryItem);
-  } catch (error) {
-    next(error);
-  }
-};
-
-// POST /api/gallery - Create gallery item
-const createGalleryItem = async (req, res, next) => {
-  try {
-    const galleryData = {
-      ...req.body,
-      uploaderId: req.user.id // From auth middleware
-    };
-
-    const galleryItem = await galleryService.createGalleryItem(galleryData);
-    res.status(201).json(galleryItem);
-  } catch (error) {
-    next(error);
-  }
-};
-
-// PUT /api/gallery/:id - Update gallery item
-const updateGalleryItem = async (req, res, next) => {
-  try {
-    const id = parseInt(req.params.id);
-    const galleryItem = await galleryService.updateGalleryItem(id, req.body);
-    res.json(galleryItem);
-  } catch (error) {
-    next(error);
-  }
-};
-
-// DELETE /api/gallery/:id - Delete gallery item
-const deleteGalleryItem = async (req, res, next) => {
-  try {
-    const id = parseInt(req.params.id);
-    await galleryService.deleteGalleryItem(id);
-    res.json({ message: 'Galeri öğesi silindi' });
-  } catch (error) {
-    next(error);
-  }
-};
+// ========== EXPORT ==========
 
 module.exports = {
-  getAllGalleryItems,
+  // Standard CRUD (factory'den)
+  getAllGalleryItems: crudController.getAll,
+  getGalleryItemById: crudController.getById,
+  createGalleryItem: crudController.create,
+  updateGalleryItem: crudController.update,
+  deleteGalleryItem: crudController.delete,
+
+  // Özel metodlar
   getPublicGallery,
-  getGalleryItemById,
-  createGalleryItem,
-  updateGalleryItem,
-  deleteGalleryItem
 };

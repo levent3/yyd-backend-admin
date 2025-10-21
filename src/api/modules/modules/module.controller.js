@@ -1,54 +1,35 @@
+/**
+ * Module Controller
+ *
+ * REFACTORING NOTU:
+ * -----------------
+ * Bu controller artık generic controllerFactory kullanıyor.
+ * En basit CRUD örneği - hiç özel metod yok.
+ */
+
 const moduleService = require('./module.service');
+const { createCRUDController } = require('../../../utils/controllerFactory');
 
-const getAllModules = async (req, res, next) => {
-  try {
-    const modules = await moduleService.getAllModules();
-    res.status(200).json(modules);
-  } catch (error) {
-    next(error);
-  }
+// Service adapter
+const moduleServiceAdapter = {
+  getAll: () => moduleService.getAllModules(),
+  getById: (id) => moduleService.getModuleById(id),
+  create: (data) => moduleService.createModule(data),
+  update: (id, data) => moduleService.updateModule(id, data),
+  delete: (id) => moduleService.deleteModule(id),
 };
 
-const getModuleById = async (req, res, next) => {
-  try {
-    const module = await moduleService.getModuleById(parseInt(req.params.id));
-    res.status(200).json(module);
-  } catch (error) {
-    next(error);
-  }
-};
+// Factory ile controller oluştur
+const crudController = createCRUDController(moduleServiceAdapter, {
+  entityName: 'Modül',
+  entityNamePlural: 'Modüller',
+});
 
-const createModule = async (req, res, next) => {
-  try {
-    const module = await moduleService.createModule(req.body);
-    res.status(201).json({ message: 'Modül başarıyla oluşturuldu', module });
-  } catch (error) {
-    next(error);
-  }
-};
-
-const updateModule = async (req, res, next) => {
-  try {
-    const module = await moduleService.updateModule(parseInt(req.params.id), req.body);
-    res.status(200).json({ message: 'Modül başarıyla güncellendi', module });
-  } catch (error) {
-    next(error);
-  }
-};
-
-const deleteModule = async (req, res, next) => {
-  try {
-    await moduleService.deleteModule(parseInt(req.params.id));
-    res.status(200).json({ message: 'Modül başarıyla silindi' });
-  } catch (error) {
-    next(error);
-  }
-};
-
+// Export
 module.exports = {
-  getAllModules,
-  getModuleById,
-  createModule,
-  updateModule,
-  deleteModule
+  getAllModules: crudController.getAll,
+  getModuleById: crudController.getById,
+  createModule: crudController.create,
+  updateModule: crudController.update,
+  deleteModule: crudController.delete,
 };

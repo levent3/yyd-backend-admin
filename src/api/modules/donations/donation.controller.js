@@ -1,94 +1,98 @@
+/**
+ * Donation Controller
+ *
+ * REFACTORING NOTU:
+ * -----------------
+ * Bu controller artık generic controllerFactory kullanıyor.
+ *
+ * ÖZEL DURUM: Bu modül 4 farklı entity içeriyor:
+ * 1. Donations (Bağışlar)
+ * 2. Campaigns (Kampanyalar)
+ * 3. Donors (Bağışçılar)
+ * 4. BankAccounts (Banka Hesapları)
+ *
+ * Her biri için ayrı factory controller oluşturuldu.
+ * Cache invalidation pattern'leri afterCreate/Update/Delete hook'larında yapılıyor.
+ */
+
 const donationService = require('./donation.service');
+const { createCRUDController } = require('../../../utils/controllerFactory');
 const { invalidateCache } = require('../../middlewares/cacheMiddleware');
 
-// ========== DONATIONS ==========
+// ========== 1. DONATIONS (Bağışlar) ==========
 
-const getAllDonations = async (req, res, next) => {
-  try {
-    const result = await donationService.getAllDonations(req.query);
-    res.status(200).json(result);
-  } catch (error) {
-    next(error);
-  }
+const donationServiceAdapter = {
+  getAll: (query) => donationService.getAllDonations(query),
+  getById: (id) => donationService.getDonationById(id),
+  create: (data) => donationService.createDonation(data),
+  update: (id, data) => donationService.updateDonation(id, data),
+  delete: (id) => donationService.deleteDonation(id),
 };
 
-const getDonationById = async (req, res, next) => {
-  try {
-    const donation = await donationService.getDonationById(req.params.id);
-    if (!donation) {
-      return res.status(404).json({ message: 'Bağış bulunamadı' });
-    }
-    res.status(200).json(donation);
-  } catch (error) {
-    next(error);
-  }
+const donationController = createCRUDController(donationServiceAdapter, {
+  entityName: 'Bağış',
+  entityNamePlural: 'Bağışlar',
+  // Cache invalidation: Bağış oluşturulunca/güncellenince/silinince istatistikler değişir
+  cachePatterns: [
+    'cache:/api/donations/campaigns*',
+    'cache:/api/dashboard*',
+  ],
+});
+
+// ========== 2. CAMPAIGNS (Kampanyalar) ==========
+
+const campaignServiceAdapter = {
+  getAll: (query) => donationService.getAllCampaigns(query),
+  getById: (id) => donationService.getCampaignById(id),
+  create: (data) => donationService.createCampaign(data),
+  update: (id, data) => donationService.updateCampaign(id, data),
+  delete: (id) => donationService.deleteCampaign(id),
 };
 
-const createDonation = async (req, res, next) => {
-  try {
-    const donation = await donationService.createDonation(req.body);
+const campaignController = createCRUDController(campaignServiceAdapter, {
+  entityName: 'Kampanya',
+  entityNamePlural: 'Kampanyalar',
+  // Cache invalidation: Kampanya oluşturulunca/güncellenince/silinince cache'leri temizle
+  cachePatterns: [
+    'cache:/campaigns*',
+    'cache:/statistics*',
+    'cache:/recent-activities*',
+  ],
+});
 
-    // Cache'leri temizle (bağış oluşturulunca istatistikler değişir)
-    await invalidateCache('cache:/api/donations/campaigns*');
-    await invalidateCache('cache:/api/dashboard*');
+// ========== 3. DONORS (Bağışçılar) ==========
 
-    res.status(201).json({ message: 'Bağış kaydı oluşturuldu', donation });
-  } catch (error) {
-    next(error);
-  }
+const donorServiceAdapter = {
+  getAll: () => donationService.getAllDonors(),
+  getById: (id) => donationService.getDonorById(id),
+  create: (data) => donationService.createDonor(data),
+  update: (id, data) => donationService.updateDonor(id, data),
+  delete: null, // Donor delete yok
 };
 
-const updateDonation = async (req, res, next) => {
-  try {
-    const donation = await donationService.updateDonation(req.params.id, req.body);
+const donorController = createCRUDController(donorServiceAdapter, {
+  entityName: 'Bağışçı',
+  entityNamePlural: 'Bağışçılar',
+});
 
-    // Cache'leri temizle (bağış güncellenince istatistikler değişebilir)
-    await invalidateCache('cache:/api/donations/campaigns*');
-    await invalidateCache('cache:/api/dashboard*');
+// ========== 4. BANK ACCOUNTS (Banka Hesapları) ==========
 
-    res.status(200).json({ message: 'Bağış güncellendi', donation });
-  } catch (error) {
-    next(error);
-  }
+const bankAccountServiceAdapter = {
+  getAll: () => donationService.getAllBankAccounts(),
+  getById: (id) => donationService.getBankAccountById(id),
+  create: (data) => donationService.createBankAccount(data),
+  update: (id, data) => donationService.updateBankAccount(id, data),
+  delete: (id) => donationService.deleteBankAccount(id),
 };
 
-const deleteDonation = async (req, res, next) => {
-  try {
-    await donationService.deleteDonation(req.params.id);
+const bankAccountController = createCRUDController(bankAccountServiceAdapter, {
+  entityName: 'Banka hesabı',
+  entityNamePlural: 'Banka hesapları',
+});
 
-    // Cache'leri temizle (bağış silinince istatistikler değişir)
-    await invalidateCache('cache:/api/donations/campaigns*');
-    await invalidateCache('cache:/api/dashboard*');
+// ========== ÖZEL METODLAR ==========
 
-    res.status(200).json({ message: 'Bağış silindi' });
-  } catch (error) {
-    next(error);
-  }
-};
-
-// ========== DONATION CAMPAIGNS ==========
-
-const getAllCampaigns = async (req, res, next) => {
-  try {
-    const campaigns = await donationService.getAllCampaigns(req.query);
-    res.status(200).json(campaigns);
-  } catch (error) {
-    next(error);
-  }
-};
-
-const getCampaignById = async (req, res, next) => {
-  try {
-    const campaign = await donationService.getCampaignById(parseInt(req.params.id));
-    if (!campaign) {
-      return res.status(404).json({ message: 'Kampanya bulunamadı' });
-    }
-    res.status(200).json(campaign);
-  } catch (error) {
-    next(error);
-  }
-};
-
+// GET /api/donations/campaigns/:slug - Campaign by slug
 const getCampaignBySlug = async (req, res, next) => {
   try {
     const campaign = await donationService.getCampaignBySlug(req.params.slug);
@@ -101,74 +105,7 @@ const getCampaignBySlug = async (req, res, next) => {
   }
 };
 
-const createCampaign = async (req, res, next) => {
-  try {
-    const campaign = await donationService.createCampaign(req.body);
-
-    // Cache'leri temizle (doğru path ile)
-    await invalidateCache('cache:/campaigns*');
-    await invalidateCache('cache:/statistics*');
-    await invalidateCache('cache:/recent-activities*');
-
-    res.status(201).json({ message: 'Kampanya oluşturuldu', campaign });
-  } catch (error) {
-    next(error);
-  }
-};
-
-const updateCampaign = async (req, res, next) => {
-  try {
-    const campaign = await donationService.updateCampaign(parseInt(req.params.id), req.body);
-
-    // Cache'leri temizle (doğru path ile)
-    await invalidateCache('cache:/campaigns*');
-    await invalidateCache('cache:/statistics*');
-    await invalidateCache('cache:/recent-activities*');
-
-    res.status(200).json({ message: 'Kampanya güncellendi', campaign });
-  } catch (error) {
-    next(error);
-  }
-};
-
-const deleteCampaign = async (req, res, next) => {
-  try {
-    await donationService.deleteCampaign(parseInt(req.params.id));
-
-    // Cache'leri temizle (doğru path ile)
-    await invalidateCache('cache:/campaigns*');
-    await invalidateCache('cache:/statistics*');
-    await invalidateCache('cache:/recent-activities*');
-
-    res.status(200).json({ message: 'Kampanya silindi' });
-  } catch (error) {
-    next(error);
-  }
-};
-
-// ========== DONORS ==========
-
-const getAllDonors = async (req, res, next) => {
-  try {
-    const donors = await donationService.getAllDonors();
-    res.status(200).json(donors);
-  } catch (error) {
-    next(error);
-  }
-};
-
-const getDonorById = async (req, res, next) => {
-  try {
-    const donor = await donationService.getDonorById(parseInt(req.params.id));
-    if (!donor) {
-      return res.status(404).json({ message: 'Bağışçı bulunamadı' });
-    }
-    res.status(200).json(donor);
-  } catch (error) {
-    next(error);
-  }
-};
-
+// GET /api/donations/donors/email/:email - Donor by email
 const getDonorByEmail = async (req, res, next) => {
   try {
     const donor = await donationService.getDonorByEmail(req.params.email);
@@ -181,101 +118,35 @@ const getDonorByEmail = async (req, res, next) => {
   }
 };
 
-const createDonor = async (req, res, next) => {
-  try {
-    const donor = await donationService.createDonor(req.body);
-    res.status(201).json({ message: 'Bağışçı oluşturuldu', donor });
-  } catch (error) {
-    next(error);
-  }
-};
-
-const updateDonor = async (req, res, next) => {
-  try {
-    const donor = await donationService.updateDonor(parseInt(req.params.id), req.body);
-    res.status(200).json({ message: 'Bağışçı güncellendi', donor });
-  } catch (error) {
-    next(error);
-  }
-};
-
-// ========== BANK ACCOUNTS ==========
-
-const getAllBankAccounts = async (req, res, next) => {
-  try {
-    const accounts = await donationService.getAllBankAccounts();
-    res.status(200).json(accounts);
-  } catch (error) {
-    next(error);
-  }
-};
-
-const getBankAccountById = async (req, res, next) => {
-  try {
-    const account = await donationService.getBankAccountById(parseInt(req.params.id));
-    if (!account) {
-      return res.status(404).json({ message: 'Banka hesabı bulunamadı' });
-    }
-    res.status(200).json(account);
-  } catch (error) {
-    next(error);
-  }
-};
-
-const createBankAccount = async (req, res, next) => {
-  try {
-    const account = await donationService.createBankAccount(req.body);
-    res.status(201).json({ message: 'Banka hesabı oluşturuldu', account });
-  } catch (error) {
-    next(error);
-  }
-};
-
-const updateBankAccount = async (req, res, next) => {
-  try {
-    const account = await donationService.updateBankAccount(parseInt(req.params.id), req.body);
-    res.status(200).json({ message: 'Banka hesabı güncellendi', account });
-  } catch (error) {
-    next(error);
-  }
-};
-
-const deleteBankAccount = async (req, res, next) => {
-  try {
-    await donationService.deleteBankAccount(parseInt(req.params.id));
-    res.status(200).json({ message: 'Banka hesabı silindi' });
-  } catch (error) {
-    next(error);
-  }
-};
+// ========== EXPORT ==========
 
 module.exports = {
-  // Donations
-  getAllDonations,
-  getDonationById,
-  createDonation,
-  updateDonation,
-  deleteDonation,
+  // Donations (Bağışlar)
+  getAllDonations: donationController.getAll,
+  getDonationById: donationController.getById,
+  createDonation: donationController.create,
+  updateDonation: donationController.update,
+  deleteDonation: donationController.delete,
 
-  // Campaigns
-  getAllCampaigns,
-  getCampaignById,
-  getCampaignBySlug,
-  createCampaign,
-  updateCampaign,
-  deleteCampaign,
+  // Campaigns (Kampanyalar)
+  getAllCampaigns: campaignController.getAll,
+  getCampaignById: campaignController.getById,
+  getCampaignBySlug, // Özel metod
+  createCampaign: campaignController.create,
+  updateCampaign: campaignController.update,
+  deleteCampaign: campaignController.delete,
 
-  // Donors
-  getAllDonors,
-  getDonorById,
-  getDonorByEmail,
-  createDonor,
-  updateDonor,
+  // Donors (Bağışçılar)
+  getAllDonors: donorController.getAll,
+  getDonorById: donorController.getById,
+  getDonorByEmail, // Özel metod
+  createDonor: donorController.create,
+  updateDonor: donorController.update,
 
-  // Bank Accounts
-  getAllBankAccounts,
-  getBankAccountById,
-  createBankAccount,
-  updateBankAccount,
-  deleteBankAccount,
+  // Bank Accounts (Banka Hesapları)
+  getAllBankAccounts: bankAccountController.getAll,
+  getBankAccountById: bankAccountController.getById,
+  createBankAccount: bankAccountController.create,
+  updateBankAccount: bankAccountController.update,
+  deleteBankAccount: bankAccountController.delete,
 };

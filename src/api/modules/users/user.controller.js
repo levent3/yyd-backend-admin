@@ -1,57 +1,36 @@
+/**
+ * User Controller
+ *
+ * REFACTORING NOTU:
+ * -----------------
+ * Bu controller artık generic controllerFactory kullanıyor.
+ * En basit controller örneği - sadece standard CRUD işlemleri.
+ * Hiç özel metod veya hook yok.
+ */
+
 const userService = require('./user.service');
+const { createCRUDController } = require('../../../utils/controllerFactory');
 
-const getAllUsers = async (req, res, next) => {
-  try {
-    const result = await userService.getAllUsers(req.query);
-    res.status(200).json(result);
-  } catch (error) {
-    next(error);
-  }
+// Service metodlarını factory'nin beklediği formata adapt et
+const userServiceAdapter = {
+  getAll: (query) => userService.getAllUsers(query),
+  getById: (id) => userService.getUserById(id),
+  create: (data) => userService.createUser(data),
+  update: (id, data) => userService.updateUser(id, data),
+  delete: (id) => userService.deleteUser(id),
 };
 
-const getUserById = async (req, res, next) => {
-  try {
-    const user = await userService.getUserById(parseInt(req.params.id));
-    if (!user) {
-      return res.status(404).json({ message: 'Kullanıcı bulunamadı' });
-    }
-    res.status(200).json(user);
-  } catch (error) {
-    next(error);
-  }
-};
+// Factory ile controller oluştur
+const crudController = createCRUDController(userServiceAdapter, {
+  entityName: 'Kullanıcı',
+  entityNamePlural: 'Kullanıcılar',
+});
 
-const createUser = async (req, res, next) => {
-  try {
-    const newUser = await userService.createUser(req.body);
-    res.status(201).json(newUser);
-  } catch (error) {
-    next(error);
-  }
-};
-
-const updateUser = async (req, res, next) => {
-  try {
-    const updatedUser = await userService.updateUser(parseInt(req.params.id), req.body);
-    res.status(200).json(updatedUser);
-  } catch (error) {
-    next(error);
-  }
-};
-
-const deleteUser = async (req, res, next) => {
-  try {
-    await userService.deleteUser(parseInt(req.params.id));
-    res.status(204).send();
-  } catch (error) {
-    next(error);
-  }
-};
-
+// Export - Factory'den gelen metodlar
 module.exports = {
-  getAllUsers,
-  getUserById,
-  createUser,
-  updateUser,
-  deleteUser
+  getAllUsers: crudController.getAll,
+  getUserById: crudController.getById,
+  createUser: crudController.create,
+  updateUser: crudController.update,
+  deleteUser: crudController.delete,
 };

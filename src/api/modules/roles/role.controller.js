@@ -1,51 +1,34 @@
-// src/api/modules/roles/role.controller.js
+/**
+ * Role Controller
+ *
+ * REFACTORING NOTU:
+ * -----------------
+ * Bu controller artık generic controllerFactory kullanıyor.
+ * Standard CRUD işlemleri factory'den geliyor.
+ * Özel metodlar: assignModulePermissions, getRolePermissions
+ */
+
 const roleService = require('./role.service');
+const { createCRUDController } = require('../../../utils/controllerFactory');
 
-const getAllRoles = async (req, res, next) => {
-  try {
-    const roles = await roleService.getAllRoles();
-    res.status(200).json(roles);
-  } catch (error) {
-    next(error);
-  }
+// ========== STANDARD CRUD OPERATIONS (Factory ile) ==========
+
+const roleServiceAdapter = {
+  getAll: () => roleService.getAllRoles(),
+  getById: (id) => roleService.getRoleById(id),
+  create: (data) => roleService.createRole(data),
+  update: (id, data) => roleService.updateRole(id, data),
+  delete: (id) => roleService.deleteRole(id),
 };
 
-const getRoleById = async (req, res, next) => {
-  try {
-    const role = await roleService.getRoleById(req.params.id);
-    res.status(200).json(role);
-  } catch (error) {
-    next(error);
-  }
-};
+const crudController = createCRUDController(roleServiceAdapter, {
+  entityName: 'Rol',
+  entityNamePlural: 'Roller',
+});
 
-const createRole = async (req, res, next) => {
-  try {
-    const role = await roleService.createRole(req.body);
-    res.status(201).json({ message: 'Rol başarıyla oluşturuldu.', role });
-  } catch (error) {
-    next(error);
-  }
-};
+// ========== ÖZEL METODLAR ==========
 
-const updateRole = async (req, res, next) => {
-  try {
-    const role = await roleService.updateRole(req.params.id, req.body);
-    res.status(200).json({ message: 'Rol başarıyla güncellendi.', role });
-  } catch (error) {
-    next(error);
-  }
-};
-
-const deleteRole = async (req, res, next) => {
-  try {
-    await roleService.deleteRole(req.params.id);
-    res.status(200).json({ message: 'Rol başarıyla silindi.' });
-  } catch (error) {
-    next(error);
-  }
-};
-
+// POST /api/roles/:roleId/modules/:moduleId - Assign permissions
 const assignModulePermissions = async (req, res, next) => {
   try {
     const { roleId, moduleId } = req.params;
@@ -61,6 +44,7 @@ const assignModulePermissions = async (req, res, next) => {
   }
 };
 
+// GET /api/roles/:roleId/permissions - Get role permissions
 const getRolePermissions = async (req, res, next) => {
   try {
     const permissions = await roleService.getRolePermissions(req.params.roleId);
@@ -70,12 +54,17 @@ const getRolePermissions = async (req, res, next) => {
   }
 };
 
+// ========== EXPORT ==========
+
 module.exports = {
-  getAllRoles,
-  getRoleById,
-  createRole,
-  updateRole,
-  deleteRole,
+  // Standard CRUD (factory'den)
+  getAllRoles: crudController.getAll,
+  getRoleById: crudController.getById,
+  createRole: crudController.create,
+  updateRole: crudController.update,
+  deleteRole: crudController.delete,
+
+  // Özel metodlar
   assignModulePermissions,
-  getRolePermissions
+  getRolePermissions,
 };

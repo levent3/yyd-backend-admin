@@ -1,34 +1,34 @@
+/**
+ * Validation Rule Controller
+ *
+ * REFACTORING NOTU:
+ * -----------------
+ * Bu controller artık generic controllerFactory kullanıyor.
+ * Standard CRUD işlemleri factory'den geliyor.
+ * Özel metodlar: getRulesByEntity, toggleRuleActive, getTemplates, applyTemplate
+ */
+
 const validationRuleService = require('./validation-rule.service');
+const { createCRUDController } = require('../../../utils/controllerFactory');
 
-// GET /api/validation-rules
-const getAllRules = async (req, res, next) => {
-  try {
-    const { entityType, fieldName, isActive } = req.query;
-    const rules = await validationRuleService.getAllRules({ entityType, fieldName, isActive });
+// ========== STANDARD CRUD OPERATIONS (Factory ile) ==========
 
-    res.json(rules);
-  } catch (error) {
-    next(error);
-  }
+const validationRuleServiceAdapter = {
+  getAll: (query) => validationRuleService.getAllRules(query),
+  getById: (id) => validationRuleService.getRuleById(id),
+  create: (data) => validationRuleService.createRule(data),
+  update: (id, data) => validationRuleService.updateRule(id, data),
+  delete: (id) => validationRuleService.deleteRule(id),
 };
 
-// GET /api/validation-rules/:id
-const getRuleById = async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    const rule = await validationRuleService.getRuleById(id);
+const crudController = createCRUDController(validationRuleServiceAdapter, {
+  entityName: 'Validation rule',
+  entityNamePlural: 'Validation rules',
+});
 
-    if (!rule) {
-      return res.status(404).json({ message: 'Validation rule not found' });
-    }
+// ========== ÖZEL METODLAR ==========
 
-    res.json(rule);
-  } catch (error) {
-    next(error);
-  }
-};
-
-// GET /api/validation-rules/entity/:entityType
+// GET /api/validation-rules/entity/:entityType - Get rules by entity
 const getRulesByEntity = async (req, res, next) => {
   try {
     const { entityType } = req.params;
@@ -40,48 +40,7 @@ const getRulesByEntity = async (req, res, next) => {
   }
 };
 
-// POST /api/validation-rules
-const createRule = async (req, res, next) => {
-  try {
-    const rule = await validationRuleService.createRule(req.body);
-
-    res.status(201).json({
-      message: 'Validation rule created successfully',
-      rule
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-// PUT /api/validation-rules/:id
-const updateRule = async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    const rule = await validationRuleService.updateRule(id, req.body);
-
-    res.json({
-      message: 'Validation rule updated successfully',
-      rule
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-// DELETE /api/validation-rules/:id
-const deleteRule = async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    await validationRuleService.deleteRule(id);
-
-    res.json({ message: 'Validation rule deleted successfully' });
-  } catch (error) {
-    next(error);
-  }
-};
-
-// PATCH /api/validation-rules/:id/toggle
+// PATCH /api/validation-rules/:id/toggle - Toggle rule active/inactive
 const toggleRuleActive = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -98,7 +57,7 @@ const toggleRuleActive = async (req, res, next) => {
   }
 };
 
-// GET /api/validation-rules/templates
+// GET /api/validation-rules/templates - Get templates
 const getTemplates = async (req, res, next) => {
   try {
     const templates = validationRuleService.getDefaultTemplates();
@@ -109,7 +68,7 @@ const getTemplates = async (req, res, next) => {
   }
 };
 
-// POST /api/validation-rules/templates/apply
+// POST /api/validation-rules/templates/apply - Apply template
 const applyTemplate = async (req, res, next) => {
   try {
     const { entityType, fieldName } = req.body;
@@ -131,14 +90,19 @@ const applyTemplate = async (req, res, next) => {
   }
 };
 
+// ========== EXPORT ==========
+
 module.exports = {
-  getAllRules,
-  getRuleById,
+  // Standard CRUD (factory'den)
+  getAllRules: crudController.getAll,
+  getRuleById: crudController.getById,
+  createRule: crudController.create,
+  updateRule: crudController.update,
+  deleteRule: crudController.delete,
+
+  // Özel metodlar
   getRulesByEntity,
-  createRule,
-  updateRule,
-  deleteRule,
   toggleRuleActive,
   getTemplates,
-  applyTemplate
+  applyTemplate,
 };
