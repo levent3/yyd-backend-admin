@@ -21,7 +21,7 @@ const { createCRUDController } = require('../../../utils/controllerFactory');
 const pageServiceAdapter = {
   // getAllPages özel olduğu için factory'de kullanmıyoruz
   getAll: null,
-  getById: (id) => pageService.getPageById(id),
+  getById: (id, query) => pageService.getPageById(id, query.language || 'tr'),
   // createPage özel olduğu için factory'de kullanmıyoruz
   create: null,
   update: (id, data) => pageService.updatePage(id, data),
@@ -45,6 +45,7 @@ const getAllPages = async (req, res, next) => {
       isPublic: req.query.isPublic !== undefined ? req.query.isPublic === 'true' : undefined,
       search: req.query.search,
       orderBy: req.query.orderBy,
+      language: req.query.language || 'tr',
       skip: req.query.page ? (parseInt(req.query.page) - 1) * (parseInt(req.query.limit) || 50) : 0,
       take: req.query.limit ? parseInt(req.query.limit) : 50,
     };
@@ -65,7 +66,8 @@ const getAllPages = async (req, res, next) => {
 // GET /api/pages/slug/:slug
 const getPageBySlug = async (req, res, next) => {
   try {
-    const page = await pageService.getPageBySlug(req.params.slug);
+    const language = req.query.language || 'tr';
+    const page = await pageService.getPageBySlug(req.params.slug, language);
     res.status(200).json(page);
   } catch (error) {
     next(error);
@@ -89,6 +91,7 @@ const getPublicPages = async (req, res, next) => {
   try {
     const filters = {
       pageType: req.query.pageType,
+      language: req.query.language || 'tr',
     };
 
     const pages = await pageService.getPublicPages(filters);
@@ -100,7 +103,8 @@ const getPublicPages = async (req, res, next) => {
 
 const getPublicPageBySlug = async (req, res, next) => {
   try {
-    const page = await pageService.getPublicPageBySlug(req.params.slug);
+    const language = req.query.language || 'tr';
+    const page = await pageService.getPublicPageBySlug(req.params.slug, language);
     res.status(200).json(page);
   } catch (error) {
     next(error);
@@ -109,7 +113,8 @@ const getPublicPageBySlug = async (req, res, next) => {
 
 const getPublicPagesByType = async (req, res, next) => {
   try {
-    const pages = await pageService.getPublicPagesByType(req.params.pageType);
+    const language = req.query.language || 'tr';
+    const pages = await pageService.getPublicPagesByType(req.params.pageType, language);
     res.status(200).json(pages);
   } catch (error) {
     next(error);

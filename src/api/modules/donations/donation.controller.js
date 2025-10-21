@@ -43,7 +43,7 @@ const donationController = createCRUDController(donationServiceAdapter, {
 
 const campaignServiceAdapter = {
   getAll: (query) => donationService.getAllCampaigns(query),
-  getById: (id) => donationService.getCampaignById(id),
+  getById: (id, query) => donationService.getCampaignById(id, query.language || 'tr'),
   create: (data) => donationService.createCampaign(data),
   update: (id, data) => donationService.updateCampaign(id, data),
   delete: (id) => donationService.deleteCampaign(id),
@@ -95,7 +95,8 @@ const bankAccountController = createCRUDController(bankAccountServiceAdapter, {
 // GET /api/donations/campaigns/:slug - Campaign by slug
 const getCampaignBySlug = async (req, res, next) => {
   try {
-    const campaign = await donationService.getCampaignBySlug(req.params.slug);
+    const language = req.query.language || 'tr';
+    const campaign = await donationService.getCampaignBySlug(req.params.slug, language);
     if (!campaign) {
       return res.status(404).json({ message: 'Kampanya bulunamadı' });
     }

@@ -1,9 +1,11 @@
 const prisma = require('../../../config/prismaClient');
+const { includeTranslations } = require('../../../utils/translationHelper');
 
 // ========== ADMIN OPERATIONS ==========
 
 const findAll = async (filters = {}) => {
   const where = {};
+  const language = filters.language || 'tr';
 
   // Filters
   if (filters.status) where.status = filters.status;
@@ -11,12 +13,11 @@ const findAll = async (filters = {}) => {
   if (filters.isActive !== undefined) where.isActive = filters.isActive;
   if (filters.isPublic !== undefined) where.isPublic = filters.isPublic;
 
-  // Search
+  // Search - artık translation'larda arayacağız
   if (filters.search) {
     where.OR = [
-      { title: { contains: filters.search, mode: 'insensitive' } },
-      { slug: { contains: filters.search, mode: 'insensitive' } },
-      { content: { contains: filters.search, mode: 'insensitive' } },
+      { translations: { some: { title: { contains: filters.search, mode: 'insensitive' } } } },
+      { translations: { some: { content: { contains: filters.search, mode: 'insensitive' } } } },
     ];
   }
 
@@ -30,6 +31,7 @@ const findAll = async (filters = {}) => {
           email: true,
         },
       },
+      ...includeTranslations(language)
     },
     orderBy: filters.orderBy || { displayOrder: 'asc' },
     skip: filters.skip || 0,
@@ -41,7 +43,7 @@ const findAll = async (filters = {}) => {
   return { pages, total };
 };
 
-const findById = (id) => {
+const findById = (id, language = 'tr') => {
   return prisma.page.findUnique({
     where: { id: parseInt(id) },
     include: {
@@ -52,13 +54,22 @@ const findById = (id) => {
           email: true,
         },
       },
+      ...includeTranslations(language)
     },
   });
 };
 
-const findBySlug = (slug) => {
-  return prisma.page.findUnique({
-    where: { slug },
+const findBySlug = (slug, language = 'tr') => {
+  // Slug artık translation'da, önce translation'ı bulmalıyız
+  return prisma.page.findFirst({
+    where: {
+      translations: {
+        some: {
+          slug: slug,
+          ...(language && { language })
+        }
+      }
+    },
     include: {
       author: {
         select: {
@@ -67,28 +78,46 @@ const findBySlug = (slug) => {
           email: true,
         },
       },
+      ...includeTranslations()
     },
   });
 };
 
 const create = (data) => {
+  const { generateSlug } = require('../../../utils/translationHelper');
+
+  // translations array: [{ language: 'tr', title: '...', content: '...', ... }]
+  const { translations, ...rest } = data;
+
+  if (!translations || translations.length === 0) {
+    throw new Error('En az bir çeviri gereklidir');
+  }
+
+  // Her bir translation için slug generate et
+  const translationsWithSlug = translations.map(trans => ({
+    language: trans.language,
+    title: trans.title,
+    slug: trans.slug || generateSlug(trans.title),
+    content: trans.content || null,
+    excerpt: trans.excerpt || null,
+    metaTitle: trans.metaTitle || null,
+    metaDescription: trans.metaDescription || null,
+    metaKeywords: trans.metaKeywords || null
+  }));
+
   return prisma.page.create({
     data: {
-      title: data.title,
-      slug: data.slug,
-      content: data.content || null,
-      excerpt: data.excerpt || null,
-      metaTitle: data.metaTitle || null,
-      metaDescription: data.metaDescription || null,
-      metaKeywords: data.metaKeywords || null,
-      pageType: data.pageType || 'general',
-      status: data.status || 'draft',
-      isPublic: data.isPublic !== undefined ? data.isPublic : true,
-      isActive: data.isActive !== undefined ? data.isActive : true,
-      displayOrder: data.displayOrder || 0,
-      featuredImage: data.featuredImage || null,
-      publishedAt: data.status === 'published' ? new Date() : null,
-      authorId: data.authorId || null,
+      pageType: rest.pageType || 'general',
+      status: rest.status || 'draft',
+      isPublic: rest.isPublic !== undefined ? rest.isPublic : true,
+      isActive: rest.isActive !== undefined ? rest.isActive : true,
+      displayOrder: rest.displayOrder || 0,
+      featuredImage: rest.featuredImage || null,
+      publishedAt: rest.status === 'published' ? new Date() : null,
+      authorId: rest.authorId || null,
+      translations: {
+        create: translationsWithSlug
+      }
     },
     include: {
       author: {
@@ -103,27 +132,59 @@ const create = (data) => {
 };
 
 const update = (id, data) => {
+  const { generateSlug } = require('../../../utils/translationHelper');
+  const { translations, ...rest } = data;
+
   const updateData = {};
 
-  if (data.title !== undefined) updateData.title = data.title;
-  if (data.slug !== undefined) updateData.slug = data.slug;
-  if (data.content !== undefined) updateData.content = data.content;
-  if (data.excerpt !== undefined) updateData.excerpt = data.excerpt;
-  if (data.metaTitle !== undefined) updateData.metaTitle = data.metaTitle;
-  if (data.metaDescription !== undefined) updateData.metaDescription = data.metaDescription;
-  if (data.metaKeywords !== undefined) updateData.metaKeywords = data.metaKeywords;
-  if (data.pageType !== undefined) updateData.pageType = data.pageType;
-  if (data.status !== undefined) {
-    updateData.status = data.status;
+  // Dil-bağımsız alanları güncelle
+  if (rest.pageType !== undefined) updateData.pageType = rest.pageType;
+  if (rest.status !== undefined) {
+    updateData.status = rest.status;
     // If status changed to published, set publishedAt
-    if (data.status === 'published' && !data.publishedAt) {
+    if (rest.status === 'published' && !rest.publishedAt) {
       updateData.publishedAt = new Date();
     }
   }
-  if (data.isPublic !== undefined) updateData.isPublic = data.isPublic;
-  if (data.isActive !== undefined) updateData.isActive = data.isActive;
-  if (data.displayOrder !== undefined) updateData.displayOrder = data.displayOrder;
-  if (data.featuredImage !== undefined) updateData.featuredImage = data.featuredImage;
+  if (rest.isPublic !== undefined) updateData.isPublic = rest.isPublic;
+  if (rest.isActive !== undefined) updateData.isActive = rest.isActive;
+  if (rest.displayOrder !== undefined) updateData.displayOrder = rest.displayOrder;
+  if (rest.featuredImage !== undefined) updateData.featuredImage = rest.featuredImage;
+
+  // Translations güncelleme (varsa)
+  if (translations && translations.length > 0) {
+    const translationUpdates = translations.map(trans => ({
+      where: {
+        pageId_language: {
+          pageId: parseInt(id),
+          language: trans.language
+        }
+      },
+      create: {
+        language: trans.language,
+        title: trans.title,
+        slug: trans.slug || generateSlug(trans.title),
+        content: trans.content || null,
+        excerpt: trans.excerpt || null,
+        metaTitle: trans.metaTitle || null,
+        metaDescription: trans.metaDescription || null,
+        metaKeywords: trans.metaKeywords || null
+      },
+      update: {
+        title: trans.title,
+        slug: trans.slug || generateSlug(trans.title),
+        content: trans.content || null,
+        excerpt: trans.excerpt || null,
+        metaTitle: trans.metaTitle || null,
+        metaDescription: trans.metaDescription || null,
+        metaKeywords: trans.metaKeywords || null
+      }
+    }));
+
+    updateData.translations = {
+      upsert: translationUpdates
+    };
+  }
 
   return prisma.page.update({
     where: { id: parseInt(id) },
@@ -155,19 +216,14 @@ const findPublic = async (filters = {}) => {
     isActive: true,
   };
 
+  const language = filters.language || 'tr';
+
   if (filters.pageType) where.pageType = filters.pageType;
 
   const pages = await prisma.page.findMany({
     where,
-    select: {
-      id: true,
-      title: true,
-      slug: true,
-      excerpt: true,
-      pageType: true,
-      displayOrder: true,
-      featuredImage: true,
-      publishedAt: true,
+    include: {
+      ...includeTranslations(language)
     },
     orderBy: { displayOrder: 'asc' },
   });
@@ -175,36 +231,32 @@ const findPublic = async (filters = {}) => {
   return pages;
 };
 
-const findPublicBySlug = (slug) => {
+const findPublicBySlug = (slug, language = 'tr') => {
+  // Slug artık translation'da
   return prisma.page.findFirst({
     where: {
-      slug,
+      translations: {
+        some: {
+          slug: slug,
+          ...(language && { language })
+        }
+      },
       status: 'published',
       isPublic: true,
       isActive: true,
     },
-    select: {
-      id: true,
-      title: true,
-      slug: true,
-      content: true,
-      excerpt: true,
-      metaTitle: true,
-      metaDescription: true,
-      metaKeywords: true,
-      pageType: true,
-      featuredImage: true,
-      publishedAt: true,
+    include: {
       author: {
         select: {
           fullName: true,
         },
       },
+      ...includeTranslations()
     },
   });
 };
 
-const findPublicByType = (pageType) => {
+const findPublicByType = (pageType, language = 'tr') => {
   return prisma.page.findMany({
     where: {
       pageType,
@@ -212,14 +264,8 @@ const findPublicByType = (pageType) => {
       isPublic: true,
       isActive: true,
     },
-    select: {
-      id: true,
-      title: true,
-      slug: true,
-      excerpt: true,
-      displayOrder: true,
-      featuredImage: true,
-      publishedAt: true,
+    include: {
+      ...includeTranslations(language)
     },
     orderBy: { displayOrder: 'asc' },
   });

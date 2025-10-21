@@ -88,13 +88,8 @@ model User {
 // ===============================================
 
 model Project {
-  id    Int    @id @default(autoincrement())
-  title String
-  slug  String @unique
-
-  // İçerik
-  description String? @db.Text // Kısa açıklama
-  content     String? @db.Text // Detaylı içerik
+  id Int @id @default(autoincrement())
+  // Dil-bağımlı alanlar ProjectTranslation'a taşındı (title, slug, description, content)
 
   // Görseller
   coverImage String? // Ana kapak görseli
@@ -134,7 +129,9 @@ model Project {
   galleryItems      GalleryItem[]
   donationCampaigns DonationCampaign[]
 
-  @@index([slug])
+  // Çeviriler (Her dil için bir kayıt)
+  translations ProjectTranslation[]
+
   @@index([status])
   @@index([isActive])
   @@index([isFeatured])
@@ -142,12 +139,32 @@ model Project {
   @@index([createdAt])
 }
 
+// Project için çeviri tablosu
+model ProjectTranslation {
+  id        Int    @id @default(autoincrement())
+  projectId Int
+  language  String // "tr", "en", "ar"
+
+  title       String
+  slug        String
+  description String? @db.Text
+  content     String? @db.Text
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([projectId, language]) // Bir proje için her dil sadece 1 kez
+  @@unique([language, slug])      // Aynı dilde aynı slug olamaz
+  @@index([language])
+  @@index([slug])
+}
+
 model News {
   id          Int       @id @default(autoincrement())
-  title       String
-  slug        String    @unique
-  summary     String?
-  content     String?
+  // Dil-bağımlı alanlar NewsTranslation'a taşındı (title, slug, summary, content)
+
   imageUrl    String?
   status      String    @default("draft")
   publishedAt DateTime?
@@ -157,10 +174,34 @@ model News {
   author   User? @relation(fields: [authorId], references: [id], onDelete: SetNull)
   authorId Int?
 
-  @@index([slug])
+  // Çeviriler (Her dil için bir kayıt)
+  translations NewsTranslation[]
+
   @@index([status])
   @@index([publishedAt])
   @@index([createdAt])
+}
+
+// News için çeviri tablosu
+model NewsTranslation {
+  id       Int    @id @default(autoincrement())
+  newsId   Int
+  language String // "tr", "en", "ar"
+
+  title    String
+  slug     String
+  summary  String? @db.Text
+  content  String? @db.Text
+
+  news News @relation(fields: [newsId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([newsId, language]) // Bir haber için her dil sadece 1 kez
+  @@unique([language, slug])   // Aynı dilde aynı slug olamaz
+  @@index([language])
+  @@index([slug])
 }
 
 model GalleryItem {
@@ -183,18 +224,8 @@ model GalleryItem {
 
 // Statik sayfalar (About Us, Terms, Privacy, FAQ, vb.)
 model Page {
-  id   Int    @id @default(autoincrement())
-  title String
-  slug  String @unique
-
-  // İçerik
-  content String? @db.Text // Zengin metin içeriği (HTML/Markdown)
-  excerpt String? @db.Text // Kısa özet/öne çıkan metin
-
-  // SEO
-  metaTitle       String? // SEO başlığı
-  metaDescription String? @db.Text // SEO açıklaması
-  metaKeywords    String? // SEO anahtar kelimeleri
+  id Int @id @default(autoincrement())
+  // Dil-bağımlı alanlar PageTranslation'a taşındı (title, slug, content, excerpt, SEO alanları)
 
   // Sayfa türü ve durum
   pageType String @default("general") // about, terms, privacy, faq, contact, team, etc.
@@ -219,12 +250,41 @@ model Page {
   author   User? @relation(fields: [authorId], references: [id], onDelete: SetNull)
   authorId Int?
 
-  @@index([slug])
+  // Çeviriler (Her dil için bir kayıt)
+  translations PageTranslation[]
+
   @@index([pageType])
   @@index([status])
   @@index([isPublic])
   @@index([isActive])
   @@index([publishedAt])
+}
+
+// Page için çeviri tablosu
+model PageTranslation {
+  id       Int    @id @default(autoincrement())
+  pageId   Int
+  language String // "tr", "en", "ar"
+
+  title   String
+  slug    String
+  content String? @db.Text
+  excerpt String? @db.Text
+
+  // SEO (Her dil için farklı SEO)
+  metaTitle       String?
+  metaDescription String? @db.Text
+  metaKeywords    String?
+
+  page Page @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([pageId, language]) // Bir sayfa için her dil sadece 1 kez
+  @@unique([language, slug])   // Aynı dilde aynı slug olamaz
+  @@index([language])
+  @@index([slug])
 }
 
 model Donor {
@@ -246,17 +306,16 @@ model Donor {
 }
 
 model DonationCampaign {
-  id              Int       @id @default(autoincrement())
-  title           String    @unique
-  slug            String    @unique
-  description     String?   @db.Text
+  id Int @id @default(autoincrement())
+  // Dil-bağımlı alanlar CampaignTranslation'a taşındı (title, slug, description)
+
   targetAmount    Float?
-  collectedAmount Float?    @default(0)
+  collectedAmount Float?  @default(0)
   imageUrl        String?
   category        String? // "Sağlık", "Eğitim", "Acil Yardım" vb.
-  isActive        Boolean   @default(true)
-  isFeatured      Boolean   @default(false)
-  displayOrder    Int       @default(0)
+  isActive        Boolean @default(true)
+  isFeatured      Boolean @default(false)
+  displayOrder    Int     @default(0)
   startDate       DateTime?
   endDate         DateTime?
 
@@ -277,10 +336,33 @@ model DonationCampaign {
   // Kampanya ayarları (1-to-1 ilişki)
   settings CampaignSettings?
 
-  @@index([slug])
+  // Çeviriler (Her dil için bir kayıt)
+  translations CampaignTranslation[]
+
   @@index([isActive])
   @@index([isFeatured])
   @@index([category])
+}
+
+// DonationCampaign için çeviri tablosu
+model CampaignTranslation {
+  id         Int    @id @default(autoincrement())
+  campaignId Int
+  language   String // "tr", "en", "ar"
+
+  title       String
+  slug        String
+  description String? @db.Text
+
+  campaign DonationCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([campaignId, language]) // Bir kampanya için her dil sadece 1 kez
+  @@unique([language, slug])       // Aynı dilde aynı slug olamaz
+  @@index([language])
+  @@index([slug])
 }
 
 model Donation {

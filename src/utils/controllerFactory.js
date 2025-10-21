@@ -112,7 +112,7 @@ const createCRUDController = (service, options = {}) => {
   const getById = async (req, res, next) => {
     try {
       const id = parseInt(req.params.id);
-      const item = await service.getById(id);
+      const item = await service.getById(id, req.query); // query parametrelerini de geç
 
       if (!item) {
         return res.status(404).json({ message: `${entityName} bulunamadı` });

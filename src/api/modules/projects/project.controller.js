@@ -46,7 +46,7 @@ const mapProjectToFrontend = (project) => ({
 
 const projectServiceAdapter = {
   getAll: (query) => projectService.getAllProjects(query),
-  getById: (id) => projectService.getProjectById(id),
+  getById: (id, query) => projectService.getProjectById(id, query.language || 'tr'),
   create: (data) => projectService.createProject(data),
   update: (id, data) => projectService.updateProject(id, data),
   delete: (id) => projectService.deleteProject(id),
@@ -69,15 +69,19 @@ const crudController = createCRUDController(projectServiceAdapter, {
 // Public: Tüm aktif projeleri listele
 const getPublicProjects = async (req, res, next) => {
   try {
+    const language = req.query.language || 'tr';
+
     // Sadece aktif projeleri göster
     const filters = {
       ...req.query,
+      language, // Dil parametresini ekle
       isActive: 'true',
       status: req.query.status || 'active',
       maxLimit: 20 // Public endpoint için max 20 kayıt
     };
 
     const result = await projectService.getAllProjects(filters);
+    // Artık service'den zaten formatlanmış geliyor
     const mappedProjects = result.data.map(mapProjectToFrontend);
 
     res.status(200).json({
@@ -95,7 +99,8 @@ const getPublicProjects = async (req, res, next) => {
 // Public: Slug ile proje detayı getir
 const getPublicProjectBySlug = async (req, res, next) => {
   try {
-    const project = await projectService.getProjectBySlug(req.params.slug);
+    const language = req.query.language || 'tr';
+    const project = await projectService.getProjectBySlug(req.params.slug, language);
 
     if (!project) {
       return res.status(404).json({

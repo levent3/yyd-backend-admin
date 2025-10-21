@@ -1,23 +1,12 @@
 const newsRepo = require('./news.repository');
 const { parsePagination, createPaginatedResponse } = require('../../../utils/pagination');
-
-// Helper function to generate slug from title
-const generateSlug = (title) => {
-  if (!title) return '';
-  return title
-    .toLowerCase()
-    .replace(/ğ/g, 'g')
-    .replace(/ü/g, 'u')
-    .replace(/ş/g, 's')
-    .replace(/ı/g, 'i')
-    .replace(/ö/g, 'o')
-    .replace(/ç/g, 'c')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-};
+const {
+  formatEntityWithTranslation,
+  generateSlug
+} = require('../../../utils/translationHelper');
 
 const getAllNews = async (queryParams = {}) => {
-  const { page, limit, status, authorId } = queryParams;
+  const { page, limit, status, authorId, language = 'tr' } = queryParams;
   const { skip, limit: take } = parsePagination(page, limit);
 
   // Build where clause
@@ -26,67 +15,109 @@ const getAllNews = async (queryParams = {}) => {
   if (authorId) where.authorId = parseInt(authorId);
 
   const [news, total] = await Promise.all([
-    newsRepo.findMany({ skip, take, where }),
+    newsRepo.findMany({ skip, take, where, language }),
     newsRepo.count(where),
   ]);
 
-  return createPaginatedResponse(news, total, parseInt(page) || 1, take);
+  // Format her bir haberi çevirisiyle birlikte
+  const formattedNews = news.map(item =>
+    formatEntityWithTranslation(item, language, false)
+  );
+
+  return createPaginatedResponse(formattedNews, total, parseInt(page) || 1, take);
 };
 
-const getNewsById = (id) => {
-  return newsRepo.findById(id);
+const getNewsById = async (id, language = 'tr') => {
+  const news = await newsRepo.findById(id, language);
+  return formatEntityWithTranslation(news, language, true);
 };
 
-const getNewsBySlug = (slug) => {
-  return newsRepo.findBySlug(slug);
+const getNewsBySlug = async (slug, language = 'tr') => {
+  const news = await newsRepo.findBySlug(slug, language);
+  return formatEntityWithTranslation(news, language, true);
 };
 
 const createNews = (data) => {
+  // translations array: [{ language: 'tr', title: '...', summary: '...', content: '...' }]
+  const { translations, ...rest } = data;
+
+  if (!translations || translations.length === 0) {
+    throw new Error('En az bir çeviri gereklidir');
+  }
+
+  // Her bir translation için slug generate et
+  const translationsWithSlug = translations.map(trans => ({
+    language: trans.language,
+    title: trans.title,
+    slug: trans.slug || generateSlug(trans.title),
+    summary: trans.summary || null,
+    content: trans.content || null
+  }));
+
   const mappedData = {
-    title: data.title,
-    slug: data.slug || generateSlug(data.title),
-    summary: data.summary || null,
-    content: data.content || null,
-    imageUrl: data.imageUrl || null,
-    status: data.status || 'draft',
-    publishedAt: data.status === 'published' && !data.publishedAt ? new Date() : (data.publishedAt ? new Date(data.publishedAt) : null),
-    authorId: data.authorId
+    imageUrl: rest.imageUrl || null,
+    status: rest.status || 'draft',
+    publishedAt: rest.status === 'published' && !rest.publishedAt
+      ? new Date()
+      : (rest.publishedAt ? new Date(rest.publishedAt) : null),
+    authorId: rest.authorId || null,
+    translations: {
+      create: translationsWithSlug
+    }
   };
 
   return newsRepo.create(mappedData);
 };
 
-const updateNews = (id, data) => {
+const updateNews = async (id, data) => {
+  const { translations, ...rest } = data;
   const mappedData = {};
 
-  if (data.title !== undefined) {
-    mappedData.title = data.title;
-    mappedData.slug = data.slug || generateSlug(data.title);
+  // Dil-bağımsız alanları güncelle
+  if (rest.imageUrl !== undefined) {
+    mappedData.imageUrl = rest.imageUrl;
   }
 
-  if (data.summary !== undefined) {
-    mappedData.summary = data.summary;
-  }
-
-  if (data.content !== undefined) {
-    mappedData.content = data.content;
-  }
-
-  if (data.imageUrl !== undefined) {
-    mappedData.imageUrl = data.imageUrl;
-  }
-
-  if (data.status !== undefined) {
-    mappedData.status = data.status;
+  if (rest.status !== undefined) {
+    mappedData.status = rest.status;
 
     // If changing to published and no publishedAt, set it now
-    if (data.status === 'published' && !data.publishedAt) {
+    if (rest.status === 'published' && !rest.publishedAt) {
       mappedData.publishedAt = new Date();
     }
   }
 
-  if (data.publishedAt !== undefined) {
-    mappedData.publishedAt = data.publishedAt ? new Date(data.publishedAt) : null;
+  if (rest.publishedAt !== undefined) {
+    mappedData.publishedAt = rest.publishedAt ? new Date(rest.publishedAt) : null;
+  }
+
+  // Translations güncelleme (varsa)
+  if (translations && translations.length > 0) {
+    const translationUpdates = translations.map(trans => ({
+      where: {
+        newsId_language: {
+          newsId: id,
+          language: trans.language
+        }
+      },
+      create: {
+        language: trans.language,
+        title: trans.title,
+        slug: trans.slug || generateSlug(trans.title),
+        summary: trans.summary || null,
+        content: trans.content || null
+      },
+      update: {
+        title: trans.title,
+        slug: trans.slug || generateSlug(trans.title),
+        summary: trans.summary || null,
+        content: trans.content || null
+      }
+    }));
+
+    mappedData.translations = {
+      upsert: translationUpdates
+    };
   }
 
   return newsRepo.update(id, mappedData);
@@ -97,7 +128,7 @@ const deleteNews = (id) => {
 };
 
 const getPublishedNews = async (queryParams = {}) => {
-  const { page, limit } = queryParams;
+  const { page, limit, language = 'tr' } = queryParams;
   const { skip, limit: take } = parsePagination(page, limit);
 
   const where = {
@@ -106,11 +137,16 @@ const getPublishedNews = async (queryParams = {}) => {
   };
 
   const [news, total] = await Promise.all([
-    newsRepo.findPublished({ skip, take }),
+    newsRepo.findPublished({ skip, take, language }),
     newsRepo.count(where),
   ]);
 
-  return createPaginatedResponse(news, total, parseInt(page) || 1, take);
+  // Format her bir haberi çevirisiyle birlikte
+  const formattedNews = news.map(item =>
+    formatEntityWithTranslation(item, language, false)
+  );
+
+  return createPaginatedResponse(formattedNews, total, parseInt(page) || 1, take);
 };
 
 module.exports = {

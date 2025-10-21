@@ -1,4 +1,5 @@
 const prisma = require('../../../config/prismaClient');
+const { includeTranslations } = require('../../../utils/translationHelper');
 
 // ========== DONATIONS ==========
 
@@ -168,6 +169,7 @@ const updateCampaignTotal = async (campaignId) => {
 
 const getAllCampaigns = async (filters = {}) => {
   const where = {};
+  const language = filters.language || 'tr';
 
   if (filters.isActive !== undefined) where.isActive = filters.isActive === 'true';
   if (filters.category) where.category = filters.category;
@@ -191,6 +193,7 @@ const getAllCampaigns = async (filters = {}) => {
       _count: {
         select: { donations: true },
       },
+      ...includeTranslations(language)
     },
     orderBy: [
       { isFeatured: 'desc' },
@@ -210,7 +213,7 @@ const getAllCampaigns = async (filters = {}) => {
   };
 };
 
-const getCampaignById = (id) => {
+const getCampaignById = (id, language = 'tr') => {
   return prisma.donationCampaign.findUnique({
     where: { id },
     include: {
@@ -220,56 +223,132 @@ const getCampaignById = (id) => {
         where: { paymentStatus: 'completed' },
         include: { donor: true },
       },
+      ...includeTranslations(language)
     },
   });
 };
 
-const getCampaignBySlug = (slug) => {
-  return prisma.donationCampaign.findUnique({
-    where: { slug },
+const getCampaignBySlug = (slug, language = 'tr') => {
+  // Slug artık translation'da, önce translation'ı bulmalıyız
+  return prisma.donationCampaign.findFirst({
+    where: {
+      translations: {
+        some: {
+          slug: slug,
+          ...(language && { language })
+        }
+      }
+    },
     include: {
       project: true,
       settings: true, // Campaign ayarlarını dahil et
+      ...includeTranslations()
     },
   });
 };
 
 const createCampaign = (data) => {
+  // Translations helper'dan generateSlug'ı import etmemiz gerekiyor
+  const { generateSlug } = require('../../../utils/translationHelper');
+
+  // translations array bekliyoruz: [{ language: 'tr', title: '...', description: '...' }]
+  const { translations, ...rest } = data;
+
+  if (!translations || translations.length === 0) {
+    throw new Error('En az bir çeviri gereklidir');
+  }
+
+  // Her bir translation için slug generate et
+  const translationsWithSlug = translations.map(trans => ({
+    language: trans.language,
+    title: trans.title,
+    slug: trans.slug || generateSlug(trans.title),
+    description: trans.description || null
+  }));
+
   return prisma.donationCampaign.create({
     data: {
-      title: data.title,
-      slug: data.slug,
-      description: data.description,
-      targetAmount: data.targetAmount,
-      imageUrl: data.imageUrl,
-      category: data.category,
-      isActive: data.isActive !== undefined ? data.isActive : true,
-      isFeatured: data.isFeatured || false,
-      displayOrder: data.displayOrder || 0,
-      startDate: data.startDate,
-      endDate: data.endDate,
-      projectId: data.projectId,
+      targetAmount: rest.targetAmount,
+      imageUrl: rest.imageUrl || null,
+      category: rest.category || null,
+      isActive: rest.isActive !== undefined ? rest.isActive : true,
+      isFeatured: rest.isFeatured || false,
+      displayOrder: rest.displayOrder || 0,
+      startDate: rest.startDate ? new Date(rest.startDate) : null,
+      endDate: rest.endDate ? new Date(rest.endDate) : null,
+      projectId: rest.projectId || null,
+      translations: {
+        create: translationsWithSlug
+      }
     },
   });
 };
 
 const updateCampaign = (id, data) => {
+  const { generateSlug } = require('../../../utils/translationHelper');
+  const { translations, ...rest } = data;
+
+  const updateData = {};
+
+  // Dil-bağımsız alanları güncelle
+  if (rest.targetAmount !== undefined) {
+    updateData.targetAmount = rest.targetAmount;
+  }
+  if (rest.imageUrl !== undefined) {
+    updateData.imageUrl = rest.imageUrl;
+  }
+  if (rest.category !== undefined) {
+    updateData.category = rest.category;
+  }
+  if (rest.isActive !== undefined) {
+    updateData.isActive = rest.isActive;
+  }
+  if (rest.isFeatured !== undefined) {
+    updateData.isFeatured = rest.isFeatured;
+  }
+  if (rest.displayOrder !== undefined) {
+    updateData.displayOrder = rest.displayOrder;
+  }
+  if (rest.startDate !== undefined) {
+    updateData.startDate = rest.startDate ? new Date(rest.startDate) : null;
+  }
+  if (rest.endDate !== undefined) {
+    updateData.endDate = rest.endDate ? new Date(rest.endDate) : null;
+  }
+  if (rest.projectId !== undefined) {
+    updateData.projectId = rest.projectId;
+  }
+
+  // Translations güncelleme (varsa)
+  if (translations && translations.length > 0) {
+    const translationUpdates = translations.map(trans => ({
+      where: {
+        campaignId_language: {
+          campaignId: id,
+          language: trans.language
+        }
+      },
+      create: {
+        language: trans.language,
+        title: trans.title,
+        slug: trans.slug || generateSlug(trans.title),
+        description: trans.description || null
+      },
+      update: {
+        title: trans.title,
+        slug: trans.slug || generateSlug(trans.title),
+        description: trans.description || null
+      }
+    }));
+
+    updateData.translations = {
+      upsert: translationUpdates
+    };
+  }
+
   return prisma.donationCampaign.update({
     where: { id },
-    data: {
-      title: data.title,
-      slug: data.slug,
-      description: data.description,
-      targetAmount: data.targetAmount,
-      imageUrl: data.imageUrl,
-      category: data.category,
-      isActive: data.isActive,
-      isFeatured: data.isFeatured,
-      displayOrder: data.displayOrder,
-      startDate: data.startDate,
-      endDate: data.endDate,
-      projectId: data.projectId,
-    },
+    data: updateData,
   });
 };
 

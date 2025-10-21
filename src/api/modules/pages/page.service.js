@@ -1,40 +1,43 @@
 const pageRepository = require('./page.repository');
+const { formatEntityWithTranslation } = require('../../../utils/translationHelper');
 
 // ========== ADMIN SERVICES ==========
 
 const getAllPages = async (filters) => {
-  return await pageRepository.findAll(filters);
+  const language = filters.language || 'tr';
+  const result = await pageRepository.findAll(filters);
+
+  // Format her bir sayfayı çevirisiyle birlikte
+  const formattedPages = result.pages.map(page =>
+    formatEntityWithTranslation(page, language, false)
+  );
+
+  return {
+    pages: formattedPages,
+    total: result.total
+  };
 };
 
-const getPageById = async (id) => {
-  const page = await pageRepository.findById(id);
+const getPageById = async (id, language = 'tr') => {
+  const page = await pageRepository.findById(id, language);
   if (!page) {
     throw { status: 404, message: 'Page not found' };
   }
-  return page;
+  return formatEntityWithTranslation(page, language, true);
 };
 
-const getPageBySlug = async (slug) => {
-  const page = await pageRepository.findBySlug(slug);
+const getPageBySlug = async (slug, language = 'tr') => {
+  const page = await pageRepository.findBySlug(slug, language);
   if (!page) {
     throw { status: 404, message: 'Page not found' };
   }
-  return page;
+  return formatEntityWithTranslation(page, language, true);
 };
 
 const createPage = async (data, userId) => {
   // Validate required fields
-  if (!data.title) {
-    throw { status: 400, message: 'Page title is required' };
-  }
-  if (!data.slug) {
-    throw { status: 400, message: 'Page slug is required' };
-  }
-
-  // Check if slug already exists
-  const existingPage = await pageRepository.findBySlug(data.slug);
-  if (existingPage) {
-    throw { status: 409, message: 'A page with this slug already exists' };
+  if (!data.translations || data.translations.length === 0) {
+    throw { status: 400, message: 'En az bir çeviri gereklidir' };
   }
 
   // Add author ID
@@ -48,14 +51,6 @@ const updatePage = async (id, data) => {
   const page = await pageRepository.findById(id);
   if (!page) {
     throw { status: 404, message: 'Page not found' };
-  }
-
-  // If slug is being updated, check for duplicates
-  if (data.slug && data.slug !== page.slug) {
-    const existingPage = await pageRepository.findBySlug(data.slug);
-    if (existingPage) {
-      throw { status: 409, message: 'A page with this slug already exists' };
-    }
   }
 
   return await pageRepository.update(id, data);
@@ -74,19 +69,26 @@ const deletePage = async (id) => {
 // ========== PUBLIC SERVICES ==========
 
 const getPublicPages = async (filters) => {
-  return await pageRepository.findPublic(filters);
+  const language = filters.language || 'tr';
+  const pages = await pageRepository.findPublic(filters);
+
+  // Format her bir sayfayı çevirisiyle birlikte
+  return pages.map(page => formatEntityWithTranslation(page, language, false));
 };
 
-const getPublicPageBySlug = async (slug) => {
-  const page = await pageRepository.findPublicBySlug(slug);
+const getPublicPageBySlug = async (slug, language = 'tr') => {
+  const page = await pageRepository.findPublicBySlug(slug, language);
   if (!page) {
     throw { status: 404, message: 'Page not found' };
   }
-  return page;
+  return formatEntityWithTranslation(page, language, true);
 };
 
-const getPublicPagesByType = async (pageType) => {
-  return await pageRepository.findPublicByType(pageType);
+const getPublicPagesByType = async (pageType, language = 'tr') => {
+  const pages = await pageRepository.findPublicByType(pageType, language);
+
+  // Format her bir sayfayı çevirisiyle birlikte
+  return pages.map(page => formatEntityWithTranslation(page, language, false));
 };
 
 module.exports = {

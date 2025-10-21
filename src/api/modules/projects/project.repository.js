@@ -1,7 +1,8 @@
 const prisma = require('../../../config/prismaClient');
+const { includeTranslations } = require('../../../utils/translationHelper');
 
 const findMany = (options = {}) => {
-  const { skip, take, where, orderBy } = options;
+  const { skip, take, where, orderBy, language } = options;
   return prisma.project.findMany({
     skip,
     take,
@@ -27,19 +28,18 @@ const findMany = (options = {}) => {
         where: { isActive: true },
         select: {
           id: true,
-          title: true,
-          slug: true,
           targetAmount: true,
           collectedAmount: true
         }
-      }
+      },
+      ...includeTranslations(language)
     }
   });
 };
 
 const count = (where = {}) => prisma.project.count({ where });
 
-const findById = (id) => prisma.project.findUnique({
+const findById = (id, language = null) => prisma.project.findUnique({
   where: { id },
   include: {
     author: {
@@ -50,26 +50,48 @@ const findById = (id) => prisma.project.findUnique({
       orderBy: { createdAt: 'desc' }
     },
     donationCampaigns: {
-      where: { isActive: true }
-    }
+      where: { isActive: true },
+      select: {
+        id: true,
+        targetAmount: true,
+        collectedAmount: true
+      }
+    },
+    ...includeTranslations(language)
   }
 });
 
-const findBySlug = (slug) => prisma.project.findUnique({
-  where: { slug },
-  include: {
-    author: {
-      select: { id: true, fullName: true }
+const findBySlug = (slug, language = 'tr') => {
+  // Slug artık translation'da, önce translation'ı bulmalıyız
+  return prisma.project.findFirst({
+    where: {
+      translations: {
+        some: {
+          slug: slug,
+          ...(language && { language })
+        }
+      }
     },
-    galleryItems: {
-      take: 10,
-      orderBy: { createdAt: 'desc' }
-    },
-    donationCampaigns: {
-      where: { isActive: true }
+    include: {
+      author: {
+        select: { id: true, fullName: true }
+      },
+      galleryItems: {
+        take: 10,
+        orderBy: { createdAt: 'desc' }
+      },
+      donationCampaigns: {
+        where: { isActive: true },
+        select: {
+          id: true,
+          targetAmount: true,
+          collectedAmount: true
+        }
+      },
+      ...includeTranslations()
     }
-  }
-});
+  });
+};
 
 const create = (data) => prisma.project.create({ data });
 const update = (id, data) => prisma.project.update({ where: { id }, data });

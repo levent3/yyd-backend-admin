@@ -1,6 +1,7 @@
 const donationRepository = require('./donation.repository');
 const { parsePagination, createPaginatedResponse } = require('../../../utils/pagination');
 const paymentTransactionRepository = require('../payment-transactions/payment-transaction.repository');
+const { formatEntityWithTranslation } = require('../../../utils/translationHelper');
 
 // ========== DONATIONS ==========
 
@@ -79,16 +80,29 @@ const deleteDonation = (id) => {
 
 // ========== DONATION CAMPAIGNS ==========
 
-const getAllCampaigns = (filters) => {
-  return donationRepository.getAllCampaigns(filters);
+const getAllCampaigns = async (filters) => {
+  const language = filters.language || 'tr';
+  const result = await donationRepository.getAllCampaigns(filters);
+
+  // Format her bir kampanyayı çevirisiyle birlikte
+  const formattedData = result.data.map(item =>
+    formatEntityWithTranslation(item, language, false)
+  );
+
+  return {
+    data: formattedData,
+    pagination: result.pagination
+  };
 };
 
-const getCampaignById = (id) => {
-  return donationRepository.getCampaignById(id);
+const getCampaignById = (id, language = 'tr') => {
+  const campaign = donationRepository.getCampaignById(id, language);
+  return campaign.then(c => formatEntityWithTranslation(c, language, true));
 };
 
-const getCampaignBySlug = (slug) => {
-  return donationRepository.getCampaignBySlug(slug);
+const getCampaignBySlug = (slug, language = 'tr') => {
+  const campaign = donationRepository.getCampaignBySlug(slug, language);
+  return campaign.then(c => formatEntityWithTranslation(c, language, true));
 };
 
 const createCampaign = (data) => {

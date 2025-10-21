@@ -20,7 +20,7 @@ const { createCRUDController } = require('../../../utils/controllerFactory');
 // Service metodlarını factory'nin beklediği formata adapt ediyoruz
 const newsServiceAdapter = {
   getAll: (query) => newsService.getAllNews(query),
-  getById: (id) => newsService.getNewsById(id),
+  getById: (id, query) => newsService.getNewsById(id, query.language || 'tr'),
   create: (data) => newsService.createNews(data),
   update: (id, data) => newsService.updateNews(id, data),
   delete: (id) => newsService.deleteNews(id),
@@ -54,7 +54,8 @@ const getPublishedNews = async (req, res, next) => {
 // GET /api/news/slug/:slug - Get news by slug (public)
 const getNewsBySlug = async (req, res, next) => {
   try {
-    const news = await newsService.getNewsBySlug(req.params.slug);
+    const language = req.query.language || 'tr';
+    const news = await newsService.getNewsBySlug(req.params.slug, language);
 
     if (!news) {
       return res.status(404).json({ message: 'Haber bulunamadı' });

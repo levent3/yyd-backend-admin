@@ -1,7 +1,8 @@
 const prisma = require('../../../config/prismaClient');
+const { includeTranslations } = require('../../../utils/translationHelper');
 
 const findMany = (options = {}) => {
-  const { skip, take, where, orderBy } = options;
+  const { skip, take, where, orderBy, language } = options;
 
   return prisma.news.findMany({
     skip,
@@ -14,7 +15,8 @@ const findMany = (options = {}) => {
           fullName: true,
           email: true
         }
-      }
+      },
+      ...includeTranslations(language)
     },
     orderBy: orderBy || { createdAt: 'desc' }
   });
@@ -22,7 +24,7 @@ const findMany = (options = {}) => {
 
 const count = (where = {}) => prisma.news.count({ where });
 
-const findById = (id) => {
+const findById = (id, language = null) => {
   return prisma.news.findUnique({
     where: { id },
     include: {
@@ -32,14 +34,23 @@ const findById = (id) => {
           fullName: true,
           email: true
         }
-      }
+      },
+      ...includeTranslations(language)
     }
   });
 };
 
-const findBySlug = (slug) => {
-  return prisma.news.findUnique({
-    where: { slug },
+const findBySlug = (slug, language = 'tr') => {
+  // Slug artık translation'da, önce translation'ı bulmalıyız
+  return prisma.news.findFirst({
+    where: {
+      translations: {
+        some: {
+          slug: slug,
+          ...(language && { language })
+        }
+      }
+    },
     include: {
       author: {
         select: {
@@ -47,7 +58,8 @@ const findBySlug = (slug) => {
           fullName: true,
           email: true
         }
-      }
+      },
+      ...includeTranslations()
     }
   });
 };
@@ -89,7 +101,7 @@ const deleteById = (id) => {
 
 // Get published news for public access
 const findPublished = (options = {}) => {
-  const { skip, take } = options;
+  const { skip, take, language } = options;
 
   return prisma.news.findMany({
     skip,
@@ -106,7 +118,8 @@ const findPublished = (options = {}) => {
           id: true,
           fullName: true
         }
-      }
+      },
+      ...includeTranslations(language)
     },
     orderBy: {
       publishedAt: 'desc'
