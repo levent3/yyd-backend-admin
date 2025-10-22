@@ -1,10 +1,15 @@
 # Node modules
 node_modules/
 
-# Environment variables - ÖNEMLI: Bu dosya asla GitHub'a yüklenmemeli!
+# Environment variables - ÖNEMLI: Bu dosyalar asla GitHub'a yüklenmemeli!
 .env
 .env.local
 .env.*.local
+.env.production
+.env.production.local
+
+# Curl output (test files)
+nul
 
 # Logs
 logs/
