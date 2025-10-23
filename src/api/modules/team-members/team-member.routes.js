@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const teamMemberController = require('./team-member.controller');
-const { authenticate } = require('../../middlewares/authMiddleware');
-const { authorizePermission } = require('../../middlewares/permissionMiddleware');
+const authMiddleware = require('../../middlewares/authMiddleware');
+const { checkPermission } = require('../../middlewares/rbacMiddleware');
 
 router.get('/', teamMemberController.getAllTeamMembers);
 router.get('/team/:teamType', teamMemberController.getTeamMembersByType);
@@ -10,22 +10,22 @@ router.get('/:id', teamMemberController.getTeamMemberById);
 
 router.post(
   '/',
-  authenticate,
-  authorizePermission('team-member', 'create'),
+  authMiddleware,
+  checkPermission('team-members', 'create'),
   teamMemberController.createTeamMember
 );
 
 router.put(
   '/:id',
-  authenticate,
-  authorizePermission('team-member', 'update'),
+  authMiddleware,
+  checkPermission('team-members', 'update'),
   teamMemberController.updateTeamMember
 );
 
 router.delete(
   '/:id',
-  authenticate,
-  authorizePermission('team-member', 'delete'),
+  authMiddleware,
+  checkPermission('team-members', 'delete'),
   teamMemberController.deleteTeamMember
 );
 

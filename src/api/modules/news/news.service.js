@@ -38,7 +38,7 @@ const getNewsBySlug = async (slug, language = 'tr') => {
   return formatEntityWithTranslation(news, language, true);
 };
 
-const createNews = (data) => {
+const createNews = async (data) => {
   // translations array: [{ language: 'tr', title: '...', summary: '...', content: '...' }]
   const { translations, ...rest } = data;
 

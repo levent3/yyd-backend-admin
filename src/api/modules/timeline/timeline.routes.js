@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const timelineController = require('./timeline.controller');
-const { authenticate } = require('../../middlewares/authMiddleware');
-const { authorizePermission } = require('../../middlewares/permissionMiddleware');
+const authMiddleware = require('../../middlewares/authMiddleware');
+const { checkPermission } = require('../../middlewares/rbacMiddleware');
 
 /**
  * @route   GET /api/timelines
@@ -32,8 +32,8 @@ router.get('/:id', timelineController.getTimelineById);
  */
 router.post(
   '/',
-  authenticate,
-  authorizePermission('timeline', 'create'),
+  authMiddleware,
+  checkPermission('timeline', 'create'),
   timelineController.createTimeline
 );
 
@@ -44,8 +44,8 @@ router.post(
  */
 router.put(
   '/:id',
-  authenticate,
-  authorizePermission('timeline', 'update'),
+  authMiddleware,
+  checkPermission('timeline', 'update'),
   timelineController.updateTimeline
 );
 
@@ -56,8 +56,8 @@ router.put(
  */
 router.delete(
   '/:id',
-  authenticate,
-  authorizePermission('timeline', 'delete'),
+  authMiddleware,
+  checkPermission('timeline', 'delete'),
   timelineController.deleteTimeline
 );
 
