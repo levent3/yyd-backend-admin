@@ -28,7 +28,8 @@ const getAllNews = async (queryParams = {}) => {
 };
 
 const getNewsById = async (id, language = 'tr') => {
-  const news = await newsRepo.findById(id, language);
+  // Admin paneli için tüm dillerdeki translations'ları getir (language=null)
+  const news = await newsRepo.findById(id, null);
   return formatEntityWithTranslation(news, language, true);
 };
 
@@ -66,7 +67,17 @@ const createNews = (data) => {
     }
   };
 
-  return newsRepo.create(mappedData);
+  try {
+    return await newsRepo.create(mappedData);
+  } catch (error) {
+    // Unique constraint hatası için özel mesaj
+    if (error.code === 'P2002' && error.meta?.target?.includes('slug')) {
+      const customError = new Error('Bu slug başka bir haberde kullanılıyor. Lütfen farklı bir başlık girin.');
+      customError.statusCode = 400;
+      throw customError;
+    }
+    throw error;
+  }
 };
 
 const updateNews = async (id, data) => {
@@ -120,7 +131,17 @@ const updateNews = async (id, data) => {
     };
   }
 
-  return newsRepo.update(id, mappedData);
+  try {
+    return await newsRepo.update(id, mappedData);
+  } catch (error) {
+    // Unique constraint hatası için özel mesaj
+    if (error.code === 'P2002' && error.meta?.target?.includes('slug')) {
+      const customError = new Error('Bu slug başka bir haberde kullanılıyor. Lütfen farklı bir başlık girin.');
+      customError.statusCode = 400;
+      throw customError;
+    }
+    throw error;
+  }
 };
 
 const deleteNews = (id) => {
