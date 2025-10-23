@@ -287,6 +287,86 @@ model PageTranslation {
   @@index([slug])
 }
 
+// Timeline (Tarihçe) - Yıl bazında önemli olaylar
+model Timeline {
+  id           Int      @id @default(autoincrement())
+  year         Int      // 1982, 1990, 2000, vb.
+  displayOrder Int      @default(0) // Sıralama (aynı yılda birden fazla olay olabilir)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Çeviriler (Her dil için bir kayıt)
+  translations TimelineTranslation[]
+
+  @@index([year])
+  @@index([displayOrder])
+  @@index([isActive])
+}
+
+// Timeline için çeviri tablosu
+model TimelineTranslation {
+  id         Int    @id @default(autoincrement())
+  timelineId Int
+  language   String // "tr", "en", "ar"
+
+  title       String       // "Yardım Yolu Derneği Kuruldu"
+  description String? @db.Text // Detaylı açıklama (opsiyonel)
+
+  timeline Timeline @relation(fields: [timelineId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([timelineId, language]) // Bir timeline için her dil sadece 1 kez
+  @@index([language])
+}
+
+// TeamMember (Yönetim Kurulu / Denetim Kurulu Üyeleri)
+model TeamMember {
+  id           Int      @id @default(autoincrement())
+  photoUrl     String? // Profil fotoğrafı URL'i
+  position     String // "Başkan", "Başkan Yardımcısı", "Üye", "Muhasip Üye"
+  teamType     String   @default("yonetim") // "yonetim" veya "denetim"
+  displayOrder Int      @default(0) // Sıralama
+  isActive     Boolean  @default(true)
+
+  // Kişisel bilgiler (opsiyonel)
+  birthYear Int?
+  birthCity String?
+  languages String? // "Türkçe, İngilizce, Arapça"
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Çeviriler (Her dil için bir kayıt)
+  translations TeamMemberTranslation[]
+
+  @@index([teamType])
+  @@index([displayOrder])
+  @@index([isActive])
+}
+
+// TeamMember için çeviri tablosu
+model TeamMemberTranslation {
+  id       Int    @id @default(autoincrement())
+  memberId Int
+  language String // "tr", "en", "ar"
+
+  fullName   String       // Ad Soyad
+  biography  String? @db.Text // Özgeçmiş
+  education  String? @db.Text // Eğitim geçmişi
+  experience String? @db.Text // Mesleki deneyim
+
+  member TeamMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([memberId, language]) // Bir üye için her dil sadece 1 kez
+  @@index([language])
+}
+
 model Donor {
   id                 Int                 @id @default(autoincrement())
   fullName           String

@@ -42,6 +42,8 @@ COPY public."AdminModule" (id, name, "moduleKey", path, icon, "displayOrder", "p
 10	Gönüllü Başvuruları	volunteers	/admin/volunteers	user-check	9	\N
 11	Kariyer Başvuruları	careers	/admin/careers	briefcase	10	\N
 20	Sayfalar	pages	/admin/pages	file-text	13	\N
+21	Tarihçe	timeline	/admin/timeline	calendar	14	\N
+22	Ekip Üyeleri	team-members	/admin/team-members	users	15	\N
 \.
 
 

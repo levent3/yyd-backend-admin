@@ -36,6 +36,8 @@ const campaignSettingsRoutes = require('./api/modules/campaign-settings/campaign
 const systemSettingsRoutes = require('./api/modules/system-settings/system-settings.routes');
 const dashboardRoutes = require('./api/modules/dashboard/dashboard.routes');
 const pageRoutes = require('./api/modules/pages/page.routes');
+const timelineRoutes = require('./api/modules/timeline/timeline.routes');
+const teamMemberRoutes = require('./api/modules/team-members/team-member.routes');
 
 const app = express();
 
@@ -151,6 +153,8 @@ app.use('/api/campaign-settings', campaignSettingsRoutes);
 app.use('/api/system-settings', systemSettingsRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/pages', pageRoutes);
+app.use('/api/timelines', timelineRoutes);
+app.use('/api/team-members', teamMemberRoutes);
 
 // Hata Yönetimi (en sonda olmalı)
 app.use(errorHandler);
