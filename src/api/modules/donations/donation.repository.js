@@ -255,7 +255,17 @@ const createCampaign = (data) => {
   const { translations, ...rest } = data;
 
   if (!translations || translations.length === 0) {
-    throw new Error('En az bir çeviri gereklidir');
+    const error = new Error('Kampanya oluşturmak için en az bir çeviri gereklidir. translations array\'i boş olamaz.');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  // Türkçe çeviri kontrolü
+  const hasTurkish = translations.some(t => t.language === 'tr');
+  if (!hasTurkish) {
+    const error = new Error('Türkçe çeviri zorunludur. translations array\'inde language: "tr" olan bir öğe bulunmalıdır.');
+    error.statusCode = 400;
+    throw error;
   }
 
   // Her bir translation için slug generate et
@@ -449,7 +459,7 @@ const createBankAccount = (data) => {
       branch: data.branch,
       currency: data.currency || 'TRY',
       isActive: data.isActive !== undefined ? data.isActive : true,
-      displayOrder: data.displayOrder || 0,
+      displayOrder: data.displayOrder ? parseInt(data.displayOrder, 10) : 0,
     },
   });
 };
@@ -466,7 +476,7 @@ const updateBankAccount = (id, data) => {
       branch: data.branch,
       currency: data.currency,
       isActive: data.isActive,
-      displayOrder: data.displayOrder,
+      displayOrder: data.displayOrder !== undefined ? parseInt(data.displayOrder, 10) : undefined,
     },
   });
 };

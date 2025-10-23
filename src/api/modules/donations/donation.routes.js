@@ -241,51 +241,6 @@ router.get('/', checkPermission('donations', 'read'), donationController.getAllD
 
 /**
  * @swagger
- * /api/donations/{id}:
- *   get:
- *     summary: Get donation by ID (Admin)
- *     description: Retrieve detailed information about a specific donation
- *     tags: [Donations]
- *     security:
- *       - bearerAuth: []
- *       - cookieAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- *         description: Donation ID
- *     responses:
- *       200:
- *         description: Successfully retrieved donation
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Donation'
- *       401:
- *         description: Unauthorized - Authentication required
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       403:
- *         description: Forbidden - Insufficient permissions
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       404:
- *         description: Donation not found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- */
-router.get('/:id', checkPermission('donations', 'read'), donationController.getDonationById);
-
-/**
- * @swagger
  * /api/donations:
  *   post:
  *     summary: Create donation (Admin)
@@ -353,130 +308,6 @@ router.get('/:id', checkPermission('donations', 'read'), donationController.getD
  *               $ref: '#/components/schemas/Error'
  */
 router.post('/', checkPermission('donations', 'create'), donationController.createDonation);
-
-/**
- * @swagger
- * /api/donations/{id}:
- *   put:
- *     summary: Update donation (Admin)
- *     description: Update donation information and status
- *     tags: [Donations]
- *     security:
- *       - bearerAuth: []
- *       - cookieAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- *         description: Donation ID
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               amount:
- *                 type: number
- *                 example: 500
- *               status:
- *                 type: string
- *                 enum: [pending, completed, failed, refunded]
- *                 example: completed
- *               paymentMethod:
- *                 type: string
- *                 enum: [credit_card, bank_transfer, cash]
- *                 example: bank_transfer
- *               isAnonymous:
- *                 type: boolean
- *                 example: false
- *               message:
- *                 type: string
- *                 example: Updated message
- *     responses:
- *       200:
- *         description: Donation successfully updated
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Donation'
- *       400:
- *         description: Validation error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       401:
- *         description: Unauthorized - Authentication required
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       403:
- *         description: Forbidden - Insufficient permissions
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       404:
- *         description: Donation not found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- */
-router.put('/:id', checkPermission('donations', 'update'), donationController.updateDonation);
-
-/**
- * @swagger
- * /api/donations/{id}:
- *   delete:
- *     summary: Delete donation (Admin)
- *     description: Permanently delete a donation record
- *     tags: [Donations]
- *     security:
- *       - bearerAuth: []
- *       - cookieAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: integer
- *         description: Donation ID
- *     responses:
- *       200:
- *         description: Donation successfully deleted
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Donation deleted successfully
- *       401:
- *         description: Unauthorized - Authentication required
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       403:
- *         description: Forbidden - Insufficient permissions
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       404:
- *         description: Donation not found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- */
-router.delete('/:id', checkPermission('donations', 'delete'), donationController.deleteDonation);
 
 // ===== CAMPAIGNS =====
 
@@ -1353,5 +1184,176 @@ router.put('/bank-accounts/:id', checkPermission('donations', 'update'), donatio
  *               $ref: '#/components/schemas/Error'
  */
 router.delete('/bank-accounts/:id', checkPermission('donations', 'delete'), donationController.deleteBankAccount);
+
+// ===== GENERIC ID ROUTES (Must be last to avoid conflicts) =====
+
+/**
+ * @swagger
+ * /api/donations/{id}:
+ *   get:
+ *     summary: Get donation by ID (Admin)
+ *     description: Retrieve detailed information about a specific donation
+ *     tags: [Donations]
+ *     security:
+ *       - bearerAuth: []
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Donation ID
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved donation
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Donation'
+ *       401:
+ *         description: Unauthorized - Authentication required
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       403:
+ *         description: Forbidden - Insufficient permissions
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       404:
+ *         description: Donation not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+router.get('/:id', checkPermission('donations', 'read'), donationController.getDonationById);
+
+/**
+ * @swagger
+ * /api/donations/{id}:
+ *   put:
+ *     summary: Update donation (Admin)
+ *     description: Update donation information and status
+ *     tags: [Donations]
+ *     security:
+ *       - bearerAuth: []
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Donation ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               amount:
+ *                 type: number
+ *                 example: 500
+ *               status:
+ *                 type: string
+ *                 enum: [pending, completed, failed, refunded]
+ *                 example: completed
+ *               paymentMethod:
+ *                 type: string
+ *                 enum: [credit_card, bank_transfer, cash]
+ *                 example: bank_transfer
+ *               isAnonymous:
+ *                 type: boolean
+ *                 example: false
+ *               message:
+ *                 type: string
+ *                 example: Updated message
+ *     responses:
+ *       200:
+ *         description: Donation successfully updated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Donation'
+ *       400:
+ *         description: Validation error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: Unauthorized - Authentication required
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       403:
+ *         description: Forbidden - Insufficient permissions
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       404:
+ *         description: Donation not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+router.put('/:id', checkPermission('donations', 'update'), donationController.updateDonation);
+
+/**
+ * @swagger
+ * /api/donations/{id}:
+ *   delete:
+ *     summary: Delete donation (Admin)
+ *     description: Permanently delete a donation record
+ *     tags: [Donations]
+ *     security:
+ *       - bearerAuth: []
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Donation ID
+ *     responses:
+ *       200:
+ *         description: Donation successfully deleted
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Donation deleted successfully
+ *       401:
+ *         description: Unauthorized - Authentication required
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       403:
+ *         description: Forbidden - Insufficient permissions
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       404:
+ *         description: Donation not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+router.delete('/:id', checkPermission('donations', 'delete'), donationController.deleteDonation);
 
 module.exports = router;

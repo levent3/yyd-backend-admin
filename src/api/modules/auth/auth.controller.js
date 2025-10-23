@@ -28,7 +28,7 @@ const login = async (req, res, next) => {
     // Token'ı httpOnly cookie olarak set et
     res.cookie('token', result.token, {
       httpOnly: true, // XSS saldırılarına karşı
-      secure: process.env.NODE_ENV === 'production', // Production'da HTTPS zorunlu
+      secure: false, // TODO: Domain alınca HTTPS ile true yap
       sameSite: 'lax', // CSRF koruması
       maxAge: 24 * 60 * 60 * 1000 // 1 gün
     });

@@ -96,7 +96,8 @@ const getAllCampaigns = async (filters) => {
 };
 
 const getCampaignById = (id, language = 'tr') => {
-  const campaign = donationRepository.getCampaignById(id, language);
+  // Admin paneli için tüm dillerdeki translations'ları getir (language=null)
+  const campaign = donationRepository.getCampaignById(id, null);
   return campaign.then(c => formatEntityWithTranslation(c, language, true));
 };
 
@@ -105,12 +106,32 @@ const getCampaignBySlug = (slug, language = 'tr') => {
   return campaign.then(c => formatEntityWithTranslation(c, language, true));
 };
 
-const createCampaign = (data) => {
-  return donationRepository.createCampaign(data);
+const createCampaign = async (data) => {
+  try {
+    return await donationRepository.createCampaign(data);
+  } catch (error) {
+    // Unique constraint hatası için özel mesaj
+    if (error.code === 'P2002' && error.meta?.target?.includes('slug')) {
+      const customError = new Error('Bu slug başka bir kampanyada kullanılıyor. Lütfen farklı bir başlık girin.');
+      customError.statusCode = 400;
+      throw customError;
+    }
+    throw error;
+  }
 };
 
-const updateCampaign = (id, data) => {
-  return donationRepository.updateCampaign(id, data);
+const updateCampaign = async (id, data) => {
+  try {
+    return await donationRepository.updateCampaign(id, data);
+  } catch (error) {
+    // Unique constraint hatası için özel mesaj
+    if (error.code === 'P2002' && error.meta?.target?.includes('slug')) {
+      const customError = new Error('Bu slug başka bir kampanyada kullanılıyor. Lütfen farklı bir başlık girin.');
+      customError.statusCode = 400;
+      throw customError;
+    }
+    throw error;
+  }
 };
 
 const deleteCampaign = (id) => {

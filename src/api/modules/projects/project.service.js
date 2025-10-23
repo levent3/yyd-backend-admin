@@ -58,7 +58,8 @@ const getAllProjects = async (queryParams = {}) => {
 };
 
 const getProjectById = async (id, language = 'tr') => {
-  const project = await projectRepo.findById(id, language);
+  // Admin paneli için tüm dillerdeki translations'ları getir (language=null)
+  const project = await projectRepo.findById(id, null);
   return normalizeProject(project, language, true);
 };
 
@@ -72,7 +73,17 @@ const createProject = async (data) => {
   const { translations, ...rest } = data;
 
   if (!translations || translations.length === 0) {
-    throw new Error('En az bir çeviri gereklidir');
+    const error = new Error('Proje oluşturmak için en az bir çeviri gereklidir. translations array\'i boş olamaz.');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  // Türkçe çeviri kontrolü
+  const hasTurkish = translations.some(t => t.language === 'tr');
+  if (!hasTurkish) {
+    const error = new Error('Türkçe çeviri zorunludur. translations array\'inde language: "tr" olan bir öğe bulunmalıdır.');
+    error.statusCode = 400;
+    throw error;
   }
 
   // Her bir translation için slug generate et
@@ -107,7 +118,17 @@ const createProject = async (data) => {
     }
   };
 
-  return projectRepo.create(mappedData);
+  try {
+    return await projectRepo.create(mappedData);
+  } catch (error) {
+    // Unique constraint hatası için özel mesaj
+    if (error.code === 'P2002' && error.meta?.target?.includes('slug')) {
+      const customError = new Error('Bu slug başka bir projede kullanılıyor. Lütfen farklı bir başlık girin.');
+      customError.statusCode = 400;
+      throw customError;
+    }
+    throw error;
+  }
 };
 
 const updateProject = async (id, data) => {
@@ -190,7 +211,17 @@ const updateProject = async (id, data) => {
     };
   }
 
-  return projectRepo.update(id, mappedData);
+  try {
+    return await projectRepo.update(id, mappedData);
+  } catch (error) {
+    // Unique constraint hatası için özel mesaj
+    if (error.code === 'P2002' && error.meta?.target?.includes('slug')) {
+      const customError = new Error('Bu slug başka bir projede kullanılıyor. Lütfen farklı bir başlık girin.');
+      customError.statusCode = 400;
+      throw customError;
+    }
+    throw error;
+  }
 };
 
 const deleteProject = (id) => projectRepo.deleteById(id);

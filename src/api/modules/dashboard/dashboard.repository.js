@@ -224,7 +224,14 @@ const getRecentDonations = async (limit) => {
     take: limit,
     orderBy: { createdAt: 'desc' },
     include: {
-      campaign: { select: { title: true } },
+      campaign: {
+        include: {
+          translations: {
+            where: { language: 'tr' },
+            take: 1
+          }
+        }
+      },
       donor: { select: { fullName: true } },
     },
   });

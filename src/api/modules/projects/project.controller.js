@@ -38,6 +38,7 @@ const mapProjectToFrontend = (project) => ({
   isActive: project.isActive,
   isFeatured: project.isFeatured,
   displayOrder: project.displayOrder,
+  translations: project.translations || [],
   createdAt: project.createdAt,
   updatedAt: project.updatedAt
 });
@@ -46,7 +47,11 @@ const mapProjectToFrontend = (project) => ({
 
 const projectServiceAdapter = {
   getAll: (query) => projectService.getAllProjects(query),
-  getById: (id, query) => projectService.getProjectById(id, query.language || 'tr'),
+  getById: (id, query) => {
+    // Admin endpoint için tüm çevirileri dahil et
+    const language = query.language || 'tr';
+    return projectService.getProjectById(id, language);
+  },
   create: (data) => projectService.createProject(data),
   update: (id, data) => projectService.updateProject(id, data),
   delete: (id) => projectService.deleteProject(id),
@@ -58,10 +63,28 @@ const crudController = createCRUDController(projectServiceAdapter, {
   // transformData: Tüm response'larda mapping uygula
   transformData: mapProjectToFrontend,
   // beforeCreate hook: authorId'yi req.user'dan al
-  beforeCreate: async (req, data) => ({
-    ...data,
-    authorId: req.user.userId, // From auth middleware
-  }),
+  beforeCreate: async (req, data) => {
+    // Eğer translations yoksa, eski formatı yeni formata dönüştür
+    if (!data.translations && (data.title || data.description || data.content)) {
+      data.translations = [{
+        language: 'tr',
+        title: data.title || 'Yeni Proje',
+        slug: data.slug || null,
+        description: data.description || null,
+        content: data.content || null
+      }];
+      // Eski field'ları sil
+      delete data.title;
+      delete data.slug;
+      delete data.description;
+      delete data.content;
+    }
+
+    return {
+      ...data,
+      authorId: req.user?.userId || req.user?.id || null, // From auth middleware
+    };
+  },
 });
 
 // ========== ÖZEL METODLAR (Public endpoints & upload) ==========

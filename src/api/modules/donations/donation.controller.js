@@ -58,6 +58,24 @@ const campaignController = createCRUDController(campaignServiceAdapter, {
     'cache:/statistics*',
     'cache:/recent-activities*',
   ],
+  // beforeCreate hook: Eski formatı yeni formata dönüştür
+  beforeCreate: async (req, data) => {
+    // Eğer translations yoksa, eski formatı yeni formata dönüştür
+    if (!data.translations && (data.title || data.description)) {
+      data.translations = [{
+        language: 'tr',
+        title: data.title || 'Yeni Kampanya',
+        slug: data.slug || null,
+        description: data.description || null
+      }];
+      // Eski field'ları sil
+      delete data.title;
+      delete data.slug;
+      delete data.description;
+    }
+
+    return data;
+  },
 });
 
 // ========== 3. DONORS (Bağışçılar) ==========
