@@ -77,6 +77,23 @@ COPY public."RoleModulePermission" ("roleId", "moduleId", permissions) FROM stdi
 1	1	{"read": true, "create": false, "delete": false, "update": false}
 1	20	{"read": true, "create": true, "delete": true, "update": true}
 2	2	{"read": false, "create": false, "delete": false, "update": false}
+1	4	{"read": true, "create": true, "delete": true, "update": true}
+1	12	{"read": true, "create": true, "delete": true, "update": true}
+2	12	{"read": true, "create": false, "delete": false, "update": false}
+1	13	{"read": true, "create": true, "delete": true, "update": true}
+2	13	{"read": true, "create": false, "delete": false, "update": false}
+1	14	{"read": true, "create": true, "delete": true, "update": true}
+2	14	{"read": true, "create": false, "delete": false, "update": false}
+1	15	{"read": true, "create": true, "delete": true, "update": true}
+2	15	{"read": true, "create": false, "delete": false, "update": false}
+1	16	{"read": true, "create": true, "delete": true, "update": true}
+2	16	{"read": true, "create": false, "delete": false, "update": false}
+1	17	{"read": true, "create": true, "delete": true, "update": true}
+2	17	{"read": true, "create": false, "delete": false, "update": false}
+1	21	{"read": true, "create": true, "delete": true, "update": true}
+2	21	{"read": true, "create": false, "delete": false, "update": false}
+1	22	{"read": true, "create": true, "delete": true, "update": true}
+2	22	{"read": true, "create": false, "delete": false, "update": false}
 \.
 
 
@@ -95,7 +112,7 @@ COPY public."User" (id, username, "passwordHash", email, "fullName", "createdAt"
 -- Name: AdminModule_id_seq; Type: SEQUENCE SET; Schema: public; Owner: myadmin
 --
 
-SELECT pg_catalog.setval('public."AdminModule_id_seq"', 20, true);
+SELECT pg_catalog.setval('public."AdminModule_id_seq"', 22, true);
 
 
 --
