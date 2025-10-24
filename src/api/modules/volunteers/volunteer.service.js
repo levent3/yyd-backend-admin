@@ -23,9 +23,9 @@ const getApplicationById = (id) => {
 
 const createApplication = (data) => {
   const mappedData = {
-    fullName: data.fullName,
+    fullName: data.fullName || `${data.firstName} ${data.lastName}`.trim(), // Support both fullName and firstName+lastName
     email: data.email,
-    phoneNumber: data.phoneNumber || null,
+    phoneNumber: data.phoneNumber || data.phone || null, // Support both phoneNumber and phone
     message: data.message || null,
     status: 'new'
   };

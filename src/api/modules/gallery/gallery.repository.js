@@ -10,8 +10,15 @@ const findMany = (options = {}) => {
       project: {
         select: {
           id: true,
-          title: true,
-          slug: true
+          translations: {
+            where: {
+              language: 'tr' // Default Turkish translation
+            },
+            select: {
+              title: true,
+              slug: true
+            }
+          }
         }
       },
       uploader: {
@@ -37,8 +44,15 @@ const findById = (id) => {
       project: {
         select: {
           id: true,
-          title: true,
-          slug: true
+          translations: {
+            where: {
+              language: 'tr'
+            },
+            select: {
+              title: true,
+              slug: true
+            }
+          }
         }
       },
       uploader: {
@@ -59,8 +73,15 @@ const create = (data) => {
       project: {
         select: {
           id: true,
-          title: true,
-          slug: true
+          translations: {
+            where: {
+              language: 'tr'
+            },
+            select: {
+              title: true,
+              slug: true
+            }
+          }
         }
       },
       uploader: {

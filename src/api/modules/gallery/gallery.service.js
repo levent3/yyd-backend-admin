@@ -51,8 +51,8 @@ const getGalleryItemById = async (id) => {
 const createGalleryItem = async (data) => {
   const mappedData = {
     title: data.title || null,
-    mediaType: data.mediaType, // "image" or "video"
-    fileUrl: data.fileUrl,
+    mediaType: data.mediaType || 'image', // "image" or "video" - default to "image"
+    fileUrl: data.fileUrl || data.imageUrl, // Support both fileUrl and imageUrl
     projectId: data.projectId ? parseInt(data.projectId) : null,
     uploaderId: data.uploaderId
   };

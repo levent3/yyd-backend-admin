@@ -22,7 +22,7 @@ const getMessageById = (id) => {
 
 const createMessage = (data) => {
   const mappedData = {
-    fullName: data.fullName,
+    fullName: data.fullName || data.name, // Support both fullName and name
     email: data.email,
     phoneNumber: data.phoneNumber || null,
     subject: data.subject,

@@ -43,15 +43,18 @@ const createTeamMember = async (data) => {
 
   const translationsData = translations.map(trans => ({
     language: trans.language,
-    fullName: trans.fullName,
-    biography: trans.biography || null,
+    fullName: trans.fullName || trans.name, // Support both fullName and name
+    biography: trans.biography || trans.bio || null, // Support both biography and bio
     education: trans.education || null,
     experience: trans.experience || null
   }));
 
+  // Get position from either root level or from first translation
+  const position = rest.position || translations[0]?.position || 'Üye';
+
   const mappedData = {
     photoUrl: rest.photoUrl || null,
-    position: rest.position,
+    position: position,
     teamType: rest.teamType || 'yonetim',
     displayOrder: rest.displayOrder || 0,
     isActive: rest.isActive !== undefined ? rest.isActive : true,
