@@ -140,8 +140,15 @@ const findPublic = (filters = {}) => {
       project: {
         select: {
           id: true,
-          title: true,
-          slug: true
+          translations: {
+            where: {
+              language: 'tr'
+            },
+            select: {
+              title: true,
+              slug: true
+            }
+          }
         }
       }
     },
