@@ -7,7 +7,7 @@ const findMany = (options = {}) => {
     skip,
     take,
     where,
-    orderBy: orderBy || { year: 'desc', displayOrder: 'asc' },
+    orderBy: orderBy || [{ year: 'desc' }, { displayOrder: 'asc' }],
     include: {
       ...includeTranslations(language)
     }
