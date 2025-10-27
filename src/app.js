@@ -40,6 +40,7 @@ const timelineRoutes = require('./api/modules/timeline/timeline.routes');
 const teamMemberRoutes = require('./api/modules/team-members/team-member.routes');
 const brandAssetRoutes = require('./api/modules/brand-assets/brand-asset.routes');
 const brochureRoutes = require('./api/modules/brochures/brochure.routes');
+const publicSpotRoutes = require('./api/modules/public-spots/public-spot.routes');
 
 const app = express();
 
@@ -159,6 +160,7 @@ app.use('/api/timelines', timelineRoutes);
 app.use('/api/team-members', teamMemberRoutes);
 app.use('/api/brand-assets', brandAssetRoutes);
 app.use('/api/brochures', brochureRoutes);
+app.use('/api/public-spots', publicSpotRoutes);
 
 // Hata Yönetimi (en sonda olmalı)
 app.use(errorHandler);
