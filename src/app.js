@@ -39,6 +39,7 @@ const pageRoutes = require('./api/modules/pages/page.routes');
 const timelineRoutes = require('./api/modules/timeline/timeline.routes');
 const teamMemberRoutes = require('./api/modules/team-members/team-member.routes');
 const brandAssetRoutes = require('./api/modules/brand-assets/brand-asset.routes');
+const brochureRoutes = require('./api/modules/brochures/brochure.routes');
 
 const app = express();
 
@@ -157,6 +158,7 @@ app.use('/api/pages', pageRoutes);
 app.use('/api/timelines', timelineRoutes);
 app.use('/api/team-members', teamMemberRoutes);
 app.use('/api/brand-assets', brandAssetRoutes);
+app.use('/api/brochures', brochureRoutes);
 
 // Hata Yönetimi (en sonda olmalı)
 app.use(errorHandler);
