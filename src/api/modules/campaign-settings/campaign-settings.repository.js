@@ -7,8 +7,19 @@ const findByCampaignId = (campaignId) => {
       campaign: {
         select: {
           id: true,
-          title: true,
-          slug: true
+          targetAmount: true,
+          collectedAmount: true,
+          category: true,
+          isActive: true,
+          isFeatured: true,
+          translations: {
+            select: {
+              language: true,
+              title: true,
+              slug: true,
+              description: true
+            }
+          }
         }
       }
     }
