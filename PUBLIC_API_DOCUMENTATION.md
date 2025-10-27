@@ -16,8 +16,9 @@ Bu dokümantasyon, public website için kullanılacak **authentication gerektirm
 6. [İletişim API](#iletişim-api)
 7. [Gönüllü Başvuru API](#gönüllü-başvuru-api)
 8. [Kariyer Başvuru API](#kariyer-başvuru-api)
-9. [Sepet API](#sepet-api)
-10. [Sistem Ayarları API](#sistem-ayarları-api)
+9. [Açık İş Pozisyonları API](#açık-iş-pozisyonları-api)
+10. [Sepet API](#sepet-api)
+11. [Sistem Ayarları API](#sistem-ayarları-api)
 
 ---
 
@@ -516,9 +517,90 @@ cv: [FILE] (PDF, DOCX, max 5MB)
 
 ---
 
-## 9. SEPET API
+## 9. AÇIK İŞ POZİSYONLARI API
 
-### 9.1. Sepete Bağış Ekle
+### 9.1. Tüm Aktif Pozisyonları Listele
+
+**Endpoint**: `GET /api/job-positions/public`
+
+**Query Parameters**:
+- `department` (opsiyonel): Departmana göre filtrele (örn: "Teknoloji", "İletişim")
+- `location` (opsiyonel): Lokasyona göre filtrele (örn: "İstanbul")
+- `employmentType` (opsiyonel): Çalışma tipine göre filtrele (örn: "Tam Zamanlı")
+
+**Response**:
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "title": "Full-Stack Developer",
+      "slug": "full-stack-developer",
+      "description": "Yeryüzü Doktorları olarak geliştirdiğimiz web uygulamaları...",
+      "requirements": "- En az 3 yıl profesyonel yazılım geliştirme deneyimi\n- Node.js, React.js/Next.js konusunda ileri seviye bilgi",
+      "responsibilities": "- Web uygulamalarının frontend ve backend geliştirmesi\n- Veritabanı tasarımı ve optimizasyonu",
+      "qualifications": "- Bilgisayar Mühendisliği, Yazılım Mühendisliği veya ilgili alanlarda lisans derecesi",
+      "department": "Teknoloji",
+      "location": "İstanbul (Hibrit)",
+      "employmentType": "Tam Zamanlı",
+      "isFeatured": true,
+      "deadline": null,
+      "createdAt": "2025-10-27T11:14:23.267Z",
+      "_count": {
+        "applications": 5
+      }
+    }
+  ],
+  "pagination": {
+    "currentPage": 1,
+    "totalPages": 1,
+    "totalItems": 6,
+    "itemsPerPage": 10
+  }
+}
+```
+
+---
+
+### 9.2. Pozisyon Detayını Getir (Slug ile)
+
+**Endpoint**: `GET /api/job-positions/slug/{slug}`
+
+**Örnek**: `GET /api/job-positions/slug/full-stack-developer`
+
+**Response**:
+```json
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "title": "Full-Stack Developer",
+    "slug": "full-stack-developer",
+    "description": "Yeryüzü Doktorları olarak geliştirdiğimiz web uygulamaları ve sistemlerin tasarımı, geliştirilmesi ve bakımı için ekibimize katılacak deneyimli bir Full-Stack Developer arıyoruz.",
+    "requirements": "- En az 3 yıl profesyonel yazılım geliştirme deneyimi\n- Node.js, React.js/Next.js konusunda ileri seviye bilgi\n- PostgreSQL veya benzeri veritabanı yönetim sistemleri deneyimi\n- RESTful API tasarımı ve geliştirme deneyimi\n- Git versiyon kontrol sistemi kullanımı\n- Agile/Scrum metodolojileri hakkında bilgi",
+    "responsibilities": "- Web uygulamalarının frontend ve backend geliştirmesi\n- Veritabanı tasarımı ve optimizasyonu\n- API entegrasyonları\n- Kod kalitesi ve güvenlik standartlarının sağlanması\n- Ekip üyeleri ile işbirliği içinde çalışma",
+    "qualifications": "- Bilgisayar Mühendisliği, Yazılım Mühendisliği veya ilgili alanlarda lisans derecesi\n- Problem çözme ve analitik düşünme becerileri\n- İngilizce bilgisi (teknik dokümantasyon okuyabilme)",
+    "department": "Teknoloji",
+    "location": "İstanbul (Hibrit)",
+    "employmentType": "Tam Zamanlı",
+    "isActive": true,
+    "isFeatured": true,
+    "displayOrder": 1,
+    "deadline": null,
+    "createdAt": "2025-10-27T11:14:23.267Z",
+    "updatedAt": "2025-10-27T11:14:23.267Z",
+    "_count": {
+      "applications": 0
+    }
+  }
+}
+```
+
+---
+
+## 10. SEPET API
+
+### 10.1. Sepete Bağış Ekle
 
 **Endpoint**: `POST /api/cart`
 

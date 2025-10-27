@@ -8,7 +8,9 @@
     "dev": "nodemon src/server.js",
     "db:migrate": "npx prisma migrate dev",
     "db:studio": "npx prisma studio",
-    "db:generate": "npx prisma generate"
+    "db:generate": "npx prisma generate",
+    "db:seed": "node prisma/seed.js",
+    "db:reset": "npx prisma migrate reset --force && npm run db:seed"
   },
   "keywords": [],
   "author": "",

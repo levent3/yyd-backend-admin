@@ -596,16 +596,43 @@ model Volunteer {
   submittedAt DateTime @default(now())
 }
 
+// Açık İş Pozisyonları (Kariyer Sayfası)
+model JobPosition {
+  id               Int      @id @default(autoincrement())
+  title            String   // "Full-Stack Developer"
+  slug             String   @unique
+  description      String   @db.Text
+  requirements     String?  @db.Text
+  responsibilities String?  @db.Text
+  qualifications   String?  @db.Text
+  department       String?  // "Teknoloji", "Saha", "Merkez"
+  location         String?  // "İstanbul", "Ankara", "Saha (Suriye)"
+  employmentType   String?  // "Tam Zamanlı", "Yarı Zamanlı", "Staj"
+  isActive         Boolean  @default(true)
+  isFeatured       Boolean  @default(false)
+  displayOrder     Int      @default(0)
+  deadline         DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  applications     CareerApplication[]
+}
+
+// Kariyer Başvuruları
 model CareerApplication {
-  id          Int      @id @default(autoincrement())
-  fullName    String
-  email       String
-  phoneNumber String?
-  position    String?
-  coverLetter String?
-  cvUrl       String
-  status      String   @default("new")
-  submittedAt DateTime @default(now())
+  id                   Int          @id @default(autoincrement())
+  fullName             String
+  email                String
+  phoneNumber          String?
+  position             String?      // Serbest metin (eski başvurular için)
+  jobPositionId        Int?         // Yeni: İlişkili pozisyon
+  jobPosition          JobPosition? @relation(fields: [jobPositionId], references: [id], onDelete: SetNull)
+  coverLetter          String?      @db.Text
+  cvUrl                String
+  status               String       @default("new") // new, reviewing, interviewed, accepted, rejected
+  acceptsNotifications Boolean      @default(false)
+  source               String?      // "website", "linkedin", "email"
+  submittedAt          DateTime     @default(now())
 }
 
 model ContactMessage {

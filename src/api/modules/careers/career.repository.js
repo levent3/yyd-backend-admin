@@ -6,6 +6,17 @@ const findMany = (options = {}) => {
     skip,
     take,
     where,
+    include: {
+      jobPosition: {
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          department: true,
+          location: true
+        }
+      }
+    },
     orderBy: orderBy || { submittedAt: 'desc' }
   });
 };
@@ -16,7 +27,10 @@ const count = (where = {}) => {
 
 const findById = (id) => {
   return prisma.careerApplication.findUnique({
-    where: { id }
+    where: { id },
+    include: {
+      jobPosition: true
+    }
   });
 };
 

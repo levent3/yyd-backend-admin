@@ -34,8 +34,11 @@ const createApplication = (data) => {
     email: data.email,
     phoneNumber: data.phoneNumber || null,
     position: data.position || null,
+    jobPositionId: data.jobPositionId ? parseInt(data.jobPositionId) : null,
     coverLetter: data.coverLetter || null,
     cvUrl: data.cvUrl,
+    acceptsNotifications: data.acceptsNotifications || false,
+    source: data.source || 'website',
     status: 'new'
   };
 
