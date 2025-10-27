@@ -128,6 +128,8 @@ model Project {
   authorId          Int?
   galleryItems      GalleryItem[]
   donationCampaigns DonationCampaign[]
+  brochures         Brochure[]
+  successStories    SuccessStory[]
 
   // Çeviriler (Her dil için bir kayıt)
   translations ProjectTranslation[]
@@ -408,6 +410,8 @@ model DonationCampaign {
   donations          Donation[]
   recurringDonations RecurringDonation[]
   cartItems          CartItem[]
+  brochures          Brochure[]
+  successStories     SuccessStory[]
 
   // Proje ile ilişkilendirme (opsiyonel)
   project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
@@ -808,3 +812,233 @@ model SystemSettings {
 
 // Donation model'e adanmış bağış özellikleri ekleniyor
 // NOT: Mevcut Donation model'i extend ediliyor, yeni model değil!
+
+// ===============================================
+// MEDYA VE İÇERİK MODELLERİ
+// ===============================================
+
+// Kurumsal Kimlik / Marka Materyalleri (Logolar, PDF'ler)
+model BrandAsset {
+  id          Int      @id @default(autoincrement())
+
+  // Dosya bilgileri
+  fileName    String   // "YYD Logo Türkçe"
+  fileType    String   // "logo", "brand_guide", "color_palette", "font"
+  fileUrl     String   // PDF/PNG/SVG dosyasının URL'i
+  thumbnailUrl String? // Önizleme görseli
+
+  // Metadata
+  fileSize    Int?     // Byte cinsinden
+  language    String?  // "tr", "en", "ar"
+  version     String?  // "v1.0", "v2.0"
+  description String?  @db.Text
+
+  // Görünürlük
+  isActive    Boolean  @default(true)
+  displayOrder Int     @default(0)
+
+  // Timestamps
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([fileType])
+  @@index([isActive])
+}
+
+// Broşürler (Kampanya broşürleri, tanıtım dokümanları)
+model Brochure {
+  id           Int       @id @default(autoincrement())
+
+  // Dosya bilgileri
+  pdfUrl       String    // PDF dosyasının URL'i
+  thumbnailUrl String?   // Kapak görseli
+  fileSize     Int?      // Byte cinsinden
+
+  // Kategori
+  category     String?   // "Sağlık", "Eğitim", "Acil Yardım"
+
+  // İlişkiler
+  projectId    Int?
+  project      Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  campaignId   Int?
+  campaign     DonationCampaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+
+  // Görünürlük
+  isActive     Boolean   @default(true)
+  isFeatured   Boolean   @default(false)
+  displayOrder Int       @default(0)
+
+  // Timestamps
+  publishedAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  // Çeviriler
+  translations BrochureTranslation[]
+
+  @@index([category])
+  @@index([isActive])
+  @@index([publishedAt])
+}
+
+model BrochureTranslation {
+  id         Int      @id @default(autoincrement())
+  brochureId Int
+  language   String   // "tr", "en", "ar"
+
+  title       String
+  description String? @db.Text
+
+  brochure   Brochure @relation(fields: [brochureId], references: [id], onDelete: Cascade)
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([brochureId, language])
+  @@index([language])
+}
+
+// Kamu Spotları / Videolar
+model PublicSpot {
+  id           Int       @id @default(autoincrement())
+
+  // Video bilgileri
+  videoUrl     String    // YouTube URL veya self-hosted
+  videoType    String    @default("youtube") // "youtube", "vimeo", "self-hosted"
+  thumbnailUrl String?   // Video thumbnail
+  duration     Int?      // Saniye cinsinden
+
+  // Kategori
+  category     String?   // "Sağlık", "Eğitim", "Acil Yardım"
+
+  // İstatistikler
+  viewCount    Int       @default(0)
+
+  // Görünürlük
+  isActive     Boolean   @default(true)
+  isFeatured   Boolean   @default(false)
+  displayOrder Int       @default(0)
+
+  // Timestamps
+  publishedAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  // Çeviriler
+  translations PublicSpotTranslation[]
+
+  @@index([category])
+  @@index([isActive])
+  @@index([publishedAt])
+}
+
+model PublicSpotTranslation {
+  id       Int    @id @default(autoincrement())
+  spotId   Int
+  language String // "tr", "en", "ar"
+
+  title       String
+  description String? @db.Text
+
+  spot     PublicSpot @relation(fields: [spotId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([spotId, language])
+  @@index([language])
+}
+
+// İyileşme Öyküleri / Başarı Hikayeleri
+model SuccessStory {
+  id           Int       @id @default(autoincrement())
+
+  // Görseller
+  coverImage   String?
+  images       Json?     // Array of image URLs
+
+  // Lokasyon
+  location     String?   // "Gazze", "Yemen", "Suriye"
+  country      String?
+
+  // İlişkiler
+  projectId    Int?
+  project      Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  campaignId   Int?
+  campaign     DonationCampaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+
+  // Görünürlük
+  isActive     Boolean   @default(true)
+  isFeatured   Boolean   @default(false)
+  displayOrder Int       @default(0)
+
+  // Timestamps
+  publishedAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  // Çeviriler
+  translations SuccessStoryTranslation[]
+
+  @@index([location])
+  @@index([isActive])
+  @@index([publishedAt])
+}
+
+model SuccessStoryTranslation {
+  id      Int    @id @default(autoincrement())
+  storyId Int
+  language String // "tr", "en", "ar"
+
+  title    String
+  slug     String
+  summary  String? @db.Text
+  content  String? @db.Text
+
+  // SEO
+  metaTitle       String?
+  metaDescription String? @db.Text
+
+  story    SuccessStory @relation(fields: [storyId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([storyId, language])
+  @@unique([language, slug])
+  @@index([language])
+  @@index([slug])
+}
+
+// Basında Biz / Medya Klipler
+model MediaCoverage {
+  id           Int       @id @default(autoincrement())
+
+  // Haber bilgileri
+  title        String
+  source       String    // "Star", "Anadolu Ajansı", "Daily Sabah"
+  sourceType   String    @default("internet") // "internet", "print"
+
+  // Link veya görsel
+  externalUrl  String?   // Dış link
+  imageUrl     String?   // Yazılı basın görseli
+
+  // Kategori
+  category     String?   // "Sağlık", "Kampanya", "Genel"
+
+  // Görünürlük
+  isActive     Boolean   @default(true)
+  isFeatured   Boolean   @default(false)
+  displayOrder Int       @default(0)
+
+  // Timestamps
+  publishedAt  DateTime  // Haberin yayınlanma tarihi
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([sourceType])
+  @@index([isActive])
+  @@index([publishedAt])
+}
