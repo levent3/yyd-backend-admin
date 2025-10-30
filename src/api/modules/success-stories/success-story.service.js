@@ -55,7 +55,7 @@ const createSuccessStory = async (data) => {
     isActive: storyData.isActive !== undefined ? storyData.isActive : true,
     isFeatured: storyData.isFeatured !== undefined ? storyData.isFeatured : false,
     displayOrder: storyData.displayOrder ? parseInt(storyData.displayOrder) : 0,
-    publishedAt: storyData.publishedAt || null
+    publishedAt: storyData.publishedAt ? new Date(storyData.publishedAt).toISOString() : null
   };
 
   if (translations && Array.isArray(translations)) {
@@ -90,7 +90,11 @@ const updateSuccessStory = async (id, data) => {
   if (storyData.isActive !== undefined) mappedData.isActive = storyData.isActive;
   if (storyData.isFeatured !== undefined) mappedData.isFeatured = storyData.isFeatured;
   if (storyData.displayOrder !== undefined) mappedData.displayOrder = parseInt(storyData.displayOrder);
-  if (storyData.publishedAt !== undefined) mappedData.publishedAt = storyData.publishedAt;
+  if (storyData.publishedAt !== undefined) {
+    mappedData.publishedAt = storyData.publishedAt
+      ? new Date(storyData.publishedAt).toISOString()
+      : null;
+  }
 
   if (translations && Array.isArray(translations)) {
     mappedData.translations = {

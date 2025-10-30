@@ -52,7 +52,7 @@ const createPublicSpot = async (data) => {
     isActive: spotData.isActive !== undefined ? spotData.isActive : true,
     isFeatured: spotData.isFeatured !== undefined ? spotData.isFeatured : false,
     displayOrder: spotData.displayOrder ? parseInt(spotData.displayOrder) : 0,
-    publishedAt: spotData.publishedAt || null
+    publishedAt: spotData.publishedAt ? new Date(spotData.publishedAt).toISOString() : null
   };
 
   // Add translations if provided
@@ -86,7 +86,11 @@ const updatePublicSpot = async (id, data) => {
   if (spotData.isActive !== undefined) mappedData.isActive = spotData.isActive;
   if (spotData.isFeatured !== undefined) mappedData.isFeatured = spotData.isFeatured;
   if (spotData.displayOrder !== undefined) mappedData.displayOrder = parseInt(spotData.displayOrder);
-  if (spotData.publishedAt !== undefined) mappedData.publishedAt = spotData.publishedAt;
+  if (spotData.publishedAt !== undefined) {
+    mappedData.publishedAt = spotData.publishedAt
+      ? new Date(spotData.publishedAt).toISOString()
+      : null;
+  }
 
   // Update translations if provided
   if (translations && Array.isArray(translations)) {

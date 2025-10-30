@@ -40,7 +40,7 @@ const createMediaCoverage = async (data) => {
     isActive: data.isActive !== undefined ? data.isActive : true,
     isFeatured: data.isFeatured !== undefined ? data.isFeatured : false,
     displayOrder: data.displayOrder ? parseInt(data.displayOrder) : 0,
-    publishedAt: data.publishedAt ? new Date(data.publishedAt) : new Date()
+    publishedAt: data.publishedAt ? new Date(data.publishedAt).toISOString() : new Date().toISOString()
   };
 
   return await mediaCoverageRepo.create(mappedData);
@@ -59,7 +59,11 @@ const updateMediaCoverage = async (id, data) => {
   if (data.isActive !== undefined) mappedData.isActive = data.isActive;
   if (data.isFeatured !== undefined) mappedData.isFeatured = data.isFeatured;
   if (data.displayOrder !== undefined) mappedData.displayOrder = parseInt(data.displayOrder);
-  if (data.publishedAt !== undefined) mappedData.publishedAt = new Date(data.publishedAt);
+  if (data.publishedAt !== undefined) {
+    mappedData.publishedAt = data.publishedAt
+      ? new Date(data.publishedAt).toISOString()
+      : null;
+  }
 
   return await mediaCoverageRepo.update(id, mappedData);
 };
