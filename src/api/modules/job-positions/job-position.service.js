@@ -1,6 +1,6 @@
 const jobPositionRepo = require('./job-position.repository');
 const { parsePagination, createPaginatedResponse } = require('../../../utils/pagination');
-const prisma = require('../../../config/database');
+const prisma = require('../../../config/prismaClient');
 
 // Modül kaydını oluştur
 const ensureModuleExists = async () => {
@@ -32,7 +32,14 @@ const ensureModuleExists = async () => {
   }
 };
 
-ensureModuleExists().catch(console.error);
+// Initialize module when server starts (called from routes)
+let moduleInitialized = false;
+const initializeModule = async () => {
+  if (!moduleInitialized) {
+    await ensureModuleExists();
+    moduleInitialized = true;
+  }
+};
 
 const getAllJobPositions = async (queryParams = {}) => {
   const { page, limit, department, location, employmentType, isActive, isFeatured } = queryParams;
@@ -130,6 +137,7 @@ const deleteJobPosition = async (id) => {
 };
 
 module.exports = {
+  initializeModule,
   getAllJobPositions,
   getJobPositionById,
   getJobPositionBySlug,

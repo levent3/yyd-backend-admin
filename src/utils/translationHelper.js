@@ -126,6 +126,11 @@ const formatEntityWithTranslation = (
     metaTitle: preferredTranslation.metaTitle,
     metaDescription: preferredTranslation.metaDescription,
     metaKeywords: preferredTranslation.metaKeywords,
+    // Team Member için ek alanlar
+    fullName: preferredTranslation.fullName,
+    biography: preferredTranslation.biography,
+    education: preferredTranslation.education,
+    experience: preferredTranslation.experience,
     // Çeviri bilgisi
     translation: preferredTranslation,
     // Tüm çevirileri de dahil et (isteğe bağlı)
