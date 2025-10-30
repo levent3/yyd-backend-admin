@@ -64,3 +64,4 @@ build/
 # Scripts (temizleme scripti gibi)
 src/cleanup-images.js
 src/check-projects.js
+cookies.txt
