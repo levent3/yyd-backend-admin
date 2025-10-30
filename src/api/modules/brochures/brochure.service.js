@@ -86,7 +86,7 @@ const updateBrochure = async (id, data) => {
   if (brochureData.isActive !== undefined) mappedData.isActive = brochureData.isActive;
   if (brochureData.isFeatured !== undefined) mappedData.isFeatured = brochureData.isFeatured;
   if (brochureData.displayOrder !== undefined) mappedData.displayOrder = parseInt(brochureData.displayOrder);
-  if (brochureData.publishedAt !== undefined) mappedData.publishedAt = brochureData.publishedAt;
+  if (brochureData.publishedAt !== undefined) mappedData.publishedAt = brochureData.publishedAt || null;
 
   // Update translations if provided
   if (translations && Array.isArray(translations)) {
