@@ -105,13 +105,35 @@ npm run lint
 
 ## 📦 Docker Komutları
 
+### Development (Lokal)
+
 ```bash
-# Container'ları başlat
+# Container'ları başlat (hot-reload ile)
 docker-compose up -d
 
 # Container'ları durdur
 docker-compose down
 
+# Rebuild (dependency değişikliği varsa)
+docker-compose up -d --build
+```
+
+### Production (Sunucu)
+
+```bash
+# Container'ları başlat (volume mount olmadan)
+docker-compose -f docker-compose.prod.yml up -d
+
+# Kod değişikliği sonrası rebuild (zorunlu)
+docker-compose -f docker-compose.prod.yml up -d --build
+
+# Container'ları durdur
+docker-compose -f docker-compose.prod.yml down
+```
+
+### Diğer Komutlar
+
+```bash
 # Logları görüntüle
 docker-compose logs -f api
 
@@ -122,6 +144,9 @@ docker exec -it yyd_web_backend-api-1 bash
 docker-compose down -v
 docker-compose up -d
 ```
+
+> **Not**: `docker-compose.yml` lokal development için volume mount içerir (hot-reload).
+> `docker-compose.prod.yml` production için volume mount içermez (kod değişikliği için rebuild gerekir).
 
 ## 👥 Katkıda Bulunma
 

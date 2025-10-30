@@ -1,0 +1,35 @@
+services:
+  api:
+    build: .
+    ports:
+      - "5001:5000" # API Portu
+      - "5555:5555" # Prisma Studio Portu
+    env_file: .env
+    # Production'da volume mount yok - değişiklikler için rebuild gerekli
+    depends_on:
+      - postgres
+      - redis
+    restart: always
+
+  postgres:
+    image: postgres:14-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: always
+
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+    restart: always
+    command: redis-server --appendonly yes
+
+volumes:
+  postgres_data:
+  redis_data:
