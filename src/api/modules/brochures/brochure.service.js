@@ -52,7 +52,7 @@ const createBrochure = async (data) => {
     isActive: brochureData.isActive !== undefined ? brochureData.isActive : true,
     isFeatured: brochureData.isFeatured !== undefined ? brochureData.isFeatured : false,
     displayOrder: brochureData.displayOrder ? parseInt(brochureData.displayOrder) : 0,
-    publishedAt: brochureData.publishedAt || null
+    publishedAt: brochureData.publishedAt ? new Date(brochureData.publishedAt).toISOString() : null
   };
 
   // Add translations if provided
@@ -86,7 +86,12 @@ const updateBrochure = async (id, data) => {
   if (brochureData.isActive !== undefined) mappedData.isActive = brochureData.isActive;
   if (brochureData.isFeatured !== undefined) mappedData.isFeatured = brochureData.isFeatured;
   if (brochureData.displayOrder !== undefined) mappedData.displayOrder = parseInt(brochureData.displayOrder);
-  if (brochureData.publishedAt !== undefined) mappedData.publishedAt = brochureData.publishedAt || null;
+  if (brochureData.publishedAt !== undefined) {
+    // Convert date string to ISO DateTime or null
+    mappedData.publishedAt = brochureData.publishedAt
+      ? new Date(brochureData.publishedAt).toISOString()
+      : null;
+  }
 
   // Update translations if provided
   if (translations && Array.isArray(translations)) {
