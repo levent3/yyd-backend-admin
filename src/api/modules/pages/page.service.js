@@ -91,6 +91,34 @@ const getPublicPagesByType = async (pageType, language = 'tr') => {
   return pages.map(page => formatEntityWithTranslation(page, language, false));
 };
 
+// ========== PAGE BUILDER SERVICES ==========
+
+const updateBuilderData = async (id, language, builderData) => {
+  // Check if page exists
+  const page = await pageRepository.findById(id);
+  if (!page) {
+    throw { status: 404, message: 'Page not found' };
+  }
+
+  // Update builder data for specific language translation
+  return await pageRepository.updateBuilderData(id, language, builderData);
+};
+
+const getBuilderData = async (id, language = 'tr') => {
+  const page = await pageRepository.findById(id, language);
+  if (!page) {
+    throw { status: 404, message: 'Page not found' };
+  }
+
+  // Return builder data from translation
+  const translation = page.translations.find(t => t.language === language);
+  return {
+    builderData: translation?.builderData || null,
+    builderHtml: translation?.builderHtml || null,
+    builderCss: translation?.builderCss || null,
+  };
+};
+
 module.exports = {
   getAllPages,
   getPageById,
@@ -101,4 +129,6 @@ module.exports = {
   getPublicPages,
   getPublicPageBySlug,
   getPublicPagesByType,
+  updateBuilderData,
+  getBuilderData,
 };

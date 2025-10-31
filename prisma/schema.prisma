@@ -279,6 +279,11 @@ model PageTranslation {
   content String? @db.Text
   excerpt String? @db.Text
 
+  // Page Builder Data - GrapesJS veya benzeri builder'dan gelen JSON
+  builderData Json?   // Builder'dan export edilen sayfa yapısı
+  builderHtml String? @db.Text // Builder'dan export edilen HTML
+  builderCss  String? @db.Text // Builder'dan export edilen CSS
+
   // SEO (Her dil için farklı SEO)
   metaTitle       String?
   metaDescription String? @db.Text

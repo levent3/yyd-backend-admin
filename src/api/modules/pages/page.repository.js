@@ -271,6 +271,37 @@ const findPublicByType = (pageType, language = 'tr') => {
   });
 };
 
+// ========== PAGE BUILDER OPERATIONS ==========
+
+const updateBuilderData = async (pageId, language, builderData) => {
+  const { builderData: data, builderHtml, builderCss } = builderData;
+
+  // Önce translation var mı kontrol et
+  const existingTranslation = await prisma.pageTranslation.findFirst({
+    where: {
+      pageId: parseInt(pageId),
+      language: language,
+    },
+  });
+
+  if (existingTranslation) {
+    // Translation varsa güncelle
+    return await prisma.pageTranslation.update({
+      where: {
+        id: existingTranslation.id,
+      },
+      data: {
+        builderData: data || existingTranslation.builderData,
+        builderHtml: builderHtml !== undefined ? builderHtml : existingTranslation.builderHtml,
+        builderCss: builderCss !== undefined ? builderCss : existingTranslation.builderCss,
+      },
+    });
+  } else {
+    // Translation yoksa hata at (çünkü sayfa oluşturulurken translation oluşturulmalı)
+    throw { status: 404, message: `Translation for language '${language}' not found` };
+  }
+};
+
 module.exports = {
   findAll,
   findById,
@@ -281,4 +312,5 @@ module.exports = {
   findPublic,
   findPublicBySlug,
   findPublicByType,
+  updateBuilderData,
 };

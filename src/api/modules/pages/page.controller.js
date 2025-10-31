@@ -121,6 +121,42 @@ const getPublicPagesByType = async (req, res, next) => {
   }
 };
 
+// ========== PAGE BUILDER CONTROLLERS ==========
+
+// PUT /api/pages/:id/builder - Save builder data
+const updateBuilderData = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { language = 'tr', builderData, builderHtml, builderCss } = req.body;
+
+    const result = await pageService.updateBuilderData(id, language, {
+      builderData,
+      builderHtml,
+      builderCss
+    });
+
+    res.status(200).json({
+      message: 'Builder data başarıyla güncellendi',
+      data: result
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// GET /api/pages/:id/builder - Get builder data
+const getBuilderData = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const language = req.query.language || 'tr';
+
+    const builderData = await pageService.getBuilderData(id, language);
+    res.status(200).json(builderData);
+  } catch (error) {
+    next(error);
+  }
+};
+
 // ========== EXPORT ==========
 
 module.exports = {
@@ -136,4 +172,8 @@ module.exports = {
   getPublicPages,
   getPublicPageBySlug,
   getPublicPagesByType,
+
+  // Page Builder endpoints
+  updateBuilderData,
+  getBuilderData,
 };

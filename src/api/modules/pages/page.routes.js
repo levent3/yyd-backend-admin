@@ -139,13 +139,15 @@ router.get(
   pageController.getAllPages
 );
 
+// ========== PAGE BUILDER ROUTES (Must come BEFORE /:id route) ==========
+
 /**
  * @swagger
- * /api/pages/{id}:
+ * /api/pages/{id}/builder:
  *   get:
- *     summary: Get page by ID (Admin)
- *     description: Get full page details by ID for admin panel
- *     tags: [Pages - Admin]
+ *     summary: Get page builder data
+ *     description: Get GrapesJS builder data for a specific page and language
+ *     tags: [Pages - Builder]
  *     security:
  *       - bearerAuth: []
  *       - cookieAuth: []
@@ -155,16 +157,68 @@ router.get(
  *         required: true
  *         schema:
  *           type: integer
+ *       - in: query
+ *         name: language
+ *         schema:
+ *           type: string
+ *           default: tr
  *     responses:
  *       200:
- *         description: Page details
+ *         description: Builder data retrieved successfully
  *       404:
  *         description: Page not found
  */
 router.get(
-  '/:id',
+  '/:id/builder',
   checkPermission('pages', 'read'),
-  pageController.getPageById
+  pageController.getBuilderData
+);
+
+/**
+ * @swagger
+ * /api/pages/{id}/builder:
+ *   put:
+ *     summary: Update page builder data
+ *     description: Save GrapesJS builder data, HTML and CSS for a page
+ *     tags: [Pages - Builder]
+ *     security:
+ *       - bearerAuth: []
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               language:
+ *                 type: string
+ *                 default: tr
+ *               builderData:
+ *                 type: object
+ *                 description: GrapesJS project data (components, styles, etc.)
+ *               builderHtml:
+ *                 type: string
+ *                 description: Generated HTML from builder
+ *               builderCss:
+ *                 type: string
+ *                 description: Generated CSS from builder
+ *     responses:
+ *       200:
+ *         description: Builder data saved successfully
+ *       404:
+ *         description: Page not found
+ */
+router.put(
+  '/:id/builder',
+  checkPermission('pages', 'update'),
+  pageController.updateBuilderData
 );
 
 /**
@@ -193,6 +247,34 @@ router.get(
   '/slug/:slug',
   checkPermission('pages', 'read'),
   pageController.getPageBySlug
+);
+
+/**
+ * @swagger
+ * /api/pages/{id}:
+ *   get:
+ *     summary: Get page by ID (Admin)
+ *     description: Get full page details by ID for admin panel
+ *     tags: [Pages - Admin]
+ *     security:
+ *       - bearerAuth: []
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Page details
+ *       404:
+ *         description: Page not found
+ */
+router.get(
+  '/:id',
+  checkPermission('pages', 'read'),
+  pageController.getPageById
 );
 
 /**
