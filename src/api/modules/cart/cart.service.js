@@ -40,7 +40,7 @@ const getCart = async (sessionId) => {
 // Add item to cart
 const addToCart = async (sessionId, data) => {
   // Check if item already exists for this session and campaign
-  const existingItem = await cartRepo.findBySessionAndCampaign(sessionId, data.campaignId);
+  const existingItem = await cartRepo.findBySessionAndCampaign(sessionId, data.projectId);
 
   if (existingItem) {
     // Update existing item (increase amount)
@@ -59,7 +59,7 @@ const addToCart = async (sessionId, data) => {
     currency: data.currency || 'TRY',
     donationType: data.donationType || 'one_time',
     repeatCount: data.repeatCount || 1,
-    campaignId: data.campaignId || null,
+    projectId: data.projectId || null,
     donorName: data.donorName || null,
     donorEmail: data.donorEmail || null,
     donorPhone: data.donorPhone || null,
@@ -166,7 +166,7 @@ const createDonationsFromCart = async (sessionId, donorInfo = {}) => {
       donorName: item.donorName || donorInfo.donorName,
       donorEmail: item.donorEmail || donorInfo.donorEmail,
       donorPhone: item.donorPhone || donorInfo.donorPhone,
-      campaignId: item.campaignId,
+      projectId: item.projectId,
       message: item.message || null,
       isAnonymous: donorInfo.isAnonymous || false,
       installment: item.installment || 1,

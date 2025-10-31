@@ -43,7 +43,7 @@ router.use(authMiddleware);
  *         schema:
  *           type: integer
  *       - in: query
- *         name: campaignId
+ *         name: projectId
  *         schema:
  *           type: integer
  *     responses:
@@ -108,17 +108,17 @@ router.get('/donor/:donorId', checkPermission('donations', 'read'), recurringDon
 
 /**
  * @swagger
- * /api/recurring-donations/campaign/{campaignId}:
+ * /api/recurring-donations/campaign/{projectId}:
  *   get:
- *     summary: Get recurring donations by campaign (Admin)
- *     description: Get all recurring donations for a specific campaign
+ *     summary: Get recurring donations by project (Admin)
+ *     description: Get all recurring donations for a specific project
  *     tags: [Recurring Donations]
  *     security:
  *       - bearerAuth: []
  *       - cookieAuth: []
  *     parameters:
  *       - in: path
- *         name: campaignId
+ *         name: projectId
  *         required: true
  *         schema:
  *           type: integer
@@ -126,7 +126,7 @@ router.get('/donor/:donorId', checkPermission('donations', 'read'), recurringDon
  *       200:
  *         description: Successfully retrieved donations
  */
-router.get('/campaign/:campaignId', checkPermission('donations', 'read'), recurringDonationController.getByCampaign);
+router.get('/campaign/:projectId', checkPermission('donations', 'read'), recurringDonationController.getByCampaign);
 
 /**
  * @swagger
@@ -200,7 +200,7 @@ router.get('/:id', checkPermission('donations', 'read'), recurringDonationContro
  *               donorId:
  *                 type: integer
  *                 example: 1
- *               campaignId:
+ *               projectId:
  *                 type: integer
  *                 example: 5
  *               totalPaymentsPlanned:

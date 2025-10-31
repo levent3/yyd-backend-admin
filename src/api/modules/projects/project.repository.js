@@ -23,15 +23,6 @@ const findMany = (options = {}) => {
           mediaType: true
         }
       },
-      donationCampaigns: {
-        take: 2, // Liste için sadece ilk 2 kampanya
-        where: { isActive: true },
-        select: {
-          id: true,
-          targetAmount: true,
-          collectedAmount: true
-        }
-      },
       ...includeTranslations(language)
     }
   });
@@ -48,14 +39,6 @@ const findById = (id, language = null) => prisma.project.findUnique({
     galleryItems: {
       take: 10,
       orderBy: { createdAt: 'desc' }
-    },
-    donationCampaigns: {
-      where: { isActive: true },
-      select: {
-        id: true,
-        targetAmount: true,
-        collectedAmount: true
-      }
     },
     ...includeTranslations(language)
   }
@@ -79,14 +62,6 @@ const findBySlug = (slug, language = 'tr') => {
       galleryItems: {
         take: 10,
         orderBy: { createdAt: 'desc' }
-      },
-      donationCampaigns: {
-        where: { isActive: true },
-        select: {
-          id: true,
-          targetAmount: true,
-          collectedAmount: true
-        }
       },
       ...includeTranslations()
     }

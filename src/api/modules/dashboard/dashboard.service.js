@@ -45,7 +45,7 @@ const getRecentActivities = async (limit) => {
       id: d.id,
       title: `Yeni bağış: ${d.amount} ${d.currency}`,
       description: d.donorName || d.donorEmail,
-      campaign: d.campaign?.translations?.[0]?.title || 'Kampanya',
+      campaign: d.project?.translations?.[0]?.title || 'Proje',
       timestamp: d.createdAt,
     })),
     ...recentVolunteers.map((v) => ({

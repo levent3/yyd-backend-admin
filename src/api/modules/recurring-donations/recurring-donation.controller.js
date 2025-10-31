@@ -61,11 +61,11 @@ const getByDonor = async (req, res, next) => {
   }
 };
 
-// GET /api/recurring-donations/campaign/:campaignId - Get by campaign
+// GET /api/recurring-donations/campaign/:projectId - Get by project
 const getByCampaign = async (req, res, next) => {
   try {
-    const campaignId = parseInt(req.params.campaignId);
-    const donations = await recurringDonationService.getRecurringDonationsByCampaign(campaignId);
+    const projectId = parseInt(req.params.projectId);
+    const donations = await recurringDonationService.getRecurringDonationsByCampaign(projectId);
     res.json(donations);
   } catch (error) {
     next(error);

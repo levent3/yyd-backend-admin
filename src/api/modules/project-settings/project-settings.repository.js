@@ -1,10 +1,10 @@
 const prisma = require('../../../config/prismaClient');
 
-const findByCampaignId = (campaignId) => {
-  return prisma.campaignSettings.findUnique({
-    where: { campaignId: parseInt(campaignId) },
+const findByProjectId = (projectId) => {
+  return prisma.projectSettings.findUnique({
+    where: { projectId: parseInt(projectId) },
     include: {
-      campaign: {
+      project: {
         select: {
           id: true,
           targetAmount: true,
@@ -27,9 +27,9 @@ const findByCampaignId = (campaignId) => {
 };
 
 const create = (data) => {
-  return prisma.campaignSettings.create({
+  return prisma.projectSettings.create({
     data: {
-      campaignId: parseInt(data.campaignId),
+      projectId: parseInt(data.projectId),
       presetAmounts: data.presetAmounts || null,
       minAmount: data.minAmount || null,
       maxAmount: data.maxAmount || null,
@@ -53,12 +53,12 @@ const create = (data) => {
       customJs: data.customJs || null
     },
     include: {
-      campaign: true
+      project: true
     }
   });
 };
 
-const update = (campaignId, data) => {
+const update = (projectId, data) => {
   const updateData = {};
 
   if (data.presetAmounts !== undefined) updateData.presetAmounts = data.presetAmounts;
@@ -83,34 +83,34 @@ const update = (campaignId, data) => {
   if (data.customCss !== undefined) updateData.customCss = data.customCss;
   if (data.customJs !== undefined) updateData.customJs = data.customJs;
 
-  return prisma.campaignSettings.update({
-    where: { campaignId: parseInt(campaignId) },
+  return prisma.projectSettings.update({
+    where: { projectId: parseInt(projectId) },
     data: updateData,
     include: {
-      campaign: true
+      project: true
     }
   });
 };
 
-const deleteById = (campaignId) => {
-  return prisma.campaignSettings.delete({
-    where: { campaignId: parseInt(campaignId) }
+const deleteById = (projectId) => {
+  return prisma.projectSettings.delete({
+    where: { projectId: parseInt(projectId) }
   });
 };
 
 // Create or update (upsert)
-const upsert = async (campaignId, data) => {
-  const existing = await findByCampaignId(campaignId);
+const upsert = async (projectId, data) => {
+  const existing = await findByProjectId(projectId);
 
   if (existing) {
-    return update(campaignId, data);
+    return update(projectId, data);
   } else {
-    return create({ ...data, campaignId });
+    return create({ ...data, projectId });
   }
 };
 
 module.exports = {
-  findByCampaignId,
+  findByProjectId,
   create,
   update,
   deleteById,

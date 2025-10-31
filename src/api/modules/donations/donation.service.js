@@ -6,14 +6,14 @@ const { formatEntityWithTranslation } = require('../../../utils/translationHelpe
 // ========== DONATIONS ==========
 
 const getAllDonations = async (queryParams = {}) => {
-  const { page, limit, status, paymentMethod, campaignId, donorId, minAmount, maxAmount, ...rest } = queryParams;
+  const { page, limit, status, paymentMethod, projectId, donorId, minAmount, maxAmount, ...rest } = queryParams;
   const { skip, limit: take } = parsePagination(page, limit);
 
   const where = {};
 
   if (status) where.paymentStatus = status;
   if (paymentMethod) where.paymentMethod = paymentMethod;
-  if (campaignId) where.campaignId = parseInt(campaignId);
+  if (projectId) where.projectId = parseInt(projectId);
   if (donorId) where.donorId = parseInt(donorId);
 
   // Amount filtering
@@ -55,9 +55,9 @@ const createDonation = async (data) => {
 
   const donation = await donationRepository.createDonation(data);
 
-  // Eğer ödeme tamamlandıysa, kampanya toplamını güncelle
-  if (data.paymentStatus === 'completed' && data.campaignId) {
-    await donationRepository.updateCampaignTotal(data.campaignId);
+  // Eğer ödeme tamamlandıysa, proje toplamını güncelle
+  if (data.paymentStatus === 'completed' && data.projectId) {
+    await donationRepository.updateProjectTotal(data.projectId);
   }
 
   return donation;
@@ -66,9 +66,9 @@ const createDonation = async (data) => {
 const updateDonation = async (id, data) => {
   const donation = await donationRepository.updateDonation(id, data);
 
-  // Eğer ödeme durumu değiştiyse, kampanya toplamını güncelle
-  if (data.paymentStatus === 'completed' && donation.campaignId) {
-    await donationRepository.updateCampaignTotal(donation.campaignId);
+  // Eğer ödeme durumu değiştiyse, proje toplamını güncelle
+  if (data.paymentStatus === 'completed' && donation.projectId) {
+    await donationRepository.updateProjectTotal(donation.projectId);
   }
 
   return donation;
@@ -78,65 +78,10 @@ const deleteDonation = (id) => {
   return donationRepository.deleteDonation(id);
 };
 
-// ========== DONATION CAMPAIGNS ==========
-
-const getAllCampaigns = async (filters) => {
-  const language = filters.language || 'tr';
-  const result = await donationRepository.getAllCampaigns(filters);
-
-  // Format her bir kampanyayı çevirisiyle birlikte
-  const formattedData = result.data.map(item =>
-    formatEntityWithTranslation(item, language, false)
-  );
-
-  return {
-    data: formattedData,
-    pagination: result.pagination
-  };
-};
-
-const getCampaignById = (id, language = 'tr') => {
-  // Admin paneli için tüm dillerdeki translations'ları getir (language=null)
-  const campaign = donationRepository.getCampaignById(id, null);
-  return campaign.then(c => formatEntityWithTranslation(c, language, true));
-};
-
-const getCampaignBySlug = (slug, language = 'tr') => {
-  const campaign = donationRepository.getCampaignBySlug(slug, language);
-  return campaign.then(c => formatEntityWithTranslation(c, language, true));
-};
-
-const createCampaign = async (data) => {
-  try {
-    return await donationRepository.createCampaign(data);
-  } catch (error) {
-    // Unique constraint hatası için özel mesaj
-    if (error.code === 'P2002' && error.meta?.target?.includes('slug')) {
-      const customError = new Error('Bu slug başka bir kampanyada kullanılıyor. Lütfen farklı bir başlık girin.');
-      customError.statusCode = 400;
-      throw customError;
-    }
-    throw error;
-  }
-};
-
-const updateCampaign = async (id, data) => {
-  try {
-    return await donationRepository.updateCampaign(id, data);
-  } catch (error) {
-    // Unique constraint hatası için özel mesaj
-    if (error.code === 'P2002' && error.meta?.target?.includes('slug')) {
-      const customError = new Error('Bu slug başka bir kampanyada kullanılıyor. Lütfen farklı bir başlık girin.');
-      customError.statusCode = 400;
-      throw customError;
-    }
-    throw error;
-  }
-};
-
-const deleteCampaign = (id) => {
-  return donationRepository.deleteCampaign(id);
-};
+// ========== DONATION CAMPAIGNS - REMOVED ==========
+// NOT: Campaign fonksiyonları kaldırıldı.
+// Projeler artık direkt olarak kampanya görevi görüyor.
+// Campaign endpoint'leri için /api/projects kullanın.
 
 // ========== DONORS ==========
 
@@ -231,9 +176,9 @@ const updateDonationPaymentStatus = async (donationId, status, paymentData = {})
 
   const donation = await donationRepository.updateDonation(donationId, updateData);
 
-  // Update campaign total if completed
-  if (status === 'completed' && donation.campaignId) {
-    await donationRepository.updateCampaignTotal(donation.campaignId);
+  // Update project total if completed
+  if (status === 'completed' && donation.projectId) {
+    await donationRepository.updateProjectTotal(donation.projectId);
   }
 
   return donation;
@@ -265,14 +210,6 @@ module.exports = {
   createDonationWithTransaction,
   updateDonationPaymentStatus,
   processDonationPayment,
-
-  // Campaigns
-  getAllCampaigns,
-  getCampaignById,
-  getCampaignBySlug,
-  createCampaign,
-  updateCampaign,
-  deleteCampaign,
 
   // Donors
   getAllDonors,

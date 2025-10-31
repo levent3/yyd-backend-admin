@@ -7,7 +7,7 @@ const findMany = (options = {}) => {
     take,
     where,
     include: {
-      campaign: true
+      project: true
     },
     orderBy: orderBy || { createdAt: 'desc' }
   });
@@ -21,7 +21,7 @@ const findById = (id) => {
   return prisma.cartItem.findUnique({
     where: { id },
     include: {
-      campaign: true
+      project: true
     }
   });
 };
@@ -30,7 +30,7 @@ const create = (data) => {
   return prisma.cartItem.create({
     data,
     include: {
-      campaign: true
+      project: true
     }
   });
 };
@@ -40,7 +40,7 @@ const update = (id, data) => {
     where: { id },
     data,
     include: {
-      campaign: true
+      project: true
     }
   });
 };
@@ -54,16 +54,16 @@ const findBySessionId = (sessionId) => {
   return prisma.cartItem.findMany({
     where: { sessionId },
     include: {
-      campaign: true
+      project: true
     },
     orderBy: { createdAt: 'desc' }
   });
 };
 
-// Get cart items by campaign
-const findByCampaignId = (campaignId) => {
+// Get cart items by project
+const findByCampaignId = (projectId) => {
   return prisma.cartItem.findMany({
-    where: { campaignId },
+    where: { projectId },
     orderBy: { createdAt: 'desc' }
   });
 };
@@ -106,11 +106,11 @@ const getCartTotal = async (sessionId) => {
 };
 
 // Check if cart item exists for session and campaign
-const findBySessionAndCampaign = (sessionId, campaignId) => {
+const findBySessionAndCampaign = (sessionId, projectId) => {
   return prisma.cartItem.findFirst({
     where: {
       sessionId,
-      campaignId
+      projectId
     }
   });
 };

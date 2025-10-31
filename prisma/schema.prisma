@@ -109,10 +109,11 @@ model Project {
   endDate   DateTime?
   budget    Float?
 
-  // İstatistikler (opsiyonel)
+  // Bağış İstatistikleri (eski DonationCampaign'den taşındı)
   targetAmount     Float? // Hedef bağış tutarı
   collectedAmount  Float? @default(0) // Toplanan tutar
-  beneficiaryCount Int? // Faydalanan kişi sayısı
+  donorCount       Int?   @default(0) // Bağışçı sayısı
+  beneficiaryCount Int?   @default(0) // Faydalanan kişi sayısı
 
   // Görünürlük
   isActive     Boolean @default(true)
@@ -124,12 +125,17 @@ model Project {
   updatedAt DateTime @updatedAt
 
   // İlişkiler
-  author            User?              @relation(fields: [authorId], references: [id], onDelete: SetNull)
-  authorId          Int?
-  galleryItems      GalleryItem[]
-  donationCampaigns DonationCampaign[]
-  brochures         Brochure[]
-  successStories    SuccessStory[]
+  author             User?               @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  authorId           Int?
+  galleryItems       GalleryItem[]
+  donations          Donation[]          // Direkt olarak projeye yapılan bağışlar
+  recurringDonations RecurringDonation[] // Tekrarlayan bağışlar
+  cartItems          CartItem[]          // Sepet öğeleri
+  brochures          Brochure[]
+  successStories     SuccessStory[]
+
+  // Proje ayarları (1-to-1 ilişki - eski CampaignSettings)
+  settings       ProjectSettings?
 
   // Çeviriler (Her dil için bir kayıt)
   translations ProjectTranslation[]
@@ -387,67 +393,8 @@ model Donor {
   @@index([createdAt])
 }
 
-model DonationCampaign {
-  id Int @id @default(autoincrement())
-  // Dil-bağımlı alanlar CampaignTranslation'a taşındı (title, slug, description)
-
-  targetAmount    Float?
-  collectedAmount Float?  @default(0)
-  imageUrl        String?
-  category        String? // "Sağlık", "Eğitim", "Acil Yardım" vb.
-  isActive        Boolean @default(true)
-  isFeatured      Boolean @default(false)
-  displayOrder    Int     @default(0)
-  startDate       DateTime?
-  endDate         DateTime?
-
-  // İstatistikler (dinamik olarak güncellenir)
-  donorCount       Int? @default(0)
-  beneficiaryCount Int? @default(0)
-
-  createdAt          DateTime            @default(now())
-  updatedAt          DateTime            @updatedAt
-  donations          Donation[]
-  recurringDonations RecurringDonation[]
-  cartItems          CartItem[]
-  brochures          Brochure[]
-  successStories     SuccessStory[]
-
-  // Proje ile ilişkilendirme (opsiyonel)
-  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
-  projectId Int?
-
-  // Kampanya ayarları (1-to-1 ilişki)
-  settings CampaignSettings?
-
-  // Çeviriler (Her dil için bir kayıt)
-  translations CampaignTranslation[]
-
-  @@index([isActive])
-  @@index([isFeatured])
-  @@index([category])
-}
-
-// DonationCampaign için çeviri tablosu
-model CampaignTranslation {
-  id         Int    @id @default(autoincrement())
-  campaignId Int
-  language   String // "tr", "en", "ar"
-
-  title       String
-  slug        String
-  description String? @db.Text
-
-  campaign DonationCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([campaignId, language]) // Bir kampanya için her dil sadece 1 kez
-  @@unique([language, slug])       // Aynı dilde aynı slug olamaz
-  @@index([language])
-  @@index([slug])
-}
+// NOT: DonationCampaign modeli kaldırıldı. Projeler artık direkt olarak kampanya görevi görüyor.
+// Tüm campaign özellikleri Project modeline taşındı.
 
 model Donation {
   id       String @id @default(uuid())
@@ -505,17 +452,17 @@ model Donation {
   failedAt    DateTime? // Ödeme başarısız olma tarihi
 
   // İlişkiler
-  donor      Donor?            @relation(fields: [donorId], references: [id], onDelete: SetNull)
-  donorId    Int?
-  campaign   DonationCampaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
-  campaignId Int?
+  donor     Donor?   @relation(fields: [donorId], references: [id], onDelete: SetNull)
+  donorId   Int?
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  projectId Int?     // Bağışın yapıldığı proje (eski campaignId)
 
   // Ödeme işlem geçmişi
   paymentTransactions PaymentTransaction[]
 
   @@index([paymentStatus])
   @@index([donorId])
-  @@index([campaignId])
+  @@index([projectId])
   @@index([createdAt])
   @@index([completedAt])
   @@index([paymentGateway])
@@ -557,10 +504,10 @@ model RecurringDonation {
   pausedAt  DateTime? // Duraklatılma tarihi
 
   // İlişkiler
-  donor      Donor             @relation(fields: [donorId], references: [id], onDelete: Cascade)
-  donorId    Int
-  campaign   DonationCampaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
-  campaignId Int?
+  donor     Donor    @relation(fields: [donorId], references: [id], onDelete: Cascade)
+  donorId   Int
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  projectId Int?     // Tekrarlayan bağışın yapıldığı proje (eski campaignId)
 
   // Ödeme işlem geçmişi
   paymentTransactions PaymentTransaction[]
@@ -568,7 +515,7 @@ model RecurringDonation {
   @@index([donorId])
   @@index([status])
   @@index([nextPaymentDate])
-  @@index([campaignId])
+  @@index([projectId])
 }
 
 model BankAccount {
@@ -707,9 +654,9 @@ model CartItem {
   donationType String @default("one_time") // one_time, monthly
   repeatCount  Int?   @default(1) // Tekrar sayısı (2-18)
 
-  // Kampanya Bilgisi
-  campaign   DonationCampaign? @relation(fields: [campaignId], references: [id], onDelete: Cascade)
-  campaignId Int?
+  // Proje Bilgisi (eski campaignId)
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId Int?
 
   // Bağışçı Bilgileri (Opsiyonel - sepette saklanabilir)
   donorName  String?
@@ -721,7 +668,7 @@ model CartItem {
   expiresAt DateTime // Sepet öğesi 30 dakika sonra silinir
 
   @@index([sessionId])
-  @@index([campaignId])
+  @@index([projectId])
   @@index([expiresAt])
 }
 
@@ -758,13 +705,13 @@ model ValidationRule {
   @@index([isActive])
 }
 
-// Dinamik kampanya ayarları ve özel özellikler
-model CampaignSettings {
+// Dinamik proje/kampanya ayarları ve özel özellikler (eski CampaignSettings)
+model ProjectSettings {
   id Int @id @default(autoincrement())
 
-  // Kampanya ilişkisi
-  campaign   DonationCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
-  campaignId Int              @unique
+  // Proje ilişkisi (eski campaignId)
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId Int     @unique
 
   // Önceden tanımlı bağış tutarları (dinamik)
   presetAmounts Json? // [100, 200, 500, 1000] gibi array
@@ -872,7 +819,7 @@ model BrandAsset {
   @@index([isActive])
 }
 
-// Broşürler (Kampanya broşürleri, tanıtım dokümanları)
+// Broşürler (Proje broşürleri, tanıtım dokümanları)
 model Brochure {
   id           Int       @id @default(autoincrement())
 
@@ -887,9 +834,6 @@ model Brochure {
   // İlişkiler
   projectId    Int?
   project      Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
-
-  campaignId   Int?
-  campaign     DonationCampaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
 
   // Görünürlük
   isActive     Boolean   @default(true)
@@ -992,9 +936,6 @@ model SuccessStory {
   // İlişkiler
   projectId    Int?
   project      Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
-
-  campaignId   Int?
-  campaign     DonationCampaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
 
   // Görünürlük
   isActive     Boolean   @default(true)

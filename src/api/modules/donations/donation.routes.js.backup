@@ -43,7 +43,7 @@ const router = express.Router();
  *                 pagination:
  *                   $ref: '#/components/schemas/PaginationInfo'
  */
-// REMOVED: router.get('/campaigns/public', cacheMiddleware(600), donationController.getAllCampaigns);
+router.get('/campaigns/public', cacheMiddleware(600), donationController.getAllCampaigns);
 
 /**
  * @swagger
@@ -74,7 +74,7 @@ const router = express.Router();
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-// REMOVED: router.get('/campaigns/slug/:slug', cacheMiddleware(1800), donationController.getCampaignBySlug);
+router.get('/campaigns/slug/:slug', cacheMiddleware(1800), donationController.getCampaignBySlug);
 
 /**
  * @swagger
@@ -139,7 +139,7 @@ router.get('/bank-accounts/public', cacheMiddleware(3600), donationController.ge
  *               donorPhone:
  *                 type: string
  *                 example: +90 555 123 4567
- *               projectId:
+ *               campaignId:
  *                 type: integer
  *                 example: 1
  *               paymentMethod:
@@ -206,7 +206,7 @@ router.use(authMiddleware);
  *           enum: [pending, completed, failed, refunded]
  *         description: Filter by donation status
  *       - in: query
- *         name: projectId
+ *         name: campaignId
  *         schema:
  *           type: integer
  *         description: Filter by campaign ID
@@ -263,7 +263,7 @@ router.get('/', checkPermission('donations', 'read'), donationController.getAllD
  *               donorId:
  *                 type: integer
  *                 example: 1
- *               projectId:
+ *               campaignId:
  *                 type: integer
  *                 example: 2
  *               paymentMethod:
@@ -367,7 +367,7 @@ router.post('/', checkPermission('donations', 'create'), donationController.crea
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-// REMOVED: router.get('/campaigns', checkPermission('donations', 'read'), donationController.getAllCampaigns);
+router.get('/campaigns', checkPermission('donations', 'read'), donationController.getAllCampaigns);
 
 /**
  * @swagger
@@ -412,7 +412,7 @@ router.post('/', checkPermission('donations', 'create'), donationController.crea
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-// REMOVED: router.get('/campaigns/:id', checkPermission('donations', 'read'), donationController.getCampaignById);
+router.get('/campaigns/:id', checkPermission('donations', 'read'), donationController.getCampaignById);
 
 /**
  * @swagger
@@ -485,7 +485,7 @@ router.post('/', checkPermission('donations', 'create'), donationController.crea
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-// REMOVED: router.post('/campaigns', checkPermission('donations', 'create'), donationController.createCampaign);
+router.post('/campaigns', checkPermission('donations', 'create'), donationController.createCampaign);
 
 /**
  * @swagger
@@ -570,7 +570,7 @@ router.post('/', checkPermission('donations', 'create'), donationController.crea
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-// REMOVED: router.put('/campaigns/:id', checkPermission('donations', 'update'), donationController.updateCampaign);
+router.put('/campaigns/:id', checkPermission('donations', 'update'), donationController.updateCampaign);
 
 /**
  * @swagger
@@ -619,7 +619,7 @@ router.post('/', checkPermission('donations', 'create'), donationController.crea
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-// REMOVED: router.delete('/campaigns/:id', checkPermission('donations', 'delete'), donationController.deleteCampaign);
+router.delete('/campaigns/:id', checkPermission('donations', 'delete'), donationController.deleteCampaign);
 
 // ===== DONORS =====
 

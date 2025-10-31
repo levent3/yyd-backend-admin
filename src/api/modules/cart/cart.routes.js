@@ -79,7 +79,7 @@ router.get('/', cartController.getCart);
  *                 default: 1
  *                 description: For repeated donations (2-18)
  *                 example: 1
- *               campaignId:
+ *               projectId:
  *                 type: integer
  *                 example: 5
  *               donorName:

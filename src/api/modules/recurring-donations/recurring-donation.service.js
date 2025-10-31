@@ -20,7 +20,7 @@ const getPaymentTransactionRepository = () => {
 };
 
 const getAllRecurringDonations = async (queryParams = {}) => {
-  const { page, limit, status, frequency, donorId, campaignId, ...rest } = queryParams;
+  const { page, limit, status, frequency, donorId, projectId, ...rest } = queryParams;
   const { skip, limit: take } = parsePagination(page, limit);
 
   const where = {};
@@ -28,7 +28,7 @@ const getAllRecurringDonations = async (queryParams = {}) => {
   if (status) where.status = status;
   if (frequency) where.frequency = frequency;
   if (donorId) where.donorId = parseInt(donorId);
-  if (campaignId) where.campaignId = parseInt(campaignId);
+  if (projectId) where.projectId = parseInt(projectId);
 
   const [data, total] = await Promise.all([
     recurringDonationRepo.findMany({ skip, take, where }),
@@ -59,7 +59,7 @@ const createRecurringDonation = (data) => {
     nextPaymentDate,
     totalPaymentsPlanned: data.totalPaymentsPlanned || null,
     donorId: parseInt(data.donorId),
-    campaignId: data.campaignId ? parseInt(data.campaignId) : null
+    projectId: data.projectId ? parseInt(data.projectId) : null
   };
 
   return recurringDonationRepo.create(mappedData);
@@ -139,9 +139,9 @@ const getRecurringDonationsByDonor = (donorId) => {
   return recurringDonationRepo.findByDonorId(donorId);
 };
 
-// Get recurring donations by campaign
-const getRecurringDonationsByCampaign = (campaignId) => {
-  return recurringDonationRepo.findByCampaignId(campaignId);
+// Get recurring donations by project
+const getRecurringDonationsByCampaign = (projectId) => {
+  return recurringDonationRepo.findByCampaignId(projectId);
 };
 
 // Get due recurring donations (for scheduled processing)
@@ -168,7 +168,7 @@ const processPaymentSuccess = async (id, paymentData = {}) => {
     transactionId: paymentData.transactionId || null,
     gatewayResponse: paymentData.gatewayResponse || null,
     donorId: recurring.donorId,
-    campaignId: recurring.campaignId,
+    projectId: recurring.projectId,
     completedAt: new Date(),
     message: `Düzenli bağış - ${recurring.frequency}`,
     isAnonymous: false
@@ -192,9 +192,9 @@ const processPaymentSuccess = async (id, paymentData = {}) => {
     });
   }
 
-  // 3. Update campaign total if campaign exists
-  if (recurring.campaignId) {
-    await donationRepo.updateCampaignTotal(recurring.campaignId);
+  // 3. Update campaign total if project exists
+  if (recurring.projectId) {
+    await donationRepo.updateCampaignTotal(recurring.projectId);
   }
 
   // 4. Calculate next payment date

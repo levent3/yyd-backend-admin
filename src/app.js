@@ -32,7 +32,7 @@ const paymentTransactionRoutes = require('./api/modules/payment-transactions/pay
 const cartRoutes = require('./api/modules/cart/cart.routes');
 const uploadRoutes = require('./api/modules/upload/upload.routes');
 const validationRuleRoutes = require('./api/modules/validation-rules/validation-rule.routes');
-const campaignSettingsRoutes = require('./api/modules/campaign-settings/campaign-settings.routes');
+const projectSettingsRoutes = require('./api/modules/project-settings/project-settings.routes');
 const systemSettingsRoutes = require('./api/modules/system-settings/system-settings.routes');
 const dashboardRoutes = require('./api/modules/dashboard/dashboard.routes');
 const pageRoutes = require('./api/modules/pages/page.routes');
@@ -155,7 +155,7 @@ app.use('/api/payment-transactions', paymentTransactionRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/validation-rules', validationRuleRoutes);
-app.use('/api/campaign-settings', campaignSettingsRoutes);
+app.use('/api/project-settings', projectSettingsRoutes);
 app.use('/api/system-settings', systemSettingsRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/pages', pageRoutes);

@@ -56,20 +56,15 @@ const getDonationStatistics = async () => {
 };
 
 // ========== CAMPAIGN STATISTICS ==========
+// NOT: DonationCampaign modeli kaldırıldı, artık kullanılmıyor
+// Geriye dönük uyumluluk için boş değerler döndürüyoruz
 
 const getCampaignStatistics = async () => {
-  const [total, active, completed, featured] = await Promise.all([
-    prisma.donationCampaign.count(),
-    prisma.donationCampaign.count({ where: { isActive: true } }),
-    prisma.donationCampaign.count({ where: { isActive: false } }),
-    prisma.donationCampaign.count({ where: { isFeatured: true } }),
-  ]);
-
   return {
-    totalCount: total,
-    activeCount: active,
-    completedCount: completed,
-    featuredCount: featured,
+    totalCount: 0,
+    activeCount: 0,
+    completedCount: 0,
+    featuredCount: 0,
   };
 };
 
@@ -224,7 +219,7 @@ const getRecentDonations = async (limit) => {
     take: limit,
     orderBy: { createdAt: 'desc' },
     include: {
-      campaign: {
+      project: {
         include: {
           translations: {
             where: { language: 'tr' },
@@ -252,13 +247,18 @@ const getRecentContacts = async (limit) => {
 };
 
 // ========== TOP CAMPAIGNS ==========
+// NOT: DonationCampaign yerine artık Project kullanıyoruz
 
 const getTopCampaigns = async (limit) => {
-  return await prisma.donationCampaign.findMany({
+  return await prisma.project.findMany({
     take: limit,
     where: { isActive: true },
     orderBy: { collectedAmount: 'desc' },
     include: {
+      translations: {
+        where: { language: 'tr' },
+        take: 1
+      },
       _count: {
         select: { donations: true },
       },

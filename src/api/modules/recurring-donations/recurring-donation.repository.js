@@ -8,7 +8,7 @@ const findMany = (options = {}) => {
     where,
     include: {
       donor: true,
-      campaign: true,
+      project: true,
       paymentTransactions: {
         orderBy: { createdAt: 'desc' },
         take: 5 // Son 5 işlemi göster
@@ -27,7 +27,7 @@ const findById = (id) => {
     where: { id },
     include: {
       donor: true,
-      campaign: true,
+      project: true,
       paymentTransactions: {
         orderBy: { createdAt: 'desc' }
       }
@@ -40,7 +40,7 @@ const create = (data) => {
     data,
     include: {
       donor: true,
-      campaign: true
+      project: true
     }
   });
 };
@@ -51,7 +51,7 @@ const update = (id, data) => {
     data,
     include: {
       donor: true,
-      campaign: true
+      project: true
     }
   });
 };
@@ -66,7 +66,7 @@ const getActiveRecurringDonations = () => {
     where: { status: 'active' },
     include: {
       donor: true,
-      campaign: true
+      project: true
     },
     orderBy: { nextPaymentDate: 'asc' }
   });
@@ -77,7 +77,7 @@ const findByDonorId = (donorId) => {
   return prisma.recurringDonation.findMany({
     where: { donorId },
     include: {
-      campaign: true,
+      project: true,
       paymentTransactions: {
         orderBy: { createdAt: 'desc' },
         take: 10
@@ -87,10 +87,10 @@ const findByDonorId = (donorId) => {
   });
 };
 
-// Get recurring donations by campaign
-const findByCampaignId = (campaignId) => {
+// Get recurring donations by project
+const findByCampaignId = (projectId) => {
   return prisma.recurringDonation.findMany({
-    where: { campaignId },
+    where: { projectId },
     include: {
       donor: true
     },
@@ -112,7 +112,7 @@ const getDueRecurringDonations = () => {
     },
     include: {
       donor: true,
-      campaign: true
+      project: true
     },
     orderBy: { nextPaymentDate: 'asc' }
   });
