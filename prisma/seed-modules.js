@@ -33,14 +33,26 @@ async function main() {
     console.log(`✅ ${module.name}`);
   }
 
+  // Projeler alt modülleri (parentId = 4)
+  const projectSubModules = [
+    { id: 5, name: 'Proje Ayarları', moduleKey: 'project-settings', path: '/admin/project-settings', icon: 'settings', displayOrder: 1, parentId: 4 },
+  ];
+
+  for (const module of projectSubModules) {
+    await prisma.adminModule.upsert({
+      where: { id: module.id },
+      update: module,
+      create: module
+    });
+    console.log(`  └─ ${module.name}`);
+  }
+
   // Bağış Yönetimi alt modülleri (parentId = 6)
   const donationSubModules = [
-    { id: 12, name: 'Bağış Kampanyaları', moduleKey: 'campaigns', path: '/admin/campaigns', icon: 'target', displayOrder: 1, parentId: 6 },
     { id: 13, name: 'Tüm Bağışlar', moduleKey: 'donations-list', path: '/admin/donations', icon: 'list', displayOrder: 2, parentId: 6 },
     { id: 14, name: 'Düzenli Bağışlar', moduleKey: 'recurring-donations', path: '/admin/recurring-donations', icon: 'repeat', displayOrder: 3, parentId: 6 },
     { id: 15, name: 'Ödeme İşlemleri', moduleKey: 'payment-transactions', path: '/admin/payment-transactions', icon: 'credit-card', displayOrder: 4, parentId: 6 },
     { id: 16, name: 'Banka Hesapları', moduleKey: 'bank-accounts', path: '/admin/bank-accounts', icon: 'dollar-sign', displayOrder: 5, parentId: 6 },
-    { id: 17, name: 'Kampanya Ayarları', moduleKey: 'campaign-settings', path: '/admin/campaign-settings', icon: 'settings', displayOrder: 6, parentId: 6 },
   ];
 
   for (const module of donationSubModules) {
