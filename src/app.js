@@ -53,6 +53,7 @@ const allowedOrigins = [
   process.env.PUBLIC_WEBSITE_URL,       // Public website (production)
   'http://localhost:3000',              // Admin panel (development)
   'http://localhost:3001',              // Public website (development)
+  'http://localhost:3002',              // Admin panel (development - alternative port)
   'http://localhost:5001',              // Swagger için
 ];
 
