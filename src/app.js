@@ -50,6 +50,7 @@ const app = express();
 // CORS middleware'i (en başta olmalı - static dosyalar için de gerekli)
 const allowedOrigins = [
   process.env.ADMIN_PANEL_URL,          // Admin panel (production)
+  'http://10.200.3.110',                // Admin panel via Nginx (no port)
   process.env.PUBLIC_WEBSITE_URL,       // Public website (production)
   'http://localhost:3000',              // Admin panel (development)
   'http://localhost:3001',              // Public website (development)
