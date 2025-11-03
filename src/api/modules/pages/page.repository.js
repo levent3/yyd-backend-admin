@@ -111,7 +111,7 @@ const create = (data) => {
       status: rest.status || 'draft',
       isPublic: rest.isPublic !== undefined ? rest.isPublic : true,
       isActive: rest.isActive !== undefined ? rest.isActive : true,
-      displayOrder: rest.displayOrder || 0,
+      displayOrder: parseInt(rest.displayOrder) || 0,
       featuredImage: rest.featuredImage || null,
       publishedAt: rest.status === 'published' ? new Date() : null,
       authorId: rest.authorId || null,
@@ -148,7 +148,7 @@ const update = (id, data) => {
   }
   if (rest.isPublic !== undefined) updateData.isPublic = rest.isPublic;
   if (rest.isActive !== undefined) updateData.isActive = rest.isActive;
-  if (rest.displayOrder !== undefined) updateData.displayOrder = rest.displayOrder;
+  if (rest.displayOrder !== undefined) updateData.displayOrder = parseInt(rest.displayOrder) || 0;
   if (rest.featuredImage !== undefined) updateData.featuredImage = rest.featuredImage;
 
   // Translations güncelleme (varsa)
