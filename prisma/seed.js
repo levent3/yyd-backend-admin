@@ -82,9 +82,12 @@ async function main() {
     { id: 27, name: 'Başarı Hikayeleri', moduleKey: 'success-stories', path: '/admin/success-stories', icon: 'star', displayOrder: 4, parentId: 23 },
     { id: 28, name: 'Medya Haberleri', moduleKey: 'media-coverage', path: '/admin/media-coverage', icon: 'tv', displayOrder: 5, parentId: 23 },
 
+    // Faaliyet Alanları (Ana modül)
+    { id: 29, name: 'Faaliyet Alanları', moduleKey: 'activity-areas', path: '/admin/activity-areas', icon: 'target', displayOrder: 15, parentId: null },
+
     // Kariyer Başvuruları alt modülleri
-    { id: 29, name: 'Başvurular', moduleKey: 'career-applications', path: '/admin/careers', icon: 'file-text', displayOrder: 1, parentId: 11 },
-    { id: 30, name: 'Açık Pozisyonlar', moduleKey: 'job-positions', path: '/admin/job-positions', icon: 'briefcase', displayOrder: 2, parentId: 11 }
+    { id: 30, name: 'Başvurular', moduleKey: 'career-applications', path: '/admin/careers', icon: 'file-text', displayOrder: 1, parentId: 11 },
+    { id: 31, name: 'Açık Pozisyonlar', moduleKey: 'job-positions', path: '/admin/job-positions', icon: 'briefcase', displayOrder: 2, parentId: 11 }
   ];
 
   for (const module of modules) {

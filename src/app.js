@@ -44,6 +44,7 @@ const publicSpotRoutes = require('./api/modules/public-spots/public-spot.routes'
 const successStoryRoutes = require('./api/modules/success-stories/success-story.routes');
 const mediaCoverageRoutes = require('./api/modules/media-coverage/media-coverage.routes');
 const jobPositionRoutes = require('./api/modules/job-positions/job-position.routes');
+const activityAreaRoutes = require('./api/modules/activity-areas/activity-area.routes');
 
 const app = express();
 
@@ -169,6 +170,7 @@ app.use('/api/public-spots', publicSpotRoutes);
 app.use('/api/success-stories', successStoryRoutes);
 app.use('/api/media-coverage', mediaCoverageRoutes);
 app.use('/api/job-positions', jobPositionRoutes);
+app.use('/api/activity-areas', activityAreaRoutes);
 
 // Hata Yönetimi (en sonda olmalı)
 app.use(errorHandler);

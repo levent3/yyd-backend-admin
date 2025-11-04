@@ -22,6 +22,7 @@ async function main() {
     { id: 21, name: 'Tarihçe', moduleKey: 'timeline', path: '/admin/timeline', icon: 'clock', displayOrder: 21 },
     { id: 22, name: 'Ekip Üyeleri', moduleKey: 'team-members', path: '/admin/team-members', icon: 'users', displayOrder: 22 },
     { id: 23, name: 'Medya Yönetimi', moduleKey: 'media', path: null, icon: 'folder', displayOrder: 16 },
+    { id: 29, name: 'Faaliyet Alanları', moduleKey: 'activity-areas', path: '/admin/activity-areas', icon: 'target', displayOrder: 15 },
   ];
 
   for (const module of mainModules) {

@@ -710,3 +710,36 @@ model MediaCoverage {
   @@index([isActive])
   @@index([publishedAt])
 }
+
+model ActivityArea {
+  id           Int                      @id @default(autoincrement())
+  icon         String?
+  displayOrder Int                      @default(0)
+  isActive     Boolean                  @default(true)
+  createdAt    DateTime                 @default(now())
+  updatedAt    DateTime                 @updatedAt
+  translations ActivityAreaTranslation[]
+
+  @@index([isActive])
+  @@index([displayOrder])
+}
+
+model ActivityAreaTranslation {
+  id              Int          @id @default(autoincrement())
+  activityAreaId  Int
+  language        String
+  title           String
+  slug            String
+  description     String?      @db.Text
+  content         String?      @db.Text
+  metaTitle       String?
+  metaDescription String?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  activityArea    ActivityArea @relation(fields: [activityAreaId], references: [id], onDelete: Cascade)
+
+  @@unique([activityAreaId, language])
+  @@unique([language, slug])
+  @@index([language])
+  @@index([slug])
+}
