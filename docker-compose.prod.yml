@@ -2,7 +2,7 @@ services:
   api:
     build: .
     ports:
-      - "5001:5000" # API Portu
+      - "5000:5000" # API Portu
       - "5555:5555" # Prisma Studio Portu
     env_file: .env
     # Production'da volume mount yok - değişiklikler için rebuild gerekli

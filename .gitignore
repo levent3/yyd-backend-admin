@@ -65,3 +65,5 @@ build/
 src/cleanup-images.js
 src/check-projects.js
 cookies.txt
+token.txt
+cookies.txt

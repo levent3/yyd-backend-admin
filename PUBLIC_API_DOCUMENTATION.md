@@ -2,7 +2,7 @@
 
 Bu dokümantasyon, public website için kullanılacak **authentication gerektirmeyen** API endpoint'lerini içerir.
 
-**Base URL**: `http://localhost:5001/api` (Production'da değişecek)
+**Base URL**: `http://localhost:5000/api` (Production'da değişecek)
 
 ---
 
@@ -48,7 +48,7 @@ Bu dokümantasyon, public website için kullanılacak **authentication gerektirm
       "slug": "gazze-saglik-destek",
       "description": "Gazze'deki hastanelere tıbbi malzeme desteği",
       "content": "Detaylı proje açıklaması...",
-      "coverImage": "http://localhost:5001/uploads/projects/abc123.jpg",
+      "coverImage": "http://localhost:5000/uploads/projects/abc123.jpg",
       "category": "Sağlık",
       "location": "Gazze",
       "country": "Filistin",
@@ -73,7 +73,7 @@ Bu dokümantasyon, public website için kullanılacak **authentication gerektirm
           "id": 10,
           "title": "Proje Görseli 1",
           "mediaType": "image",
-          "fileUrl": "http://localhost:5001/uploads/gallery/xyz789.jpg"
+          "fileUrl": "http://localhost:5000/uploads/gallery/xyz789.jpg"
         }
       ]
     }
@@ -93,7 +93,7 @@ Bu dokümantasyon, public website için kullanılacak **authentication gerektirm
 **Kullanım Örneği**:
 ```javascript
 // Tüm aktif projeleri getir
-fetch('http://localhost:5001/api/projects/public?status=active&page=1&limit=12')
+fetch('http://localhost:5000/api/projects/public?status=active&page=1&limit=12')
   .then(res => res.json())
   .then(data => console.log(data.data));
 

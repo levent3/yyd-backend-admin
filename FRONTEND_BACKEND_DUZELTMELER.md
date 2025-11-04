@@ -411,7 +411,7 @@ Detaylı örnekler için bakınız:
 **Hızlı Örnek:**
 ```bash
 # Proje Ekleme
-curl -X POST http://localhost:5001/api/projects \
+curl -X POST http://localhost:5000/api/projects \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -d '{
@@ -426,7 +426,7 @@ curl -X POST http://localhost:5001/api/projects \
   }'
 
 # Kampanya Ekleme
-curl -X POST http://localhost:5001/api/donations/campaigns \
+curl -X POST http://localhost:5000/api/donations/campaigns \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -d '{

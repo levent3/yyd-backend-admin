@@ -56,7 +56,7 @@ const allowedOrigins = [
   'http://localhost:3000',              // Admin panel (development)
   'http://localhost:3001',              // Public website (development)
   'http://localhost:3002',              // Admin panel (development - alternative port)
-  'http://localhost:5001',              // Swagger için
+  'http://localhost:5000',              // Swagger için
 ];
 
 app.use(cors({

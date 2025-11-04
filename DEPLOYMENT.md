@@ -239,7 +239,7 @@ pm2 save
 curl http://localhost:5000/api/health
 
 # Dışarıdan:
-curl http://10.200.3.110:5001/api/health
+curl http://10.200.3.110:5000/api/health
 ```
 
 ### **Frontend Test:**
@@ -261,7 +261,7 @@ http://10.200.3.110:3000
 sudo ufw allow OpenSSH
 sudo ufw allow 80/tcp
 sudo ufw allow 443/tcp
-sudo ufw allow 5001/tcp  # Backend API
+sudo ufw allow 5000/tcp  # Backend API
 sudo ufw allow 3000/tcp  # Frontend
 sudo ufw enable
 
@@ -380,7 +380,7 @@ npm run build
 
 ```bash
 # Port kontrol
-sudo netstat -tuln | grep -E ':5001|:3000'
+sudo netstat -tuln | grep -E ':5000|:3000'
 
 # İşlemi öldür
 sudo lsof -ti:3000 | xargs kill -9

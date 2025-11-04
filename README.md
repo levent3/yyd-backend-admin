@@ -60,8 +60,8 @@ docker exec yyd_web_backend-api-1 npx prisma db seed
 
 ### 3. API Erişimi
 
-- **API Base URL**: http://localhost:5001/api
-- **Swagger Dokümantasyonu**: http://localhost:5001/api-docs
+- **API Base URL**: http://localhost:5000/api
+- **Swagger Dokümantasyonu**: http://localhost:5000/api-docs
 - **Public API Dokümantasyonu**: [PUBLIC_API_DOCUMENTATION.md](./PUBLIC_API_DOCUMENTATION.md)
 - **Prisma Studio**: http://localhost:5555 (docker-compose up ile başlatılır)
 
