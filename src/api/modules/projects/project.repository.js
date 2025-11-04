@@ -68,8 +68,25 @@ const findBySlug = (slug, language = 'tr') => {
   });
 };
 
+const findByShortCode = (shortCode, language = 'tr') => {
+  // shortCode ana Project tablosunda
+  return prisma.project.findUnique({
+    where: { shortCode },
+    include: {
+      author: {
+        select: { id: true, fullName: true }
+      },
+      galleryItems: {
+        take: 10,
+        orderBy: { createdAt: 'desc' }
+      },
+      ...includeTranslations(language)
+    }
+  });
+};
+
 const create = (data) => prisma.project.create({ data });
 const update = (id, data) => prisma.project.update({ where: { id }, data });
 const deleteById = (id) => prisma.project.delete({ where: { id } });
 
-module.exports = { findMany, count, findById, findBySlug, create, update, deleteById };
+module.exports = { findMany, count, findById, findBySlug, findByShortCode, create, update, deleteById };

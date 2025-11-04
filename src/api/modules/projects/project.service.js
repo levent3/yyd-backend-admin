@@ -68,6 +68,11 @@ const getProjectBySlug = async (slug, language = 'tr') => {
   return normalizeProject(project, language, true);
 };
 
+const getProjectByShortCode = async (shortCode, language = 'tr') => {
+  const project = await projectRepo.findByShortCode(shortCode, language);
+  return normalizeProject(project, language, true);
+};
+
 const createProject = async (data) => {
   // translations array: [{ language: 'tr', title: '...', description: '...', content: '...' }]
   const { translations, ...rest } = data;
@@ -226,4 +231,4 @@ const updateProject = async (id, data) => {
 
 const deleteProject = (id) => projectRepo.deleteById(id);
 
-module.exports = { getAllProjects, getProjectById, getProjectBySlug, createProject, updateProject, deleteProject };
+module.exports = { getAllProjects, getProjectById, getProjectBySlug, getProjectByShortCode, createProject, updateProject, deleteProject };

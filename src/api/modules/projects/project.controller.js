@@ -119,6 +119,40 @@ const getPublicProjects = async (req, res, next) => {
   }
 };
 
+// Public: ShortCode ile proje detayı getir (SMS linkler için)
+const getProjectByShortCode = async (req, res, next) => {
+  try {
+    const language = req.query.language || 'tr';
+    const project = await projectService.getProjectByShortCode(req.params.shortCode, language);
+
+    if (!project) {
+      return res.status(404).json({
+        success: false,
+        message: 'Proje bulunamadı',
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    // Sadece aktif projeleri göster
+    if (!project.isActive || project.status !== 'active') {
+      return res.status(404).json({
+        success: false,
+        message: 'Proje bulunamadı',
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Proje detayı başarıyla getirildi',
+      data: mapProjectToFrontend(project),
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // Public: Slug ile proje detayı getir
 const getPublicProjectBySlug = async (req, res, next) => {
   try {
@@ -185,6 +219,7 @@ module.exports = {
 
   // Public endpoints (özel)
   getPublicProjects,
+  getProjectByShortCode,
   getPublicProjectBySlug,
 
   // Upload

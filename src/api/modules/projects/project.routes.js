@@ -46,6 +46,28 @@ router.get('/public', cacheMiddleware(600), projectController.getPublicProjects)
 
 /**
  * @swagger
+ * /api/projects/short/{shortCode}:
+ *   get:
+ *     summary: Get project by short code (Public)
+ *     description: Retrieve project details by short code for SMS links
+ *     tags: [Projects - Public]
+ *     parameters:
+ *       - in: path
+ *         name: shortCode
+ *         required: true
+ *         schema:
+ *           type: string
+ *         example: IZMIR01
+ *     responses:
+ *       200:
+ *         description: Project details retrieved successfully
+ *       404:
+ *         description: Project not found
+ */
+router.get('/short/:shortCode', cacheMiddleware(1800), projectController.getProjectByShortCode);
+
+/**
+ * @swagger
  * /api/projects/public/{slug}:
  *   get:
  *     summary: Get project by slug (Public)

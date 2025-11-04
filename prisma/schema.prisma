@@ -79,6 +79,7 @@ model Project {
   status             String               @default("active")
   targetAmount       Float?
   donorCount         Int?                 @default(0)
+  shortCode          String?              @unique @db.VarChar(20)
   brochures          Brochure[]
   cartItems          CartItem[]
   donations          Donation[]

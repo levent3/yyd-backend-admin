@@ -8,6 +8,8 @@ services:
     depends_on:
       - postgres
       - redis
+    volumes:
+      - uploads_data:/usr/src/app/uploads
     restart: always
 
   postgres:
@@ -35,3 +37,4 @@ services:
 volumes:
   postgres_data:
   redis_data:
+  uploads_data:
