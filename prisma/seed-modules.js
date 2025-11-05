@@ -70,13 +70,13 @@ async function main() {
     console.log(`  └─ ${module.name}`);
   }
 
-  // Medya Yönetimi alt modülleri (parentId = 23)
+  // Medya Yönetimi alt modülleri (parentId = 15)
   const mediaSubModules = [
-    { id: 24, name: 'Kurumsal Kimlik', moduleKey: 'brand-assets', path: '/admin/brand-assets', icon: 'award', displayOrder: 1, parentId: 23 },
-    { id: 25, name: 'Broşürler', moduleKey: 'brochures', path: '/admin/brochures', icon: 'file-text', displayOrder: 2, parentId: 23 },
-    { id: 26, name: 'Tanıtım Videoları', moduleKey: 'public-spots', path: '/admin/public-spots', icon: 'video', displayOrder: 3, parentId: 23 },
-    { id: 27, name: 'Başarı Hikayeleri', moduleKey: 'success-stories', path: '/admin/success-stories', icon: 'star', displayOrder: 4, parentId: 23 },
-    { id: 28, name: 'Basında Biz', moduleKey: 'media-coverage', path: '/admin/media-coverage', icon: 'tv', displayOrder: 5, parentId: 23 },
+    { id: 25, name: 'Kurumsal Kimlik', moduleKey: 'brand-assets', path: '/admin/brand-assets', icon: 'award', displayOrder: 1, parentId: 15 },
+    { id: 26, name: 'Broşürler', moduleKey: 'brochures', path: '/admin/brochures', icon: 'file-text', displayOrder: 2, parentId: 15 },
+    { id: 27, name: 'Tanıtım Videoları', moduleKey: 'public-spots', path: '/admin/public-spots', icon: 'video', displayOrder: 3, parentId: 15 },
+    { id: 28, name: 'Başarı Hikayeleri', moduleKey: 'success-stories', path: '/admin/success-stories', icon: 'star', displayOrder: 4, parentId: 15 },
+    { id: 29, name: 'Basında Biz', moduleKey: 'media-coverage', path: '/admin/media-coverage', icon: 'tv', displayOrder: 5, parentId: 15 },
   ];
 
   for (const module of mediaSubModules) {
@@ -89,9 +89,10 @@ async function main() {
     console.log(`  └─ ${module.name}`);
   }
 
-  // Kariyer alt modülleri (parentId = 11)
+  // Kariyer alt modülleri (parentId = 10)
   const careerSubModules = [
-    { id: 30, name: 'Açık Pozisyonlar', moduleKey: 'job-positions', path: '/admin/job-positions', icon: 'briefcase', displayOrder: 1, parentId: 11 },
+    { id: 23, name: 'Başvurular', moduleKey: 'career-applications', path: '/admin/careers', icon: 'list', displayOrder: 1, parentId: 10 },
+    { id: 24, name: 'Açık Pozisyonlar', moduleKey: 'job-positions', path: '/admin/job-positions', icon: 'briefcase', displayOrder: 2, parentId: 10 },
   ];
 
   for (const module of careerSubModules) {
