@@ -50,6 +50,9 @@ const binCodeRoutes = require('./api/modules/bin-codes/bin-code.routes');
 
 const app = express();
 
+// Trust proxy - Nginx reverse proxy kullanıyoruz
+app.set('trust proxy', 1);
+
 // CORS middleware'i (en başta olmalı - static dosyalar için de gerekli)
 const allowedOrigins = [
   process.env.ADMIN_PANEL_URL,          // Admin panel (production)
