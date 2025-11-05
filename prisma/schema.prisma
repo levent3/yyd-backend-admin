@@ -744,3 +744,32 @@ model ActivityAreaTranslation {
   @@index([language])
   @@index([slug])
 }
+
+model Bank {
+  id              Int       @id @default(autoincrement())
+  name            String
+  isOurBank       Boolean   @default(false)
+  isVirtualPosActive Boolean @default(false)
+  isActive        Boolean   @default(true)
+  displayOrder    Int       @default(0)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  binCodes        BinCode[]
+
+  @@index([isActive])
+  @@index([displayOrder])
+}
+
+model BinCode {
+  id        Int      @id @default(autoincrement())
+  binCode   String   @unique
+  bankId    Int
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  bank      Bank     @relation(fields: [bankId], references: [id], onDelete: Cascade)
+
+  @@index([bankId])
+  @@index([isActive])
+  @@index([binCode])
+}

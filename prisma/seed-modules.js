@@ -26,10 +26,11 @@ async function main() {
   ];
 
   for (const module of mainModules) {
+    const { id, moduleKey, ...updateData } = module; // id ve moduleKey'i ayır
     await prisma.adminModule.upsert({
-      where: { id: module.id },
-      update: module,
-      create: module
+      where: { moduleKey: module.moduleKey },
+      update: updateData, // sadece güncellenebilir alanlar
+      create: module // oluşturmada tüm alanlar
     });
     console.log(`✅ ${module.name}`);
   }
@@ -40,9 +41,10 @@ async function main() {
   ];
 
   for (const module of projectSubModules) {
+    const { id, moduleKey, ...updateData } = module;
     await prisma.adminModule.upsert({
-      where: { id: module.id },
-      update: module,
+      where: { moduleKey: module.moduleKey },
+      update: updateData,
       create: module
     });
     console.log(`  └─ ${module.name}`);
@@ -54,12 +56,15 @@ async function main() {
     { id: 14, name: 'Düzenli Bağışlar', moduleKey: 'recurring-donations', path: '/admin/recurring-donations', icon: 'repeat', displayOrder: 3, parentId: 6 },
     { id: 15, name: 'Ödeme İşlemleri', moduleKey: 'payment-transactions', path: '/admin/payment-transactions', icon: 'credit-card', displayOrder: 4, parentId: 6 },
     { id: 16, name: 'Banka Hesapları', moduleKey: 'bank-accounts', path: '/admin/bank-accounts', icon: 'dollar-sign', displayOrder: 5, parentId: 6 },
+    { id: 31, name: 'Bankalar', moduleKey: 'banks', path: '/admin/banks', icon: 'home', displayOrder: 6, parentId: 6 },
+    { id: 32, name: 'BIN Kodları', moduleKey: 'bin-codes', path: '/admin/bin-codes', icon: 'credit-card', displayOrder: 7, parentId: 6 },
   ];
 
   for (const module of donationSubModules) {
+    const { id, moduleKey, ...updateData } = module;
     await prisma.adminModule.upsert({
-      where: { id: module.id },
-      update: module,
+      where: { moduleKey: module.moduleKey },
+      update: updateData,
       create: module
     });
     console.log(`  └─ ${module.name}`);
@@ -75,9 +80,10 @@ async function main() {
   ];
 
   for (const module of mediaSubModules) {
+    const { id, moduleKey, ...updateData } = module;
     await prisma.adminModule.upsert({
-      where: { id: module.id },
-      update: module,
+      where: { moduleKey: module.moduleKey },
+      update: updateData,
       create: module
     });
     console.log(`  └─ ${module.name}`);
@@ -89,9 +95,10 @@ async function main() {
   ];
 
   for (const module of careerSubModules) {
+    const { id, moduleKey, ...updateData } = module;
     await prisma.adminModule.upsert({
-      where: { id: module.id },
-      update: module,
+      where: { moduleKey: module.moduleKey },
+      update: updateData,
       create: module
     });
     console.log(`  └─ ${module.name}`);
