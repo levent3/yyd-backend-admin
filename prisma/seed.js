@@ -56,12 +56,10 @@ async function main() {
     { name: 'Gönüllü Başvuruları', moduleKey: 'volunteers', path: '/admin/volunteers', icon: 'users', displayOrder: 8 },
     { name: 'Kariyer', moduleKey: 'careers', path: null, icon: 'briefcase', displayOrder: 9 },
     { name: 'Sayfalar', moduleKey: 'pages', path: '/admin/pages', icon: 'file-text', displayOrder: 10 },
-    { name: 'Tarihçe', moduleKey: 'timeline', path: '/admin/timeline', icon: 'clock', displayOrder: 11 },
-    { name: 'Ekip Üyeleri', moduleKey: 'team-members', path: '/admin/team-members', icon: 'users', displayOrder: 12 },
-    { name: 'Faaliyet Alanları', moduleKey: 'activity-areas', path: '/admin/activity-areas', icon: 'target', displayOrder: 13 },
-    { name: 'Medya Yönetimi', moduleKey: 'media', path: null, icon: 'folder', displayOrder: 14 },
-    { name: 'Modül Yönetimi', moduleKey: 'modules', path: '/admin/modules', icon: 'grid', displayOrder: 15 },
-    { name: 'Sistem Ayarları', moduleKey: 'settings', path: '/admin/settings', icon: 'settings', displayOrder: 16 }
+    { name: 'Faaliyet Alanları', moduleKey: 'activity-areas', path: '/admin/activity-areas', icon: 'target', displayOrder: 11 },
+    { name: 'Medya Yönetimi', moduleKey: 'media', path: null, icon: 'folder', displayOrder: 12 },
+    { name: 'Modül Yönetimi', moduleKey: 'modules', path: '/admin/modules', icon: 'grid', displayOrder: 13 },
+    { name: 'Sistem Ayarları', moduleKey: 'settings', path: '/admin/settings', icon: 'settings', displayOrder: 14 }
   ];
 
   for (const module of parentModules) {
@@ -100,6 +98,8 @@ async function main() {
     { name: 'Düzenli Bağışlar', moduleKey: 'recurring-donations', path: '/admin/recurring-donations', icon: 'repeat', displayOrder: 2, parentId: donationsParent.id },
     { name: 'Ödeme İşlemleri', moduleKey: 'payment-transactions', path: '/admin/payment-transactions', icon: 'credit-card', displayOrder: 3, parentId: donationsParent.id },
     { name: 'Banka Hesapları', moduleKey: 'bank-accounts', path: '/admin/bank-accounts', icon: 'dollar-sign', displayOrder: 4, parentId: donationsParent.id },
+    { name: 'Bankalar', moduleKey: 'banks', path: '/admin/banks', icon: 'building', displayOrder: 5, parentId: donationsParent.id },
+    { name: 'BIN Kodları', moduleKey: 'bin-codes', path: '/admin/bin-codes', icon: 'credit-card', displayOrder: 6, parentId: donationsParent.id },
 
     // Kariyer alt modülleri
     { name: 'Başvurular', moduleKey: 'career-applications', path: '/admin/careers', icon: 'file-text', displayOrder: 1, parentId: careersParent.id },

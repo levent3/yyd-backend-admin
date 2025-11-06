@@ -123,63 +123,6 @@ CREATE TABLE "PageTranslation" (
 );
 
 -- CreateTable
-CREATE TABLE "Timeline" (
-    "id" SERIAL NOT NULL,
-    "year" INTEGER NOT NULL,
-    "displayOrder" INTEGER NOT NULL DEFAULT 0,
-    "isActive" BOOLEAN NOT NULL DEFAULT true,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "Timeline_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "TimelineTranslation" (
-    "id" SERIAL NOT NULL,
-    "timelineId" INTEGER NOT NULL,
-    "language" TEXT NOT NULL,
-    "title" TEXT NOT NULL,
-    "description" TEXT,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "TimelineTranslation_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "TeamMember" (
-    "id" SERIAL NOT NULL,
-    "photoUrl" TEXT,
-    "position" TEXT NOT NULL,
-    "teamType" TEXT NOT NULL DEFAULT 'yonetim',
-    "displayOrder" INTEGER NOT NULL DEFAULT 0,
-    "isActive" BOOLEAN NOT NULL DEFAULT true,
-    "birthYear" INTEGER,
-    "birthCity" TEXT,
-    "languages" TEXT,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "TeamMember_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "TeamMemberTranslation" (
-    "id" SERIAL NOT NULL,
-    "memberId" INTEGER NOT NULL,
-    "language" TEXT NOT NULL,
-    "fullName" TEXT NOT NULL,
-    "biography" TEXT,
-    "education" TEXT,
-    "experience" TEXT,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "TeamMemberTranslation_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "CampaignTranslation" (
     "id" SERIAL NOT NULL,
     "campaignId" INTEGER NOT NULL,
@@ -368,36 +311,6 @@ CREATE UNIQUE INDEX "PageTranslation_pageId_language_key" ON "PageTranslation"("
 CREATE UNIQUE INDEX "PageTranslation_language_slug_key" ON "PageTranslation"("language", "slug");
 
 -- CreateIndex
-CREATE INDEX "Timeline_year_idx" ON "Timeline"("year");
-
--- CreateIndex
-CREATE INDEX "Timeline_displayOrder_idx" ON "Timeline"("displayOrder");
-
--- CreateIndex
-CREATE INDEX "Timeline_isActive_idx" ON "Timeline"("isActive");
-
--- CreateIndex
-CREATE INDEX "TimelineTranslation_language_idx" ON "TimelineTranslation"("language");
-
--- CreateIndex
-CREATE UNIQUE INDEX "TimelineTranslation_timelineId_language_key" ON "TimelineTranslation"("timelineId", "language");
-
--- CreateIndex
-CREATE INDEX "TeamMember_teamType_idx" ON "TeamMember"("teamType");
-
--- CreateIndex
-CREATE INDEX "TeamMember_displayOrder_idx" ON "TeamMember"("displayOrder");
-
--- CreateIndex
-CREATE INDEX "TeamMember_isActive_idx" ON "TeamMember"("isActive");
-
--- CreateIndex
-CREATE INDEX "TeamMemberTranslation_language_idx" ON "TeamMemberTranslation"("language");
-
--- CreateIndex
-CREATE UNIQUE INDEX "TeamMemberTranslation_memberId_language_key" ON "TeamMemberTranslation"("memberId", "language");
-
--- CreateIndex
 CREATE INDEX "CampaignTranslation_language_idx" ON "CampaignTranslation"("language");
 
 -- CreateIndex
@@ -483,12 +396,6 @@ ALTER TABLE "NewsTranslation" ADD CONSTRAINT "NewsTranslation_newsId_fkey" FOREI
 
 -- AddForeignKey
 ALTER TABLE "PageTranslation" ADD CONSTRAINT "PageTranslation_pageId_fkey" FOREIGN KEY ("pageId") REFERENCES "Page"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "TimelineTranslation" ADD CONSTRAINT "TimelineTranslation_timelineId_fkey" FOREIGN KEY ("timelineId") REFERENCES "Timeline"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "TeamMemberTranslation" ADD CONSTRAINT "TeamMemberTranslation_memberId_fkey" FOREIGN KEY ("memberId") REFERENCES "TeamMember"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "CampaignTranslation" ADD CONSTRAINT "CampaignTranslation_campaignId_fkey" FOREIGN KEY ("campaignId") REFERENCES "DonationCampaign"("id") ON DELETE CASCADE ON UPDATE CASCADE;

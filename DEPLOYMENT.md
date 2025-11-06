@@ -3,6 +3,20 @@
 **Sunucu IP:** `10.200.3.110`
 **SSH Kullanıcı:** `yyddev`
 
+> **YENİ:** Bu proje artık otomatik deployment script'leri ile gelir! Detaylar aşağıda.
+
+---
+
+## 📚 İçindekiler
+
+1. [Ön Hazırlık (Sunucuda Yapılacak)](#-ön-hazirlik-sunucuda-yapilacak)
+2. [Otomatik Deployment (Önerilen)](#-otomatik-deployment-önerilen)
+3. [Manuel Deployment](#-manuel-deployment)
+4. [Güncelleme İşlemleri](#-güncelleme-i̇şlemleri)
+5. [Migration Yönetimi](#-migration-yönetimi)
+6. [Monitoring ve Logging](#-monitoring-ve-logging)
+7. [Troubleshooting](#-troubleshooting)
+
 ---
 
 ## 📋 ÖN HAZIRLIK (Sunucuda Yapılacak)
@@ -89,6 +103,89 @@ scp -r C:\Users\leventkurt\Desktop\yyd_web_backend yyddev@10.200.3.110:/var/www/
 
 # Frontend
 scp -r C:\Users\leventkurt\Desktop\yyd_web_frontend yyddev@10.200.3.110:/var/www/
+```
+
+---
+
+## 🚀 OTOMATIK DEPLOYMENT (Önerilen)
+
+Projeniz artık otomatik deployment script'leri ile geliyor! Bu method en kolay ve güvenli yöntemdir.
+
+### **Development Ortamında (Localhost)**
+
+```bash
+cd yyd_web_backend
+
+# 1. .env dosyasını oluştur
+cp .env.example .env
+
+# 2. Development deployment script'ini çalıştır
+npm run deploy:dev
+```
+
+Bu komut otomatik olarak:
+- ✅ .env dosyasını kontrol eder
+- ✅ Docker container'ları durdurur
+- ✅ Image'ları build eder
+- ✅ Container'ları başlatır
+- ✅ Migration'ları çalıştırır
+- ✅ Database'i seed eder
+
+### **Production Ortamında (Sunucu)**
+
+```bash
+cd /var/www/yyd_web_backend
+
+# 1. .env dosyasını oluştur ve düzenle
+cp .env.example .env
+nano .env  # Aşağıdaki bölümdeki ayarları yap
+
+# 2. Production deployment script'ini çalıştır
+npm run deploy:prod
+```
+
+Production script size bir checklist soracaktır:
+- ✅ .env dosyası production için yapılandırıldı mı?
+- ✅ Database backup'ı alındı mı?
+- ✅ Kod repository'den çekildi mi?
+- ✅ Tüm testler geçti mi?
+
+### **Sunucu Güncelleme (En Kolay Yöntem)**
+
+Lokalinizde kod değişikliği yaptıktan sonra:
+
+```bash
+# 1. Kodu Git'e push et (lokalinizde)
+git add .
+git commit -m "Değişiklikler"
+git push origin main
+
+# 2. Sunucuda güncelleme script'ini çalıştır
+cd /var/www/yyd_web_backend
+npm run update:server
+```
+
+Bu script otomatik olarak:
+- ✅ Database backup alır
+- ✅ Uploads backup alır
+- ✅ Yeni kodu Git'ten çeker
+- ✅ Container'ları rebuild eder
+- ✅ Zero-downtime restart yapar
+- ✅ Health check yapar
+- ✅ Sorun varsa rollback için talimat verir
+
+---
+
+## 🛠️ MANUEL DEPLOYMENT
+
+Otomatik script'leri kullanmak istemiyorsanız manuel deployment yapabilirsiniz.
+
+### **1. Environment Dosyasını Oluştur**
+
+```bash
+cd /var/www/yyd_web_backend
+cp .env.example .env
+nano .env
 ```
 
 ---
@@ -309,22 +406,92 @@ docker stats
 
 ---
 
+## 🔧 MIGRATION YÖNETİMİ
+
+Projede migration işlemleri için kullanışlı araçlar bulunuyor.
+
+### **Migration Helper (İnteraktif)**
+
+```bash
+# İnteraktif migration menüsü
+npm run migration:helper
+```
+
+Bu komut size bir menü sunar:
+1. Yeni migration oluştur
+2. Migration durumunu kontrol et
+3. Bekleyen migration'ları uygula
+4. Database'i sıfırla (⚠️ DİKKAT!)
+5. Prisma Client oluştur
+6. Seed çalıştır
+7. Prisma Studio aç
+8. Drift kontrolü yap
+
+### **Migration Komutları**
+
+```bash
+# Migration durumunu kontrol et
+npm run db:migrate:status
+
+# Yeni migration oluştur (development)
+npm run db:migrate
+
+# Migration'ları uygula (production)
+npm run db:migrate:deploy
+
+# Prisma Client'ı yeniden oluştur
+npm run db:generate
+
+# Database'i sıfırla ve seed et (⚠️ Tüm veri silinir!)
+npm run db:reset
+
+# Sadece seed çalıştır
+npm run db:seed
+
+# Prisma Studio aç
+npm run db:studio
+```
+
+### **Migration Drift Sorunları**
+
+Eğer schema ile database arasında uyumsuzluk (drift) varsa:
+
+```bash
+# 1. Schema'yı database'e push et (development için hızlı çözüm)
+npm run db:push
+
+# 2. Veya yeni migration oluştur (production için önerilen)
+npm run db:migrate
+```
+
+---
+
 ## 🔄 GÜNCELLEME (Yeni Kod Geldiğinde)
 
-### **Backend Güncelleme:**
+### **Otomatik Güncelleme (Önerilen):**
 
 ```bash
 cd /var/www/yyd_web_backend
+npm run update:server
+```
+
+### **Manuel Backend Güncelleme:**
+
+```bash
+cd /var/www/yyd_web_backend
+
+# Backup al
+docker-compose exec -T postgres pg_dump -U yyd_prod_user yyd_production_db > backup_$(date +%Y%m%d_%H%M%S).sql
 
 # Yeni kodu çek
 git pull
 
 # Container'ları yeniden başlat
-docker-compose down
-docker-compose up -d --build
+docker-compose -f docker-compose.prod.yml down
+docker-compose -f docker-compose.prod.yml up -d --build
 
 # Migration (varsa)
-docker-compose exec api npx prisma migrate deploy
+docker-compose -f docker-compose.prod.yml exec api npm run db:migrate:deploy
 ```
 
 ### **Frontend Güncelleme:**

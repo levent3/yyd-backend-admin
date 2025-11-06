@@ -211,69 +211,6 @@ model PageTranslation {
   @@index([slug])
 }
 
-model Timeline {
-  id           Int                   @id @default(autoincrement())
-  year         Int
-  displayOrder Int                   @default(0)
-  isActive     Boolean               @default(true)
-  createdAt    DateTime              @default(now())
-  updatedAt    DateTime              @updatedAt
-  translations TimelineTranslation[]
-
-  @@index([year])
-  @@index([displayOrder])
-  @@index([isActive])
-}
-
-model TimelineTranslation {
-  id          Int      @id @default(autoincrement())
-  timelineId  Int
-  language    String
-  title       String
-  description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  timeline    Timeline @relation(fields: [timelineId], references: [id], onDelete: Cascade)
-
-  @@unique([timelineId, language])
-  @@index([language])
-}
-
-model TeamMember {
-  id           Int                     @id @default(autoincrement())
-  photoUrl     String?
-  position     String
-  teamType     String                  @default("yonetim")
-  displayOrder Int                     @default(0)
-  isActive     Boolean                 @default(true)
-  birthYear    Int?
-  birthCity    String?
-  languages    String?
-  createdAt    DateTime                @default(now())
-  updatedAt    DateTime                @updatedAt
-  translations TeamMemberTranslation[]
-
-  @@index([teamType])
-  @@index([displayOrder])
-  @@index([isActive])
-}
-
-model TeamMemberTranslation {
-  id         Int        @id @default(autoincrement())
-  memberId   Int
-  language   String
-  fullName   String
-  biography  String?
-  education  String?
-  experience String?
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
-  member     TeamMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
-
-  @@unique([memberId, language])
-  @@index([language])
-}
-
 model Donor {
   id                 Int                 @id @default(autoincrement())
   fullName           String

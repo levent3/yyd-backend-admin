@@ -1,40 +1,83 @@
 services:
   api:
-    build: .
+    build:
+      context: .
+      target: development
+    container_name: yyd_api_dev
     ports:
       - "5000:5000" # API Portu
       - "5555:5555" # Prisma Studio Portu
     env_file: .env
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=${REDIS_URL}
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
     volumes:
+      - ./src:/usr/src/app/src # Hot reload için
+      - ./prisma:/usr/src/app/prisma # Migration geliştirme için
       - uploads_data:/usr/src/app/uploads
-    restart: always
+      - node_modules:/usr/src/app/node_modules # node_modules ayrı volume
+    networks:
+      - yyd_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   postgres:
     image: postgres:14-alpine
+    container_name: yyd_postgres_dev
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_INITDB_ARGS: "-E UTF8 --locale=C"
     ports:
-      - "5433:5432"
+      - "5433:5432" # Host'tan erişim için
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    restart: always
+    networks:
+      - yyd_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:7-alpine
-    # Port 6379 only exposed internally to Docker network
-    # ports:
-    #   - "6379:6379"
+    container_name: yyd_redis_dev
     volumes:
       - redis_data:/data
-    restart: always
-    command: redis-server --appendonly yes
+    networks:
+      - yyd_network
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
 
 volumes:
   postgres_data:
+    driver: local
   redis_data:
+    driver: local
   uploads_data:
+    driver: local
+  node_modules:
+    driver: local
+
+networks:
+  yyd_network:
+    driver: bridge

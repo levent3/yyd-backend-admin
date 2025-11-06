@@ -33,7 +33,29 @@ Yardımlaşma ve Dayanışma Derneği (YYD) web sitesi için backend API servisi
 - Docker & Docker Compose
 - Node.js 18+ (opsiyonel, Docker kullanıyorsanız gerekmez)
 
-### 2. Kurulum Adımları
+### 2. Hızlı Başlangıç (Otomatik Deployment)
+
+```bash
+# 1. Repository'yi klonlayın
+git clone <repository-url>
+cd yyd_web_backend
+
+# 2. .env dosyasını oluşturun
+cp .env.example .env
+# .env dosyasındaki değerleri düzenleyin
+
+# 3. Otomatik deployment script'ini çalıştırın
+npm run deploy:dev
+```
+
+Bu komut otomatik olarak:
+- ✅ .env dosyasını kontrol eder
+- ✅ Docker container'ları başlatır
+- ✅ Migration'ları çalıştırır
+- ✅ Database'i seed eder
+- ✅ Servislerin sağlığını kontrol eder
+
+### 3. Manuel Kurulum
 
 ```bash
 # Repository'yi klonlayın
@@ -49,13 +71,11 @@ cp .env.example .env
 # - Diğer ayarları ihtiyacınıza göre düzenleyin
 
 # Docker container'ları başlatın
-docker-compose up -d
+npm run docker:dev:build
 
-# Prisma migration'ları çalıştırın
-docker exec yyd_web_backend-api-1 npx prisma migrate deploy
-
-# (Opsiyonel) Seed data ekleyin
-docker exec yyd_web_backend-api-1 npx prisma db seed
+# Migration'lar otomatik çalışır (docker-entrypoint.sh sayesinde)
+# Logları kontrol edin
+npm run docker:dev:logs
 ```
 
 ### 3. API Erişimi
@@ -103,50 +123,138 @@ npm test
 npm run lint
 ```
 
-## 📦 Docker Komutları
+## 📦 Deployment ve Docker Komutları
 
-### Development (Lokal)
+### Otomatik Deployment (Önerilen)
 
 ```bash
-# Container'ları başlat (hot-reload ile)
-docker-compose up -d
+# Development deployment
+npm run deploy:dev
 
-# Container'ları durdur
-docker-compose down
+# Production deployment
+npm run deploy:prod
 
-# Rebuild (dependency değişikliği varsa)
-docker-compose up -d --build
+# Sunucu güncelleme (production)
+npm run update:server
 ```
 
-### Production (Sunucu)
+### Migration Yönetimi
 
 ```bash
-# Container'ları başlat (volume mount olmadan)
-docker-compose -f docker-compose.prod.yml up -d
+# İnteraktif migration helper
+npm run migration:helper
 
-# Kod değişikliği sonrası rebuild (zorunlu)
-docker-compose -f docker-compose.prod.yml up -d --build
-
-# Container'ları durdur
-docker-compose -f docker-compose.prod.yml down
+# Migration komutları
+npm run db:migrate           # Yeni migration oluştur
+npm run db:migrate:deploy    # Migration'ları uygula
+npm run db:migrate:status    # Migration durumunu kontrol et
+npm run db:generate          # Prisma Client oluştur
+npm run db:seed              # Seed çalıştır
+npm run db:reset             # Database'i sıfırla (⚠️ Dikkat!)
+npm run db:studio            # Prisma Studio aç
 ```
 
-### Diğer Komutlar
+### Docker Komutları
+
+#### Development
 
 ```bash
+# Container'ları başlat
+npm run docker:dev
+
+# Build ile başlat
+npm run docker:dev:build
+
+# Container'ları durdur
+npm run docker:dev:down
+
 # Logları görüntüle
-docker-compose logs -f api
-
-# API container'ına bash ile bağlan
-docker exec -it yyd_web_backend-api-1 bash
-
-# Veritabanını sıfırla (DİKKATLİ!)
-docker-compose down -v
-docker-compose up -d
+npm run docker:dev:logs
 ```
 
-> **Not**: `docker-compose.yml` lokal development için volume mount içerir (hot-reload).
-> `docker-compose.prod.yml` production için volume mount içermez (kod değişikliği için rebuild gerekir).
+#### Production
+
+```bash
+# Container'ları başlat
+npm run docker:prod
+
+# Build ile başlat
+npm run docker:prod:build
+
+# Container'ları durdur
+npm run docker:prod:down
+
+# Logları görüntüle
+npm run docker:prod:logs
+```
+
+#### Diğer Komutlar
+
+```bash
+# Belirli container'ın logları
+docker-compose logs -f api
+docker-compose logs -f postgres
+
+# Container'a bağlan
+docker-compose exec api sh
+
+# Database backup
+docker-compose exec -T postgres pg_dump -U yyd_user yyd_db > backup.sql
+
+# Database restore
+docker-compose exec -T postgres psql -U yyd_user yyd_db < backup.sql
+```
+
+> **Not**: Tüm komutlar `package.json`'da tanımlıdır. Script dosyaları `scripts/` klasöründedir.
+
+## 📚 Dokümantasyon
+
+- **[DEPLOYMENT.md](./DEPLOYMENT.md)** - Detaylı deployment rehberi (development, production, sunucu güncelleme)
+- **[.env.example](./.env.example)** - Environment variables ve açıklamaları
+- **Swagger API Docs** - http://localhost:5000/api-docs (uygulama çalıştığında)
+
+## 🚀 Production Deployment
+
+Detaylı production deployment için [DEPLOYMENT.md](./DEPLOYMENT.md) dosyasına bakın.
+
+**Hızlı özet:**
+
+```bash
+# Sunucuda
+cd /var/www/yyd_web_backend
+
+# .env dosyasını production için yapılandır
+cp .env.example .env
+nano .env
+
+# Production deployment
+npm run deploy:prod
+
+# Güncelleme (lokalden push'ladıktan sonra)
+npm run update:server
+```
+
+## ⚙️ Available NPM Scripts
+
+| Script | Açıklama |
+|--------|----------|
+| `npm start` | Production mode'da uygulamayı başlat |
+| `npm run dev` | Development mode (nodemon ile) |
+| `npm run deploy:dev` | Development deployment (otomatik) |
+| `npm run deploy:prod` | Production deployment (otomatik) |
+| `npm run update:server` | Sunucu güncelleme (otomatik backup + deploy) |
+| `npm run migration:helper` | İnteraktif migration menüsü |
+| `npm run db:migrate` | Yeni migration oluştur |
+| `npm run db:migrate:deploy` | Migration'ları uygula (production) |
+| `npm run db:migrate:status` | Migration durumunu kontrol et |
+| `npm run db:generate` | Prisma Client oluştur |
+| `npm run db:seed` | Seed data ekle |
+| `npm run db:reset` | Database'i sıfırla |
+| `npm run db:studio` | Prisma Studio aç |
+| `npm run docker:dev` | Development container'ları başlat |
+| `npm run docker:dev:build` | Development container'ları build et ve başlat |
+| `npm run docker:prod` | Production container'ları başlat |
+| `npm run docker:prod:build` | Production container'ları build et ve başlat |
 
 ## 👥 Katkıda Bulunma
 

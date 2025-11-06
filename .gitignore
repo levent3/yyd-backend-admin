@@ -61,9 +61,18 @@ temp/
 dist/
 build/
 
+# Backups
+backups/
+*.sql
+*.tar.gz
+
+# Test scripts
+check-all-modules.js
+fix-parent-ids.js
+test-prisma-models.js
+
 # Scripts (temizleme scripti gibi)
 src/cleanup-images.js
 src/check-projects.js
 cookies.txt
 token.txt
-cookies.txt
