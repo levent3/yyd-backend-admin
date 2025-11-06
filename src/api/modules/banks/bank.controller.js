@@ -29,10 +29,25 @@ const crudController = createCRUDController(bankServiceAdapter, {
   transformData: mapBankToFrontend
 });
 
+// Get our banks for dropdown (isOurBank=true)
+const getOurBanks = async (req, res, next) => {
+  try {
+    const banks = await bankService.getOurBanks();
+    const simplifiedBanks = banks.map(bank => ({
+      id: bank.id,
+      name: bank.name
+    }));
+    res.status(200).json(simplifiedBanks);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getAllBanks: crudController.getAll,
   getBankById: crudController.getById,
   createBank: crudController.create,
   updateBank: crudController.update,
-  deleteBank: crudController.delete
+  deleteBank: crudController.delete,
+  getOurBanks
 };

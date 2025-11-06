@@ -63,11 +63,57 @@ const getBinCodeInfo = async (req, res, next) => {
   }
 };
 
+// Bulk upload BIN codes
+const bulkUploadBinCodes = async (req, res, next) => {
+  try {
+    const { bankId, binCodes } = req.body;
+
+    // Validate required fields
+    if (!bankId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Banka ID\'si gereklidir',
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    if (!binCodes || (Array.isArray(binCodes) && binCodes.length === 0) || (typeof binCodes === 'string' && binCodes.trim().length === 0)) {
+      return res.status(400).json({
+        success: false,
+        message: 'BIN kodları gereklidir',
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    const results = await binCodeService.bulkUploadBinCodes({ bankId, binCodes });
+
+    // Generate message based on results
+    let message = '';
+    if (results.successful === results.total) {
+      message = `${results.successful} BIN kodu başarıyla eklendi`;
+    } else if (results.successful > 0) {
+      message = `${results.total} BIN kodundan ${results.successful} tanesi başarıyla eklendi`;
+    } else {
+      message = 'Hiçbir BIN kodu eklenemedi';
+    }
+
+    res.status(200).json({
+      success: true,
+      message: message,
+      data: results,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getAllBinCodes: crudController.getAll,
   getBinCodeById: crudController.getById,
   createBinCode: crudController.create,
   updateBinCode: crudController.update,
   deleteBinCode: crudController.delete,
-  getBinCodeInfo
+  getBinCodeInfo,
+  bulkUploadBinCodes
 };

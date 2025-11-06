@@ -97,10 +97,26 @@ const deleteBank = async (id) => {
   return await bankRepo.deleteById(id);
 };
 
+// Get only our banks (isOurBank=true) for account selection dropdown
+const getOurBanks = async () => {
+  const banks = await bankRepo.findMany({
+    where: {
+      isOurBank: true,
+      isActive: true
+    },
+    orderBy: {
+      displayOrder: 'asc'
+    }
+  });
+
+  return banks;
+};
+
 module.exports = {
   getAllBanks,
   getBankById,
   createBank,
   updateBank,
-  deleteBank
+  deleteBank,
+  getOurBanks
 };

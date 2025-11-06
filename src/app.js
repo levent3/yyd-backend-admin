@@ -142,6 +142,12 @@ app.get('/api-docs.json', (req, res) => {
  *                   type: string
  *                   format: date-time
  */
+// Health check endpoint - without /api prefix for Docker healthcheck
+app.get('/health', (req, res) => {
+  res.send({ status: 'OK', timestamp: new Date() });
+});
+
+// Also available under /api/health for consistency
 app.get('/api/health', (req, res) => {
   res.send({ status: 'OK', timestamp: new Date() });
 });

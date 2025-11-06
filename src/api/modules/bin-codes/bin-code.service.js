@@ -133,11 +133,116 @@ const deleteBinCode = async (id) => {
   return await binCodeRepo.deleteById(id);
 };
 
+const bulkUploadBinCodes = async (data) => {
+  const { bankId, binCodes } = data;
+
+  // Validate bank exists
+  const bank = await bankRepo.findById(bankId);
+  if (!bank) {
+    const error = new Error('Belirtilen banka bulunamadı');
+    error.statusCode = 404;
+    throw error;
+  }
+
+  // Parse and clean BIN codes
+  let binCodeList = [];
+  if (typeof binCodes === 'string') {
+    // Split by comma, space, newline, or semicolon
+    binCodeList = binCodes
+      .split(/[,;\s\n\r]+/)
+      .map(code => code.trim())
+      .filter(code => code.length > 0);
+  } else if (Array.isArray(binCodes)) {
+    binCodeList = binCodes.map(code => String(code).trim()).filter(code => code.length > 0);
+  } else {
+    const error = new Error('BIN kodları string veya array formatında olmalıdır');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  // Remove duplicates from input
+  binCodeList = [...new Set(binCodeList)];
+
+  // Results tracking
+  const results = {
+    total: binCodeList.length,
+    successful: 0,
+    failed: 0,
+    skipped: 0,
+    details: {
+      created: [],
+      duplicates: [],
+      invalid: []
+    }
+  };
+
+  // Check existing BIN codes in database
+  const existingBinCodes = await binCodeRepo.findByBankId(bankId);
+  const existingBinCodesSet = new Set(existingBinCodes.map(bc => bc.binCode));
+
+  // Also check all existing BIN codes across all banks
+  const prisma = require('../../../config/prismaClient');
+  const allExistingBinCodes = await prisma.binCode.findMany({
+    select: { binCode: true }
+  });
+  const allExistingBinCodesSet = new Set(allExistingBinCodes.map(bc => bc.binCode));
+
+  // Prepare data for bulk insert
+  const validBinCodes = [];
+
+  for (const binCode of binCodeList) {
+    // Validate format (6 digits)
+    if (!/^\d{6}$/.test(binCode)) {
+      results.failed++;
+      results.details.invalid.push(binCode);
+      continue;
+    }
+
+    // Check if already exists in database
+    if (allExistingBinCodesSet.has(binCode)) {
+      results.skipped++;
+      results.details.duplicates.push(binCode);
+      continue;
+    }
+
+    // Add to valid list
+    validBinCodes.push({
+      binCode: binCode,
+      bankId: parseInt(bankId),
+      isActive: true
+    });
+  }
+
+  // Bulk insert using transaction
+  if (validBinCodes.length > 0) {
+    try {
+      await prisma.$transaction(async (tx) => {
+        // Use createMany for bulk insert
+        const result = await tx.binCode.createMany({
+          data: validBinCodes,
+          skipDuplicates: true
+        });
+
+        results.successful = result.count;
+        results.details.created = validBinCodes.map(bc => bc.binCode);
+      });
+    } catch (error) {
+      console.error('Bulk insert error:', error);
+      const err = new Error('Toplu ekleme sırasında bir hata oluştu');
+      err.statusCode = 500;
+      throw err;
+    }
+  }
+
+  return results;
+};
+
 module.exports = {
   getAllBinCodes,
   getBinCodeById,
   getBinCodeByCode,
   createBinCode,
   updateBinCode,
-  deleteBinCode
+  deleteBinCode,
+  bulkUploadBinCodes
 };

@@ -54,6 +54,39 @@ router.get('/', authMiddleware, checkPermission('banks', 'read'), bankController
 
 /**
  * @swagger
+ * /api/banks/our-banks/list:
+ *   get:
+ *     summary: Get our banks for dropdown
+ *     description: Retrieve list of active banks where isOurBank=true (for bank account selection)
+ *     tags: [Banks]
+ *     security:
+ *       - bearerAuth: []
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved our banks
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: integer
+ *                     example: 1
+ *                   name:
+ *                     type: string
+ *                     example: Ziraat Bankası
+ *       401:
+ *         description: Unauthorized - Authentication required
+ *       403:
+ *         description: Forbidden - Insufficient permissions
+ */
+router.get('/our-banks/list', authMiddleware, checkPermission('banks', 'read'), bankController.getOurBanks);
+
+/**
+ * @swagger
  * /api/banks/{id}:
  *   get:
  *     summary: Get bank by ID

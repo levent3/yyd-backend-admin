@@ -109,6 +109,86 @@ router.get('/:id', authMiddleware, checkPermission('bin-codes', 'read'), binCode
 
 /**
  * @swagger
+ * /api/bin-codes/bulk-upload:
+ *   post:
+ *     summary: Bulk upload BIN codes
+ *     description: Upload multiple BIN codes for a specific bank at once
+ *     tags: [BinCodes]
+ *     security:
+ *       - bearerAuth: []
+ *       - cookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [bankId, binCodes]
+ *             properties:
+ *               bankId:
+ *                 type: integer
+ *                 example: 1
+ *                 description: ID of the bank these BIN codes belong to
+ *               binCodes:
+ *                 oneOf:
+ *                   - type: array
+ *                     items:
+ *                       type: string
+ *                     example: ["450803", "450804", "450805"]
+ *                   - type: string
+ *                     example: "450803, 450804, 450805"
+ *                 description: BIN codes as array or comma/space/newline separated string
+ *     responses:
+ *       200:
+ *         description: Bulk upload completed with results
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     total:
+ *                       type: integer
+ *                     successful:
+ *                       type: integer
+ *                     failed:
+ *                       type: integer
+ *                     skipped:
+ *                       type: integer
+ *                     details:
+ *                       type: object
+ *                       properties:
+ *                         created:
+ *                           type: array
+ *                           items:
+ *                             type: string
+ *                         duplicates:
+ *                           type: array
+ *                           items:
+ *                             type: string
+ *                         invalid:
+ *                           type: array
+ *                           items:
+ *                             type: string
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Unauthorized - Authentication required
+ *       403:
+ *         description: Forbidden - Insufficient permissions
+ *       404:
+ *         description: Bank not found
+ */
+router.post('/bulk-upload', authMiddleware, checkPermission('bin-codes', 'create'), binCodeController.bulkUploadBinCodes);
+
+/**
+ * @swagger
  * /api/bin-codes:
  *   post:
  *     summary: Create new BIN code
