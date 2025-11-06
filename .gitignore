@@ -63,7 +63,7 @@ build/
 
 # Backups
 backups/
-*.sql
+# *.sql  # Migration SQL files are needed
 *.tar.gz
 
 # Test scripts
