@@ -321,6 +321,7 @@ model BankAccount {
   swift         String?
   accountNumber String?
   branch        String?
+  branchCode    String?
   currency      String   @default("TRY")
   isActive      Boolean  @default(true)
   displayOrder  Int      @default(0)

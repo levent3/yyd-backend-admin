@@ -56,9 +56,9 @@ const createBinCode = async (data) => {
     throw error;
   }
 
-  // Validate BIN code format (should be 6 digits)
-  if (!/^\d{6}$/.test(data.binCode)) {
-    const error = new Error('BIN kodu 6 haneli sayı olmalıdır');
+  // Validate BIN code format (should be at least 6 digits)
+  if (!/^\d{6,}$/.test(data.binCode)) {
+    const error = new Error('BIN kodu en az 6 haneli sayı olmalıdır');
     error.statusCode = 400;
     throw error;
   }
@@ -86,8 +86,8 @@ const updateBinCode = async (id, data) => {
   // If binCode is being updated
   if (data.binCode && data.binCode !== existingBinCode.binCode) {
     // Validate format
-    if (!/^\d{6}$/.test(data.binCode)) {
-      const error = new Error('BIN kodu 6 haneli sayı olmalıdır');
+    if (!/^\d{6,}$/.test(data.binCode)) {
+      const error = new Error('BIN kodu en az 6 haneli sayı olmalıdır');
       error.statusCode = 400;
       throw error;
     }
@@ -191,8 +191,8 @@ const bulkUploadBinCodes = async (data) => {
   const validBinCodes = [];
 
   for (const binCode of binCodeList) {
-    // Validate format (6 digits)
-    if (!/^\d{6}$/.test(binCode)) {
+    // Validate format (at least 6 digits)
+    if (!/^\d{6,}$/.test(binCode)) {
       results.failed++;
       results.details.invalid.push(binCode);
       continue;
