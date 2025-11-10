@@ -26,7 +26,17 @@ async function main() {
 
   // 2. VARSAYILAN KULLANICI OLUŞTUR
   console.log('👤 Varsayılan kullanıcı oluşturuluyor...');
-  const hashedPassword = await bcrypt.hash('admin123', 10);
+
+  // Environment variable'dan şifre oku, yoksa default kullan (development için)
+  const defaultPassword = process.env.ADMIN_DEFAULT_PASSWORD || 'admin123';
+
+  // Production'da default şifre kullanılıyorsa uyar
+  if (process.env.NODE_ENV === 'production' && !process.env.ADMIN_DEFAULT_PASSWORD) {
+    console.warn('⚠️  WARNING: Using default admin password in production!');
+    console.warn('⚠️  Please set ADMIN_DEFAULT_PASSWORD environment variable for security!');
+  }
+
+  const hashedPassword = await bcrypt.hash(defaultPassword, 10);
   const adminUser = await prisma.user.upsert({
     where: { email: 'admin@yyd.com' },
     update: {},
@@ -38,7 +48,7 @@ async function main() {
       roleId: superAdminRole.id
     }
   });
-  console.log('✅ Varsayılan kullanıcı oluşturuldu (admin@yyd.com / admin123)\n');
+  console.log(`✅ Varsayılan kullanıcı oluşturuldu (admin@yyd.com / ${process.env.ADMIN_DEFAULT_PASSWORD ? '***' : defaultPassword})\n`);
 
   // 3. ADMIN MODÜLLER
   console.log('🔧 Admin modülleri oluşturuluyor...');

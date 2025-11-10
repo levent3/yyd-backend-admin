@@ -1,5 +1,6 @@
 const galleryRepo = require('./gallery.repository');
-const { parsePagination, createPaginatedResponse } = require('../../../utils/pagination');
+const { parsePagination, createPaginatedResponse} = require('../../../utils/pagination');
+const { buildFileUrl } = require('../../../utils/urlHelper');
 
 // Helper to convert relative URLs to full URLs
 const normalizeFileUrl = (fileUrl) => {
@@ -11,8 +12,7 @@ const normalizeFileUrl = (fileUrl) => {
   }
 
   // Relative URL ise tam URL'e çevir
-  const baseUrl = process.env.BASE_URL || 'http://localhost:5001';
-  return `${baseUrl}${fileUrl}`;
+  return buildFileUrl(fileUrl);
 };
 
 const normalizeGalleryItem = (item) => {

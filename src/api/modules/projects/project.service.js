@@ -4,6 +4,7 @@ const {
   formatEntityWithTranslation,
   generateSlug
 } = require('../../../utils/translationHelper');
+const { buildFileUrl } = require('../../../utils/urlHelper');
 
 // Helper to convert relative URLs to full URLs
 const normalizeImageUrl = (imageUrl) => {
@@ -15,7 +16,7 @@ const normalizeImageUrl = (imageUrl) => {
   }
 
   // Relative URL ise tam URL'e çevir
-  const baseUrl = process.env.BASE_URL || 'http://localhost:5001';
+  const baseUrl = require('../../../utils/urlHelper').getBaseUrl();
   return `${baseUrl}${imageUrl}`;
 };
 

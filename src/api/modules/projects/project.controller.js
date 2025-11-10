@@ -15,6 +15,7 @@
 const projectService = require('./project.service');
 const upload = require('../../../config/multer');
 const { createCRUDController } = require('../../../utils/controllerFactory');
+const { buildFileUrl } = require('../../../utils/urlHelper');
 
 // Helper to map schema to frontend format
 const mapProjectToFrontend = (project) => ({
@@ -197,7 +198,7 @@ const uploadImage = async (req, res, next) => {
     }
 
     // BASE_URL ile tam URL oluştur
-    const baseUrl = process.env.BASE_URL || 'http://localhost:5001';
+    const baseUrl = require('../../../utils/urlHelper').getBaseUrl();
     const imageUrl = `${baseUrl}/uploads/projects/${req.file.filename}`;
 
     res.status(200).json({

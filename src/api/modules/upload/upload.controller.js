@@ -1,6 +1,7 @@
 const path = require('path');
 const sharp = require('sharp');
 const fs = require('fs');
+const { buildFileUrl } = require('../../../utils/urlHelper');
 
 // Resim optimizasyonu fonksiyonu
 const optimizeImage = async (filePath, mimetype) => {
@@ -57,7 +58,7 @@ const uploadImage = async (req, res, next) => {
     }
 
     const filePath = req.file.path;
-    const baseUrl = process.env.BASE_URL || 'http://localhost:5001';
+    const baseUrl = require('../../../utils/urlHelper').getBaseUrl();
     let fileUrl = `${baseUrl}/uploads/${req.file.filename}`;
     let thumbnailUrl = null;
 
@@ -92,7 +93,7 @@ const uploadImages = async (req, res, next) => {
       return res.status(400).json({ message: 'Dosyalar yüklenmedi' });
     }
 
-    const baseUrl = process.env.BASE_URL || 'http://localhost:5001';
+    const baseUrl = require('../../../utils/urlHelper').getBaseUrl();
     const files = req.files.map(file => ({
       fileUrl: `${baseUrl}/uploads/${file.filename}`,
       fileName: file.filename,
