@@ -89,6 +89,8 @@ model Project {
   translations       ProjectTranslation[]
   recurringDonations RecurringDonation[]
   successStories     SuccessStory[]
+  homeSliders        HomeSlider[]
+  menuItems          MenuItem[]
 
   @@index([status])
   @@index([isActive])
@@ -125,6 +127,7 @@ model News {
   authorId     Int?
   author       User?             @relation(fields: [authorId], references: [id])
   translations NewsTranslation[]
+  menuItems    MenuItem[]
 
   @@index([status])
   @@index([publishedAt])
@@ -179,6 +182,7 @@ model Page {
   authorId      Int?
   author        User?             @relation(fields: [authorId], references: [id])
   translations  PageTranslation[]
+  menuItems     MenuItem[]
 
   @@index([pageType])
   @@index([status])
@@ -651,13 +655,14 @@ model MediaCoverage {
 }
 
 model ActivityArea {
-  id           Int                      @id @default(autoincrement())
+  id           Int                       @id @default(autoincrement())
   icon         String?
-  displayOrder Int                      @default(0)
-  isActive     Boolean                  @default(true)
-  createdAt    DateTime                 @default(now())
-  updatedAt    DateTime                 @updatedAt
+  displayOrder Int                       @default(0)
+  isActive     Boolean                   @default(true)
+  createdAt    DateTime                  @default(now())
+  updatedAt    DateTime                  @updatedAt
   translations ActivityAreaTranslation[]
+  menuItems    MenuItem[]
 
   @@index([isActive])
   @@index([displayOrder])
@@ -684,15 +689,15 @@ model ActivityAreaTranslation {
 }
 
 model Bank {
-  id              Int       @id @default(autoincrement())
-  name            String
-  isOurBank       Boolean   @default(false)
-  isVirtualPosActive Boolean @default(false)
-  isActive        Boolean   @default(true)
-  displayOrder    Int       @default(0)
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  binCodes        BinCode[]
+  id                 Int       @id @default(autoincrement())
+  name               String
+  isOurBank          Boolean   @default(false)
+  isVirtualPosActive Boolean   @default(false)
+  isActive           Boolean   @default(true)
+  displayOrder       Int       @default(0)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  binCodes           BinCode[]
 
   @@index([isActive])
   @@index([displayOrder])
@@ -710,4 +715,95 @@ model BinCode {
   @@index([bankId])
   @@index([isActive])
   @@index([binCode])
+}
+
+// ========== HOMEPAGE MODELS ==========
+
+model HomeSlider {
+  id           Int      @id @default(autoincrement())
+  title        String
+  description  String?  @db.Text
+  imageUrl     String
+  buttonText   String?
+  buttonLink   String?
+  projectId    Int?
+  displayOrder Int      @default(0)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  project      Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@index([displayOrder])
+  @@index([isActive])
+}
+
+model SiteStatistics {
+  id               Int      @id @default(autoincrement())
+  countryCount     Int      @default(0)
+  examinationCount Int      @default(0)
+  surgeryCount     Int      @default(0)
+  volunteerCount   Int      @default(0)
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+// Menu System
+model Menu {
+  id          Int        @id @default(autoincrement())
+  name        String // "Ana Menü", "Footer Menü"
+  slug        String     @unique // "main-menu", "footer-menu"
+  description String?    @db.Text
+  location    String? // "header", "footer", "sidebar"
+  isActive    Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  menuItems   MenuItem[]
+
+  @@index([slug])
+  @@index([isActive])
+}
+
+model MenuItem {
+  id       Int    @id @default(autoincrement())
+  menuId   Int
+  parentId Int?
+  title    String // "Hakkımızda", "Projeler"
+
+  // Link configuration
+  linkType String // "page", "project", "news", "activityArea", "custom", "external"
+
+  // Separate fields for each content type (nullable)
+  pageId         Int?
+  projectId      Int?
+  newsId         Int?
+  activityAreaId Int?
+  customUrl      String? // For custom or external URLs
+
+  // Display options
+  icon         String?
+  cssClass     String?
+  target       String? @default("_self") // "_blank", "_self"
+  displayOrder Int     @default(0)
+  isActive     Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  menu     Menu       @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  parent   MenuItem?  @relation("MenuItemChildren", fields: [parentId], references: [id], onDelete: Cascade)
+  children MenuItem[] @relation("MenuItemChildren")
+
+  // Optional relations to content
+  page         Page?         @relation(fields: [pageId], references: [id], onDelete: SetNull)
+  project      Project?      @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  news         News?         @relation(fields: [newsId], references: [id], onDelete: SetNull)
+  activityArea ActivityArea? @relation(fields: [activityAreaId], references: [id], onDelete: SetNull)
+
+  @@index([menuId])
+  @@index([parentId])
+  @@index([displayOrder])
+  @@index([isActive])
+  @@index([linkType])
 }

@@ -47,6 +47,8 @@ const jobPositionRoutes = require('./api/modules/job-positions/job-position.rout
 const activityAreaRoutes = require('./api/modules/activity-areas/activity-area.routes');
 const bankRoutes = require('./api/modules/banks/bank.routes');
 const binCodeRoutes = require('./api/modules/bin-codes/bin-code.routes');
+const homepageRoutes = require('./api/modules/homepage');
+const menuRoutes = require('./api/modules/menu');
 
 const app = express();
 
@@ -100,6 +102,9 @@ app.use('/api/cart', publicLimiter);
 app.use('/api/contact', publicLimiter);
 app.use('/api/volunteers/apply', publicLimiter);
 app.use('/api/system-settings/public', publicLimiter);
+app.use('/api/homepage/sliders/public', publicLimiter);
+app.use('/api/homepage/statistics/public', publicLimiter);
+app.use('/api/menu/slug/:slug/public', publicLimiter);
 
 // Upload endpoints için özel limiter
 app.use('/api/upload', uploadLimiter);
@@ -184,6 +189,8 @@ app.use('/api/job-positions', jobPositionRoutes);
 app.use('/api/activity-areas', activityAreaRoutes);
 app.use('/api/banks', bankRoutes);
 app.use('/api/bin-codes', binCodeRoutes);
+app.use('/api/homepage', homepageRoutes);
+app.use('/api/menu', menuRoutes);
 
 // Hata Yönetimi (en sonda olmalı)
 app.use(errorHandler);
