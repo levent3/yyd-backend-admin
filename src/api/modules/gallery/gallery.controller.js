@@ -25,6 +25,8 @@ const galleryServiceAdapter = {
 const crudController = createCRUDController(galleryServiceAdapter, {
   entityName: 'Galeri öğesi',
   entityNamePlural: 'Galeri öğeleri',
+  // Cache invalidation: create/update/delete işlemlerinde cache temizle
+  cachePatterns: ['cache:/api/gallery*'],
   // beforeCreate hook: uploaderId'yi req.user'dan al
   beforeCreate: async (req, data) => ({
     ...data,

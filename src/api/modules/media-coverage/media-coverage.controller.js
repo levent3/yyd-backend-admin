@@ -12,7 +12,8 @@ const mediaCoverageServiceAdapter = {
 const crudController = createCRUDController(mediaCoverageServiceAdapter, {
   entityName: 'Media Coverage',
   entityNamePlural: 'Media Coverage',
-  cachePatterns: ['cache:/media-coverage*'],
+  // Cache invalidation: create/update/delete işlemlerinde cache temizle
+  cachePatterns: ['cache:/api/media-coverage*'],
 });
 
 const getAllActiveMediaCoverage = async (req, res, next) => {

@@ -28,7 +28,8 @@ const publicSpotServiceAdapter = {
 const crudController = createCRUDController(publicSpotServiceAdapter, {
   entityName: 'Public Spot',
   entityNamePlural: 'Public Spots',
-  cachePatterns: ['cache:/public-spots*'],
+  // Cache invalidation: create/update/delete işlemlerinde cache temizle
+  cachePatterns: ['cache:/api/public-spots*'],
 });
 
 // ========== ÖZEL METODLAR (Elle tanımlı) ==========

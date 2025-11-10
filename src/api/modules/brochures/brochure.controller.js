@@ -27,7 +27,8 @@ const brochureServiceAdapter = {
 const crudController = createCRUDController(brochureServiceAdapter, {
   entityName: 'Brochure',
   entityNamePlural: 'Brochures',
-  cachePatterns: ['cache:/brochures*'],
+  // Cache invalidation: create/update/delete işlemlerinde cache temizle
+  cachePatterns: ['cache:/api/brochures*'],
 });
 
 // ========== ÖZEL METODLAR (Elle tanımlı) ==========

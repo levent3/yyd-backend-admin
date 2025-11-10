@@ -12,7 +12,8 @@ const successStoryServiceAdapter = {
 const crudController = createCRUDController(successStoryServiceAdapter, {
   entityName: 'Success Story',
   entityNamePlural: 'Success Stories',
-  cachePatterns: ['cache:/success-stories*'],
+  // Cache invalidation: create/update/delete işlemlerinde cache temizle
+  cachePatterns: ['cache:/api/success-stories*'],
 });
 
 const getAllActiveSuccessStories = async (req, res, next) => {

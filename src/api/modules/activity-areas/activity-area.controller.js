@@ -22,6 +22,8 @@ const activityAreaServiceAdapter = {
 const crudController = createCRUDController(activityAreaServiceAdapter, {
   entityName: 'Faaliyet Alanı',
   entityNamePlural: 'Faaliyet Alanları',
+  // Cache invalidation: create/update/delete işlemlerinde cache temizle
+  cachePatterns: ['cache:/api/activity-areas*'],
 });
 
 // ========== ÖZEL METODLAR (Elle tanımlı) ==========

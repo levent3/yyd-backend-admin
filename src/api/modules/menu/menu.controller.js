@@ -1,4 +1,10 @@
 const menuService = require('./menu.service');
+const { invalidateCache } = require('../../middlewares/cacheMiddleware');
+
+// Helper: Invalidate menu cache
+const invalidateMenuCache = async () => {
+  await invalidateCache('cache:/api/menu*');
+};
 
 // ========== MENU CONTROLLERS ==========
 
@@ -36,6 +42,10 @@ const getMenuBySlug = async (req, res, next) => {
 const createMenu = async (req, res, next) => {
   try {
     const menu = await menuService.createMenu(req.body);
+
+    // Cache invalidation
+    await invalidateMenuCache();
+
     res.status(201).json({
       message: 'Menü başarıyla oluşturuldu',
       data: menu
@@ -49,6 +59,10 @@ const createMenu = async (req, res, next) => {
 const updateMenu = async (req, res, next) => {
   try {
     const menu = await menuService.updateMenu(parseInt(req.params.id), req.body);
+
+    // Cache invalidation
+    await invalidateMenuCache();
+
     res.status(200).json({
       message: 'Menü başarıyla güncellendi',
       data: menu
@@ -62,6 +76,10 @@ const updateMenu = async (req, res, next) => {
 const deleteMenu = async (req, res, next) => {
   try {
     await menuService.deleteMenu(parseInt(req.params.id));
+
+    // Cache invalidation
+    await invalidateMenuCache();
+
     res.status(200).json({
       message: 'Menü başarıyla silindi'
     });
@@ -96,6 +114,10 @@ const getMenuItemById = async (req, res, next) => {
 const createMenuItem = async (req, res, next) => {
   try {
     const item = await menuService.createMenuItem(req.body);
+
+    // Cache invalidation
+    await invalidateMenuCache();
+
     res.status(201).json({
       message: 'Menü öğesi başarıyla oluşturuldu',
       data: item
@@ -109,6 +131,10 @@ const createMenuItem = async (req, res, next) => {
 const updateMenuItem = async (req, res, next) => {
   try {
     const item = await menuService.updateMenuItem(parseInt(req.params.id), req.body);
+
+    // Cache invalidation
+    await invalidateMenuCache();
+
     res.status(200).json({
       message: 'Menü öğesi başarıyla güncellendi',
       data: item
@@ -122,6 +148,10 @@ const updateMenuItem = async (req, res, next) => {
 const deleteMenuItem = async (req, res, next) => {
   try {
     await menuService.deleteMenuItem(parseInt(req.params.id));
+
+    // Cache invalidation
+    await invalidateMenuCache();
+
     res.status(200).json({
       message: 'Menü öğesi başarıyla silindi'
     });
@@ -134,6 +164,10 @@ const deleteMenuItem = async (req, res, next) => {
 const bulkUpdateMenuItems = async (req, res, next) => {
   try {
     await menuService.bulkUpdateMenuItems(req.body.items);
+
+    // Cache invalidation
+    await invalidateMenuCache();
+
     res.status(200).json({
       message: 'Menü öğeleri başarıyla güncellendi'
     });

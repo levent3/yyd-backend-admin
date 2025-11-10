@@ -27,8 +27,8 @@ const brandAssetServiceAdapter = {
 const crudController = createCRUDController(brandAssetServiceAdapter, {
   entityName: 'Brand Asset',
   entityNamePlural: 'Brand Assets',
-  // Cache pattern'leri (optional)
-  cachePatterns: ['cache:/brand-assets*'],
+  // Cache invalidation: create/update/delete işlemlerinde cache temizle
+  cachePatterns: ['cache:/api/brand-assets*'],
 });
 
 // ========== ÖZEL METODLAR (Elle tanımlı) ==========

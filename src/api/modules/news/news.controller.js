@@ -35,8 +35,8 @@ const crudController = createCRUDController(newsServiceAdapter, {
     ...data,
     authorId: req.user.id, // From auth middleware
   }),
-  // Cache pattern'leri (gelecekte eklenebilir)
-  // cachePatterns: ['cache:/news*'],
+  // Cache invalidation: create/update/delete işlemlerinde cache temizle
+  cachePatterns: ['cache:/api/news*'],
 });
 
 // ========== ÖZEL METODLAR (Elle tanımlı) ==========

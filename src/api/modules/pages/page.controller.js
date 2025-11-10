@@ -31,6 +31,8 @@ const pageServiceAdapter = {
 const crudController = createCRUDController(pageServiceAdapter, {
   entityName: 'Sayfa',
   entityNamePlural: 'Sayfalar',
+  // Cache invalidation: create/update/delete işlemlerinde cache temizle
+  cachePatterns: ['cache:/api/pages*'],
 });
 
 // ========== ADMIN CONTROLLERS (Özel yapıda olanlar) ==========

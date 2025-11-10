@@ -62,6 +62,8 @@ const crudController = createCRUDController(projectServiceAdapter, {
   entityNamePlural: 'Projeler',
   // transformData: Tüm response'larda mapping uygula
   transformData: mapProjectToFrontend,
+  // Cache invalidation: create/update/delete işlemlerinde cache temizle
+  cachePatterns: ['cache:/api/projects*'],
   // beforeCreate hook: authorId'yi req.user'dan al
   beforeCreate: async (req, data) => {
     // Eğer translations yoksa, eski formatı yeni formata dönüştür
