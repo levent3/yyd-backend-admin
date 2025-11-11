@@ -269,6 +269,15 @@ model Donation {
   shareCount          Int?                 @default(1)
   sharePrice          Float?
   projectId           Int?
+
+  // Albaraka Sanal Pos özgü alanlar
+  orderId             String?              @unique // Albaraka sipariş numarası (unique)
+  authCode            String?              // Albaraka yetkilendirme kodu
+  hostRefNum          String?              // Albaraka host referans numarası (transactionId ile aynı olabilir)
+  mac                 String?              // Albaraka MAC hash değeri
+  cardBin             String?              // Kartın ilk 6 hanesi
+  cardLastFour        String?              // Kartın son 4 hanesi
+
   donor               Donor?               @relation(fields: [donorId], references: [id])
   project             Project?             @relation(fields: [projectId], references: [id])
   paymentTransactions PaymentTransaction[]
@@ -280,6 +289,7 @@ model Donation {
   @@index([completedAt])
   @@index([paymentGateway])
   @@index([isDedicated])
+  @@index([orderId])
 }
 
 model RecurringDonation {
