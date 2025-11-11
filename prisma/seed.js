@@ -212,10 +212,58 @@ async function main() {
   }
   console.log('✅ Rol yetkileri ayarlandı\n');
 
+  // 5. EK SEED DOSYALARINI ÇALIŞTIR
+  console.log('🌱 Ek veriler ekleniyor...\n');
+
+  // Activity Areas (Faaliyet Alanları)
+  try {
+    console.log('📍 Faaliyet Alanları ekleniyor...');
+    const activityAreasCount = await prisma.activityArea.count();
+    if (activityAreasCount === 0) {
+      const { execSync } = require('child_process');
+      execSync('node prisma/seed-activity-areas.js', { stdio: 'inherit' });
+      console.log('✅ Faaliyet Alanları eklendi\n');
+    } else {
+      console.log(`ℹ️  Zaten ${activityAreasCount} faaliyet alanı var, atlanıyor\n`);
+    }
+  } catch (e) {
+    console.warn('⚠️  Faaliyet Alanları eklenemedi:', e.message, '\n');
+  }
+
+  // Menus (Menü Sistemi)
+  try {
+    console.log('🍔 Menü sistemi oluşturuluyor...');
+    const menusCount = await prisma.menu.count();
+    if (menusCount === 0) {
+      const { execSync } = require('child_process');
+      execSync('node prisma/seed-menus.js', { stdio: 'inherit' });
+      console.log('✅ Menü sistemi oluşturuldu\n');
+    } else {
+      console.log(`ℹ️  Zaten ${menusCount} menü var, atlanıyor\n`);
+    }
+  } catch (e) {
+    console.warn('⚠️  Menü sistemi oluşturulamadı:', e.message, '\n');
+  }
+
+  // About Pages (Hakkımızda Sayfaları)
+  try {
+    console.log('📄 Hakkımızda sayfaları oluşturuluyor...');
+    const pagesCount = await prisma.page.count();
+    if (pagesCount === 0) {
+      const { execSync } = require('child_process');
+      execSync('node prisma/seed-about-pages.js', { stdio: 'inherit' });
+      console.log('✅ Hakkımızda sayfaları oluşturuldu\n');
+    } else {
+      console.log(`ℹ️  Zaten ${pagesCount} sayfa var, atlanıyor\n`);
+    }
+  } catch (e) {
+    console.warn('⚠️  Hakkımızda sayfaları oluşturulamadı:', e.message, '\n');
+  }
+
   console.log('✨ Seed işlemi başarıyla tamamlandı!\n');
   console.log('📝 Giriş Bilgileri:');
   console.log('   Email: admin@yyd.com');
-  console.log('   Password: admin123\n');
+  console.log(`   Password: ${process.env.ADMIN_DEFAULT_PASSWORD ? '***' : 'admin123'}\n`);
 }
 
 main()
