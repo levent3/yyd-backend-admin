@@ -23,6 +23,7 @@ const findMany = (options = {}) => {
           mediaType: true
         }
       },
+      settings: true, // Proje ayarlarını da dahil et (bağış formu için gerekli)
       ...includeTranslations(language)
     }
   });
@@ -40,6 +41,7 @@ const findById = (id, language = null) => prisma.project.findUnique({
       take: 10,
       orderBy: { createdAt: 'desc' }
     },
+    settings: true, // Proje ayarlarını da dahil et (bağış formu için gerekli)
     ...includeTranslations(language)
   }
 });
@@ -63,6 +65,7 @@ const findBySlug = (slug, language = 'tr') => {
         take: 10,
         orderBy: { createdAt: 'desc' }
       },
+      settings: true, // Proje ayarlarını da dahil et (bağış formu için gerekli)
       ...includeTranslations()
     }
   });
@@ -80,6 +83,7 @@ const findByShortCode = (shortCode, language = 'tr') => {
         take: 10,
         orderBy: { createdAt: 'desc' }
       },
+      settings: true, // Proje ayarlarını da dahil et (bağış formu için gerekli)
       ...includeTranslations(language)
     }
   });

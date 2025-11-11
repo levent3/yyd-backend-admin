@@ -40,6 +40,7 @@ const mapProjectToFrontend = (project) => ({
   isFeatured: project.isFeatured,
   displayOrder: project.displayOrder,
   translations: project.translations || [],
+  settings: project.settings || null, // Proje ayarları (bağış formu için gerekli)
   createdAt: project.createdAt,
   updatedAt: project.updatedAt
 });
