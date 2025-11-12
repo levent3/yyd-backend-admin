@@ -272,7 +272,7 @@ model Donation {
   projectId           Int?
 
   // Albaraka Sanal Pos özgü alanlar
-  orderId             String?              @unique // Albaraka sipariş numarası (unique)
+  orderId             String?              // Albaraka sipariş numarası (bulk payment'ta paylaşılabilir)
   authCode            String?              // Albaraka yetkilendirme kodu
   hostRefNum          String?              // Albaraka host referans numarası (transactionId ile aynı olabilir)
   mac                 String?              // Albaraka MAC hash değeri

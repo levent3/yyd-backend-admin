@@ -1,0 +1,13 @@
+{
+  "amount": 100,
+  "donorName": "Test Kullanıcı",
+  "donorEmail": "test@example.com",
+  "donorPhone": "+90 555 123 4567",
+  "cardNo": "5400619360964581",
+  "cvv": "000",
+  "expiry": "2512",
+  "cardHolder": "TEST KULLANICI",
+  "projectId": 1,
+  "isAnonymous": false,
+  "message": "Test bağışı"
+}

@@ -140,6 +140,85 @@ const router = express.Router();
  */
 router.post('/initiate', donationController.initiatePayment);
 
+/**
+ * @swagger
+ * /api/donations/bulk-initiate:
+ *   post:
+ *     summary: 🛒 Bulk payment for shopping cart (Multiple projects, Single SMS)
+ *     description: |
+ *       **Sepet ödemeleri için özel endpoint - TEK 3D Secure, TEK SMS**
+ *
+ *       Kullanıcı sepete birden fazla proje eklemişse (örn: Kurban + Normal proje),
+ *       bu endpoint TÜM donations için tek bir orderId ile kayıt oluşturur ve
+ *       TOPLAM tutar üzerinden TEK bir 3D Secure işlemi başlatır.
+ *
+ *       VPOS Routing: BIN-based (same as /initiate)
+ *
+ *       **Önemli:** Kullanıcı sadece 1 kez SMS alır!
+ *     tags: [Donations, Payment, Cart]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [donations, donor, card]
+ *             properties:
+ *               donations:
+ *                 type: array
+ *                 description: Sepetteki tüm bağışlar
+ *                 items:
+ *                   type: object
+ *                   required: [amount, projectId]
+ *                   properties:
+ *                     amount: { type: number, example: 4000 }
+ *                     projectId: { type: integer, example: 3 }
+ *                     isSacrifice: { type: boolean, example: true }
+ *                     shareCount: { type: integer, example: 1 }
+ *                     sharePrice: { type: number, example: 4000 }
+ *                     shareholders: { type: array, items: { type: object } }
+ *                     isAnonymous: { type: boolean, default: false }
+ *                     message: { type: string }
+ *               donor:
+ *                 type: object
+ *                 required: [firstName, lastName, email, phone]
+ *                 properties:
+ *                   firstName: { type: string, example: "Ahmet" }
+ *                   lastName: { type: string, example: "Yılmaz" }
+ *                   email: { type: string, example: "ahmet@example.com" }
+ *                   phone: { type: string, example: "+90 555 123 4567" }
+ *               card:
+ *                 type: object
+ *                 required: [cardNo, cvv, expiry, cardHolder]
+ *                 properties:
+ *                   cardNo: { type: string, example: "5400619360964581" }
+ *                   cvv: { type: string, example: "000" }
+ *                   expiry: { type: string, example: "2512" }
+ *                   cardHolder: { type: string, example: "AHMET YILMAZ" }
+ *               currency: { type: string, default: "TRY" }
+ *               installment: { type: string, default: "00" }
+ *               isRecurring: { type: boolean, default: false }
+ *     responses:
+ *       200:
+ *         description: Tek 3D Secure form oluşturuldu
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean }
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     orderId: { type: string, example: "YYD-1234567890-ABC123" }
+ *                     totalAmount: { type: number, example: 8500 }
+ *                     donations: { type: array }
+ *                     formData: { type: object }
+ *       400:
+ *         description: Validation error
+ */
+router.post('/bulk-initiate', donationController.initiateBulkPayment);
+
 // Specific VPOS endpoints
 router.post('/albaraka/initiate', donationController.initiateAlbarakaPayment);
 
