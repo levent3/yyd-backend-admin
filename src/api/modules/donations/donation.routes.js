@@ -6,7 +6,174 @@ const { validationMiddleware } = require('../../validators/dynamicValidator');
 const { cacheMiddleware } = require('../../middlewares/cacheMiddleware');
 const router = express.Router();
 
-// ========== PUBLIC ROUTES (Bağış yapma için auth gerekm az) ==========
+// ========== PUBLIC ROUTES (Bağış yapma için auth gerekmaz) ==========
+
+/**
+ * @swagger
+ * /api/donations/albaraka/initiate:
+ *   post:
+ *     summary: Albaraka 3D Secure ödeme başlatma (Public)
+ *     description: Kredi kartı ile bağış yapmak için Albaraka 3D Secure ödeme formunu oluşturur
+ *     tags: [Donations]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [amount, donorName, donorEmail, cardNo, cvv, expiry, cardHolder]
+ *             properties:
+ *               amount:
+ *                 type: number
+ *                 example: 100
+ *               projectId:
+ *                 type: integer
+ *                 example: 1
+ *               donorName:
+ *                 type: string
+ *                 example: Ahmet Yılmaz
+ *               donorEmail:
+ *                 type: string
+ *                 format: email
+ *                 example: ahmet@example.com
+ *               donorPhone:
+ *                 type: string
+ *                 example: +90 555 123 4567
+ *               cardNo:
+ *                 type: string
+ *                 example: 5400619360964581
+ *               cvv:
+ *                 type: string
+ *                 example: 000
+ *               expiry:
+ *                 type: string
+ *                 example: 2512
+ *                 description: YYMM formatında (25 yıl 12 ay)
+ *               cardHolder:
+ *                 type: string
+ *                 example: AHMET YILMAZ
+ *               installment:
+ *                 type: string
+ *                 example: 00
+ *                 description: Taksit sayısı (00 = peşin)
+ *               isAnonymous:
+ *                 type: boolean
+ *                 default: false
+ *               message:
+ *                 type: string
+ *                 example: Hayırlı olsun
+ *     responses:
+ *       200:
+ *         description: 3D Secure formu başarıyla oluşturuldu
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     donationId:
+ *                       type: integer
+ *                     orderId:
+ *                       type: string
+ *                     formData:
+ *                       type: object
+ *                       properties:
+ *                         action:
+ *                           type: string
+ *                         method:
+ *                           type: string
+ *                         fields:
+ *                           type: object
+ *       400:
+ *         description: Validation error
+ */
+/**
+ * @swagger
+ * /api/donations/initiate:
+ *   post:
+ *     summary: 🌟 Unified payment with automatic VPOS routing (RECOMMENDED)
+ *     description: |
+ *       **Smart payment endpoint - Backend otomatik VPOS seçimi yapar**
+ *
+ *       Routing Logic:
+ *       - isRecurring=true → Türkiye Finans VPOS (Always!)
+ *       - BIN lookup → Bank.isVirtualPosActive=true → Albaraka VPOS
+ *       - BIN not found or isVirtualPosActive=false → Türkiye Finans VPOS (Default)
+ *
+ *       Frontend should use this endpoint instead of direct VPOS endpoints.
+ *     tags: [Donations, Payment]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [amount, donorName, donorEmail, cardNo, cvv, expiry, cardHolder]
+ *             properties:
+ *               amount: { type: number, example: 100 }
+ *               currency: { type: string, default: TRY, example: TRY }
+ *               installment: { type: string, default: "00", example: "00" }
+ *               projectId: { type: integer, example: 1 }
+ *               donorName: { type: string, example: "Ahmet Yılmaz" }
+ *               donorEmail: { type: string, format: email, example: "ahmet@example.com" }
+ *               donorPhone: { type: string, example: "+90 555 123 4567" }
+ *               cardNo: { type: string, example: "5400619360964581" }
+ *               cvv: { type: string, example: "000" }
+ *               expiry: { type: string, example: "2512", description: "YYMM format" }
+ *               cardHolder: { type: string, example: "AHMET YILMAZ" }
+ *               isRecurring: { type: boolean, default: false, description: "Düzenli ödeme - Always uses Türkiye Finans VPOS" }
+ *               isAnonymous: { type: boolean, default: false }
+ *               message: { type: string, example: "Hayırlı olsun" }
+ *     responses:
+ *       200:
+ *         description: Successfully routed to appropriate VPOS
+ *       400:
+ *         description: Validation error
+ *       501:
+ *         description: Türkiye Finans VPOS not implemented yet
+ */
+router.post('/initiate', donationController.initiatePayment);
+
+// Specific VPOS endpoints
+router.post('/albaraka/initiate', donationController.initiateAlbarakaPayment);
+
+/**
+ * @swagger
+ * /api/donations/turkiye-finans/initiate:
+ *   post:
+ *     summary: Direct Türkiye Finans VPOS payment (TODO - Not Implemented)
+ *     description: |
+ *       **⚠️ Currently returns 501 Not Implemented**
+ *
+ *       This endpoint will be available after Türkiye Finans VPOS integration is completed.
+ *       Use /api/donations/initiate instead for automatic routing.
+ *     tags: [Donations, Payment]
+ *     responses:
+ *       501:
+ *         description: Not implemented yet
+ */
+router.post('/turkiye-finans/initiate', donationController.initiateTurkiyeFinansPayment);
+
+/**
+ * @swagger
+ * /api/donations/albaraka/callback:
+ *   post:
+ *     summary: Albaraka 3D Secure callback (Public)
+ *     description: Albaraka'dan dönen 3D Secure sonucunu işler (Bu endpoint Albaraka tarafından çağrılır)
+ *     tags: [Donations]
+ *     responses:
+ *       302:
+ *         description: Redirects to success or fail URL
+ */
+router.post('/albaraka/callback', donationController.handleAlbarakaCallback);
+
+// ========== PUBLIC ROUTES (Bağış yapma için auth gerekmaz) ==========
 
 /**
  * @swagger

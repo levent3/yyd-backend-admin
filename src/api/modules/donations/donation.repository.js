@@ -92,9 +92,17 @@ const createDonation = (data) => {
       sacrificeType: data.sacrificeType || null,
       shareCount: data.shareCount || 1,
       sharePrice: data.sharePrice || null,
+      shareholders: data.shareholders || null,
       // SMS Bağış
       smsShortCode: data.smsShortCode || null,
       smsKeyword: data.smsKeyword || null,
+      // Albaraka Sanal Pos
+      orderId: data.orderId || null,
+      authCode: data.authCode || null,
+      hostRefNum: data.hostRefNum || null,
+      mac: data.mac || null,
+      cardBin: data.cardBin || null,
+      cardLastFour: data.cardLastFour || null,
     },
     include: {
       donor: true,
@@ -128,10 +136,19 @@ const updateDonation = (id, data) => {
   if (data.sacrificeType !== undefined) updateData.sacrificeType = data.sacrificeType;
   if (data.shareCount !== undefined) updateData.shareCount = data.shareCount;
   if (data.sharePrice !== undefined) updateData.sharePrice = data.sharePrice;
+  if (data.shareholders !== undefined) updateData.shareholders = data.shareholders;
 
   // SMS fields
   if (data.smsShortCode !== undefined) updateData.smsShortCode = data.smsShortCode;
   if (data.smsKeyword !== undefined) updateData.smsKeyword = data.smsKeyword;
+
+  // Albaraka Sanal Pos fields
+  if (data.orderId !== undefined) updateData.orderId = data.orderId;
+  if (data.authCode !== undefined) updateData.authCode = data.authCode;
+  if (data.hostRefNum !== undefined) updateData.hostRefNum = data.hostRefNum;
+  if (data.mac !== undefined) updateData.mac = data.mac;
+  if (data.cardBin !== undefined) updateData.cardBin = data.cardBin;
+  if (data.cardLastFour !== undefined) updateData.cardLastFour = data.cardLastFour;
 
   return prisma.donation.update({
     where: { id },
