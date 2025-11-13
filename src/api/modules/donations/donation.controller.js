@@ -311,19 +311,53 @@ const initiateAlbarakaPayment = async (req, res, next) => {
         }
 
         // Her hissedar için zorunlu alan kontrolü
+        // YENİ FORMAT: {fullName, phoneNumber, shareCount}
+        // ESKİ FORMAT: {shareNumber, fullName, phoneNumber} (backward compatible)
         for (const shareholder of shareholders) {
-          if (!shareholder.shareNumber || !shareholder.fullName) {
-            return res.status(400).json({
-              success: false,
-              message: 'Her hissedar için hisse numarası ve ad-soyad zorunludur'
-            });
-          }
+          // Yeni format kontrolü (shareCount varsa)
+          if (shareholder.shareCount !== undefined) {
+            if (!shareholder.fullName || !shareholder.phoneNumber) {
+              return res.status(400).json({
+                success: false,
+                message: 'Her hissedar için ad-soyad ve telefon numarası zorunludur'
+              });
+            }
 
-          // Hisse numarası 1-7 arası olmalı
-          if (shareholder.shareNumber < 1 || shareholder.shareNumber > 7) {
+            if (shareholder.shareCount < 1 || shareholder.shareCount > 7) {
+              return res.status(400).json({
+                success: false,
+                message: 'Hisse sayısı 1 ile 7 arasında olmalıdır'
+              });
+            }
+          } else {
+            // Eski format kontrolü (shareNumber varsa)
+            if (!shareholder.shareNumber || !shareholder.fullName) {
+              return res.status(400).json({
+                success: false,
+                message: 'Her hissedar için hisse numarası ve ad-soyad zorunludur'
+              });
+            }
+
+            if (shareholder.shareNumber < 1 || shareholder.shareNumber > 7) {
+              return res.status(400).json({
+                success: false,
+                message: 'Hisse numarası 1 ile 7 arasında olmalıdır'
+              });
+            }
+          }
+        }
+
+        // Toplam hisse sayısı kontrolü (yeni format için)
+        const hasNewFormat = shareholders.some(s => s.shareCount !== undefined);
+        if (hasNewFormat) {
+          const totalSharesFromShareholders = shareholders.reduce((sum, s) => {
+            return sum + (s.shareCount || 0);
+          }, 0);
+
+          if (totalSharesFromShareholders !== shareCount) {
             return res.status(400).json({
               success: false,
-              message: 'Hisse numarası 1 ile 7 arasında olmalıdır'
+              message: `Hissedarların toplam hisse sayısı (${totalSharesFromShareholders}) kurbanın toplam hisse sayısı (${shareCount}) ile eşleşmiyor`
             });
           }
         }
@@ -404,17 +438,22 @@ const initiateAlbarakaPayment = async (req, res, next) => {
 /**
  * POST /api/donations/bulk-initiate - Bulk Payment (SEPET)
  * Sepetteki tüm bağışları tek ödemede işler
+ *
+ * TRANSACTION-BASED IMPLEMENTATION:
+ * - All donations are created in a single atomic transaction
+ * - If 3D form creation fails, all donations are automatically rolled back
+ * - Prevents orphaned donation records
  */
 const initiateBulkPayment = async (req, res, next) => {
   try {
     const {
       donations,  // Array of donation items
-      donor,      // { name, email, phone }
+      donor,      // { firstName, lastName, email, phone }
       card,       // { cardNo, cvv, expiry, cardHolder }
       isRecurring = false
     } = req.body;
 
-    // 1. Validasyon
+    // ========== 1. VALIDATION ==========
     if (!donations || !Array.isArray(donations) || donations.length === 0) {
       return res.status(400).json({
         success: false,
@@ -436,8 +475,8 @@ const initiateBulkPayment = async (req, res, next) => {
       });
     }
 
-    // 2. Toplam tutar hesapla
-    const totalAmount = donations.reduce((sum, d) => sum + d.amount, 0);
+    // ========== 2. TOTAL AMOUNT CALCULATION ==========
+    const totalAmount = donations.reduce((sum, d) => sum + parseFloat(d.amount || 0), 0);
 
     if (totalAmount <= 0) {
       return res.status(400).json({
@@ -446,11 +485,14 @@ const initiateBulkPayment = async (req, res, next) => {
       });
     }
 
-    // 3. VPOS Routing
+    // ========== 3. VPOS ROUTING ==========
     const vposSelection = await vposRouter.selectVPOS(card.cardNo, isRecurring);
-    console.log('VPOS Selection (Bulk):', vposSelection);
+    console.log('[VPOS Selection - Bulk]', {
+      vposType: vposSelection.vposType,
+      bankName: vposSelection.bankInfo?.name || 'N/A',
+      reason: vposSelection.reason
+    });
 
-    // 4. Şu an sadece Albaraka destekleniyor
     if (vposSelection.vposType !== 'albaraka') {
       return res.status(501).json({
         success: false,
@@ -459,65 +501,69 @@ const initiateBulkPayment = async (req, res, next) => {
       });
     }
 
-    // 5. Donor oluştur/bul
-    let donorRecord = await donationService.getDonorByEmail(donor.email);
-    if (!donorRecord) {
-      donorRecord = await donationService.createDonor({
-        fullName: `${donor.firstName} ${donor.lastName}`,
-        email: donor.email,
-        phoneNumber: donor.phone
-      });
-    }
-
-    // 6. ORTAK orderId (TÜM bağışlar için aynı)
+    // ========== 4. GENERATE SHARED ORDER ID ==========
     const mainOrderId = `YYD-${Date.now()}-${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
 
-    // 7. Her donation için kayıt (status: pending)
-    const createdDonations = [];
-    for (const donationData of donations) {
-      const donation = await donationService.createDonation({
-        amount: parseFloat(donationData.amount),
-        currency: 'TRY',
-        projectId: donationData.projectId ? parseInt(donationData.projectId) : null,
-        donorId: donorRecord.id,
-        paymentMethod: 'credit_card',
-        paymentStatus: 'pending',
-        paymentGateway: 'albaraka',
-        isAnonymous: donationData.isAnonymous || false,
-        message: donationData.message || null,
-        donorName: `${donor.firstName} ${donor.lastName}`,
-        donorEmail: donor.email,
-        donorPhone: donor.phone,
-        orderId: mainOrderId,  // ← AYNI orderId!
-        cardBin: card.cardNo.substring(0, 6),
-        cardLastFour: card.cardNo.substring(card.cardNo.length - 4),
-        // Kurban
-        isSacrifice: donationData.isSacrifice || false,
-        sacrificeType: donationData.sacrificeType || null,
-        shareCount: donationData.shareCount ? parseInt(donationData.shareCount) : 1,
-        sharePrice: donationData.sharePrice ? parseFloat(donationData.sharePrice) : null,
-        shareholders: donationData.shareholders || null
-      });
-
-      createdDonations.push(donation);
-    }
-
-    // 8. TEK 3D Secure Form (TOPLAM tutar)
-    const albaraka = getAlbarakaService();
-    const formData = albaraka.create3DSecureForm({
+    console.log('[Bulk Payment] Starting transaction', {
       orderId: mainOrderId,
-      amount: totalAmount,  // ← Sepet toplamı
-      currency: 'TRY',
-      installment: '00',
-      cardNo: card.cardNo,
-      cvv: card.cvv,
-      expiry: card.expiry,
-      cardHolder: card.cardHolder,
-      email: donor.email,
-      phone: donor.phone
+      totalAmount,
+      donationCount: donations.length,
+      donorEmail: donor.email
     });
 
-    // 9. Response
+    // ========== 5. TRANSACTION: Create Donations + 3D Form ==========
+    let createdDonations;
+    let formData;
+
+    try {
+      // Create all donations in a single transaction
+      createdDonations = await donationService.createBulkDonationsTransaction({
+        donations,
+        donor,
+        orderId: mainOrderId,
+        cardInfo: {
+          cardBin: card.cardNo.substring(0, 6),
+          cardLastFour: card.cardNo.substring(card.cardNo.length - 4)
+        }
+      });
+
+      console.log('[Bulk Payment] Donations created successfully', {
+        count: createdDonations.length,
+        ids: createdDonations.map(d => d.id)
+      });
+
+      // Create 3D Secure form (if this fails, transaction will rollback)
+      const albaraka = getAlbarakaService();
+      formData = albaraka.create3DSecureForm({
+        orderId: mainOrderId,
+        amount: totalAmount,
+        currency: 'TRY',
+        installment: '00',
+        cardNo: card.cardNo,
+        cvv: card.cvv,
+        expiry: card.expiry,
+        cardHolder: card.cardHolder,
+        email: donor.email,
+        phone: donor.phone
+      });
+
+      console.log('[Bulk Payment] 3D Secure form created successfully');
+
+    } catch (transactionError) {
+      // Transaction automatically rolled back by Prisma
+      console.error('[Bulk Payment] Transaction failed - Auto rollback', {
+        error: transactionError.message,
+        orderId: mainOrderId
+      });
+
+      return res.status(500).json({
+        success: false,
+        message: 'Ödeme işlemi başlatılamadı. Lütfen bilgilerinizi kontrol edip tekrar deneyin.',
+        error: process.env.NODE_ENV === 'development' ? transactionError.message : undefined
+      });
+    }
+
+    // ========== 6. SUCCESS RESPONSE ==========
     return res.status(200).json({
       success: true,
       message: 'Sepet ödemesi için 3D Secure formu oluşturuldu',
@@ -529,7 +575,8 @@ const initiateBulkPayment = async (req, res, next) => {
           id: d.id,
           projectId: d.projectId,
           amount: d.amount,
-          isSacrifice: d.isSacrifice
+          isSacrifice: d.isSacrifice,
+          shareCount: d.shareCount
         })),
         formData
       },
@@ -537,7 +584,7 @@ const initiateBulkPayment = async (req, res, next) => {
     });
 
   } catch (error) {
-    console.error('Bulk Payment Initiation Error:', error);
+    console.error('[Bulk Payment] Unexpected error:', error);
     next(error);
   }
 };
@@ -562,14 +609,17 @@ const handleAlbarakaCallback = async (req, res, next) => {
 
     if (!validationResult.success) {
       // Ödeme başarısız
-      const { orderId } = callbackData;
+      const { OrderId: orderId } = callbackData;
+      console.log('[Callback] Payment failed for orderId:', orderId);
 
       // TÜM donations'ları failed yap (bulk payment desteği)
       if (orderId) {
         const donations = await donationService.getAllDonations({ orderId });
+        console.log('[Callback] Found donations:', donations.data?.length || 0, 'donations');
 
         if (donations.data && donations.data.length > 0) {
           for (const donation of donations.data) {
+            console.log('[Callback] Updating donation to failed:', donation.id);
             await donationService.updateDonationPaymentStatus(
               donation.id,
               'failed',
@@ -579,6 +629,9 @@ const handleAlbarakaCallback = async (req, res, next) => {
               }
             );
           }
+          console.log('[Callback] All donations updated to failed');
+        } else {
+          console.log('[Callback] No donations found for orderId:', orderId);
         }
       }
 

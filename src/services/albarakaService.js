@@ -114,9 +114,11 @@ class AlbarakaService {
       TerminalNo: this.terminalNo,
       PosnetID: this.eposNo,
       OrderId: orderId,
+      TransactionType: 'Sale', // İşlem tipi: Sale (Satış), Auth (Otorizasyon), Point (Puan)
       Amount: amountInKurus,
       Currency: currency,
       Installment: installment,
+      Language: 'TR', // TR = Türkçe, EN = İngilizce
 
       // Kart Bilgileri
       CardNo: cardNo,
@@ -126,6 +128,7 @@ class AlbarakaService {
 
       // MAC Hash
       Mac: mac,
+      MacParams: 'MerchantNo:TerminalNo:CardNo:Cvv:ExpireDate:Amount', // MAC parametreleri
 
       // Callback URLs
       MerchantReturnURL: this.callbackUrl,
@@ -136,8 +139,11 @@ class AlbarakaService {
       Email: email || '',
       Phone: phone || '',
 
-      // Yeni pencere açılsın mı? (0 = aynı pencere, 1 = yeni pencere)
-      OpenANewWindow: '0'
+      // 3D Secure Ayarları
+      OpenANewWindow: '0', // Yeni pencere açılsın mı? (0 = aynı pencere, 1 = yeni pencere)
+      UseOOS: '0', // Ortak Ödeme Sayfası kullanılsın mı? (0 = hayır, 1 = evet)
+      TxnState: 'INITIAL', // İşlem durumu (ilk çağrı için INITIAL olmalı)
+      UseJokerVadaa: '0' // Joker Vadaa kampanyası kullanılsın mı? (0 = hayır, 1 = evet)
     };
 
     return {
@@ -163,33 +169,88 @@ class AlbarakaService {
       Amount,
       AuthCode,
       HostRefNum,
+      MdStatus, // 3D Secure doğrulama durumu
+      MdErrorMessage, // 3D Secure hata mesajı
+      ECI, // E-Commerce Indicator
+      CAVV, // Cardholder Authentication Verification Value
+      SecureTransactionId, // 3D Secure işlem ID
       Mac: receivedMac,
       ...rest
     } = callbackData;
 
-    // Response Code kontrolü (0000 = başarılı)
+    // 1. MdStatus kontrolü (3D Secure doğrulama durumu)
+    // Albaraka dökümanına göre: sadece MdStatus=1 Full 3D işlem olarak kabul edilmelidir
+    if (MdStatus !== '1') {
+      let errorMessage = 'Ödeme doğrulaması başarısız';
+
+      switch(MdStatus) {
+        case '0':
+          errorMessage = 'Kart doğrulama başarısız';
+          break;
+        case '2':
+        case '3':
+          errorMessage = 'Kart sahibi veya bankası 3D Secure sistemine kayıtlı değil (Half 3D)';
+          break;
+        case '4':
+          errorMessage = 'Doğrulama denemesi yapıldı, kart sahibi sisteme daha sonra kayıt olmayı seçti';
+          break;
+        case '5':
+          errorMessage = 'Doğrulama yapılamıyor';
+          break;
+        case '6':
+          errorMessage = '3D Secure hatası';
+          break;
+        case '7':
+          errorMessage = 'Sistem hatası';
+          break;
+        case '8':
+          errorMessage = 'Bilinmeyen kart numarası';
+          break;
+        case '9':
+          errorMessage = 'Üye İşyeri 3D-Secure sistemine kayıtlı değil';
+          break;
+        default:
+          errorMessage = MdErrorMessage || 'Bilinmeyen doğrulama hatası';
+      }
+
+      return {
+        success: false,
+        message: errorMessage,
+        code: MdStatus,
+        mdStatus: MdStatus,
+        data: callbackData
+      };
+    }
+
+    // 2. Response Code kontrolü (0000 = başarılı)
     if (ResponseCode !== '0000') {
       return {
         success: false,
         message: ResponseMessage || 'Ödeme başarısız',
         code: ResponseCode,
+        mdStatus: MdStatus,
         data: callbackData
       };
     }
 
     // TODO: MAC doğrulaması
     // Not: Albaraka'nın callback MAC'i farklı formülle oluşturulabilir
+    // Formula: SHA256(ECI + CAVV + MdStatus + MdErrorMessage + MD + SecureTransactionId + encKey)
     // Dokümanı kontrol ederek eklenecek
 
     return {
       success: true,
-      message: 'Ödeme başarılı',
+      message: 'Ödeme başarılı (Full 3D)',
       data: {
         orderId: OrderId,
         amount: parseFloat(Amount) / 100, // Kuruştan TL'ye
         authCode: AuthCode,
         hostRefNum: HostRefNum,
         transactionId: HostRefNum, // hostRefNum transaction ID olarak kullanılır
+        mdStatus: MdStatus, // 3D doğrulama durumu
+        eci: ECI, // E-Commerce Indicator
+        cavv: CAVV, // Cardholder Authentication Verification Value
+        secureTransactionId: SecureTransactionId, // 3D Secure işlem ID
         mac: receivedMac,
         rawData: callbackData
       }

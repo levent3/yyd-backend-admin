@@ -6,7 +6,7 @@ const { formatEntityWithTranslation } = require('../../../utils/translationHelpe
 // ========== DONATIONS ==========
 
 const getAllDonations = async (queryParams = {}) => {
-  const { page, limit, status, paymentMethod, projectId, donorId, minAmount, maxAmount, ...rest } = queryParams;
+  const { page, limit, status, paymentMethod, projectId, donorId, minAmount, maxAmount, orderId, ...rest } = queryParams;
   const { skip, limit: take } = parsePagination(page, limit);
 
   const where = {};
@@ -15,6 +15,7 @@ const getAllDonations = async (queryParams = {}) => {
   if (paymentMethod) where.paymentMethod = paymentMethod;
   if (projectId) where.projectId = parseInt(projectId);
   if (donorId) where.donorId = parseInt(donorId);
+  if (orderId) where.orderId = orderId;
 
   // Amount filtering
   if (minAmount || maxAmount) {
@@ -200,6 +201,94 @@ const processDonationPayment = async (donationId, paymentResult) => {
   }
 };
 
+// ========== BULK PAYMENT WITH TRANSACTION ==========
+
+/**
+ * Create multiple donations in a single atomic transaction
+ *
+ * This ensures all-or-nothing behavior:
+ * - If any donation creation fails, all donations are rolled back
+ * - If 3D form creation fails, all donations are rolled back
+ * - Prevents orphaned donation records in case of errors
+ *
+ * @param {Object} params - Bulk payment parameters
+ * @param {Array} params.donations - Array of donation data objects
+ * @param {Object} params.donor - Donor information (firstName, lastName, email, phone)
+ * @param {String} params.orderId - Shared orderId for all donations
+ * @param {Object} params.cardInfo - Card information (for BIN tracking)
+ * @returns {Promise<Array>} Array of created donation objects
+ *
+ * @example
+ * const donations = await createBulkDonationsTransaction({
+ *   donations: [
+ *     { amount: 100, projectId: 1, isSacrifice: false },
+ *     { amount: 12000, projectId: 5, isSacrifice: true, shareCount: 3, shareholders: [...] }
+ *   ],
+ *   donor: { firstName: 'Ali', lastName: 'Veli', email: 'ali@test.com', phone: '+905551234567' },
+ *   orderId: 'YYD-1234567890-ABC123',
+ *   cardInfo: { cardBin: '540061', cardLastFour: '4581' }
+ * });
+ */
+const createBulkDonationsTransaction = async ({ donations, donor, orderId, cardInfo }) => {
+  const prisma = require('../../../config/prismaClient');
+
+  return await prisma.$transaction(async (tx) => {
+    // 1. Find or create donor within transaction
+    let donorRecord = await tx.donor.findUnique({
+      where: { email: donor.email }
+    });
+
+    if (!donorRecord) {
+      donorRecord = await tx.donor.create({
+        data: {
+          fullName: `${donor.firstName} ${donor.lastName}`,
+          email: donor.email,
+          phoneNumber: donor.phone,
+        }
+      });
+    }
+
+    // 2. Create all donations within the same transaction
+    const createdDonations = [];
+
+    for (const donationData of donations) {
+      const donation = await tx.donation.create({
+        data: {
+          amount: parseFloat(donationData.amount),
+          currency: 'TRY',
+          projectId: donationData.projectId ? parseInt(donationData.projectId) : null,
+          donorId: donorRecord.id,
+          paymentMethod: 'credit_card',
+          paymentStatus: 'pending',
+          paymentGateway: 'albaraka',
+          isAnonymous: donationData.isAnonymous || false,
+          message: donationData.message || null,
+          donorName: `${donor.firstName} ${donor.lastName}`,
+          donorEmail: donor.email,
+          donorPhone: donor.phone,
+          orderId: orderId,
+          cardBin: cardInfo.cardBin,
+          cardLastFour: cardInfo.cardLastFour,
+          // Kurban fields
+          isSacrifice: donationData.isSacrifice || false,
+          sacrificeType: donationData.sacrificeType || null,
+          shareCount: donationData.shareCount ? parseInt(donationData.shareCount) : 1,
+          sharePrice: donationData.sharePrice ? parseFloat(donationData.sharePrice) : null,
+          shareholders: donationData.shareholders || null
+        }
+      });
+
+      createdDonations.push(donation);
+    }
+
+    return createdDonations;
+  }, {
+    // Transaction options
+    maxWait: 5000, // Maximum time to wait for a transaction slot (ms)
+    timeout: 10000, // Maximum transaction execution time (ms)
+  });
+};
+
 module.exports = {
   // Donations
   getAllDonations,
@@ -210,6 +299,7 @@ module.exports = {
   createDonationWithTransaction,
   updateDonationPaymentStatus,
   processDonationPayment,
+  createBulkDonationsTransaction,
 
   // Donors
   getAllDonors,

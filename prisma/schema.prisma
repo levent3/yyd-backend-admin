@@ -236,7 +236,7 @@ model Donor {
 model Donation {
   id                  String               @id @default(uuid())
   amount              Float
-  transactionId       String?              @unique
+  transactionId       String?
   createdAt           DateTime             @default(now())
   donorId             Int?
   completedAt         DateTime?
