@@ -8,6 +8,9 @@ const router = express.Router();
 
 // ========== PUBLIC ROUTES (Bağış yapma için auth gerekmaz) ==========
 
+// Türkiye Finans Test & Callback Routes (PUBLIC)
+router.post('/turkiye-finans/test', donationController.initiateTurkiyeFinansTest);
+router.post('/turkiye-finans/callback', donationController.handleTurkiyeFinansCallback);
 /**
  * @swagger
  * /api/donations/albaraka/initiate:

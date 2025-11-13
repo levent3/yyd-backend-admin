@@ -493,14 +493,6 @@ const initiateBulkPayment = async (req, res, next) => {
       reason: vposSelection.reason
     });
 
-    if (vposSelection.vposType !== 'albaraka') {
-      return res.status(501).json({
-        success: false,
-        message: 'Türkiye Finans VPOS entegrasyonu henüz tamamlanmadı',
-        vposType: vposSelection.vposType
-      });
-    }
-
     // ========== 4. GENERATE SHARED ORDER ID ==========
     const mainOrderId = `YYD-${Date.now()}-${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
 
@@ -508,7 +500,8 @@ const initiateBulkPayment = async (req, res, next) => {
       orderId: mainOrderId,
       totalAmount,
       donationCount: donations.length,
-      donorEmail: donor.email
+      donorEmail: donor.email,
+      vposType: vposSelection.vposType
     });
 
     // ========== 5. TRANSACTION: Create Donations + 3D Form ==========
@@ -524,7 +517,8 @@ const initiateBulkPayment = async (req, res, next) => {
         cardInfo: {
           cardBin: card.cardNo.substring(0, 6),
           cardLastFour: card.cardNo.substring(card.cardNo.length - 4)
-        }
+        },
+        paymentGateway: vposSelection.vposType  // Pass VPOS type to service
       });
 
       console.log('[Bulk Payment] Donations created successfully', {
@@ -532,22 +526,39 @@ const initiateBulkPayment = async (req, res, next) => {
         ids: createdDonations.map(d => d.id)
       });
 
-      // Create 3D Secure form (if this fails, transaction will rollback)
-      const albaraka = getAlbarakaService();
-      formData = albaraka.create3DSecureForm({
-        orderId: mainOrderId,
-        amount: totalAmount,
-        currency: 'TRY',
-        installment: '00',
-        cardNo: card.cardNo,
-        cvv: card.cvv,
-        expiry: card.expiry,
-        cardHolder: card.cardHolder,
-        email: donor.email,
-        phone: donor.phone
-      });
+      // Create 3D Secure form based on selected VPOS
+      if (vposSelection.vposType === 'albaraka') {
+        // ALBARAKA VPOS
+        const albaraka = getAlbarakaService();
+        formData = albaraka.create3DSecureForm({
+          orderId: mainOrderId,
+          amount: totalAmount,
+          currency: 'TRY',
+          installment: '00',
+          cardNo: card.cardNo,
+          cvv: card.cvv,
+          expiry: card.expiry,
+          cardHolder: card.cardHolder,
+          email: donor.email,
+          phone: donor.phone
+        });
+        console.log('[Bulk Payment] Albaraka 3D Secure form created');
+      } else {
+        // TURKIYE FINANS VPOS (Default)
+        const turkiyeFinans = require('../../../services/turkiyeFinansService');
+        const okUrl = process.env.TURKIYE_FINANS_CALLBACK_URL;
+        const failUrl = process.env.TURKIYE_FINANS_CALLBACK_URL;
 
-      console.log('[Bulk Payment] 3D Secure form created successfully');
+        formData = turkiyeFinans.create3DSecureForm({
+          orderId: mainOrderId,
+          amount: totalAmount,
+          okUrl,
+          failUrl,
+          email: donor.email,
+          userId: donor.email
+        });
+        console.log('[Bulk Payment] Turkiye Finans 3D Secure form created');
+      }
 
     } catch (transactionError) {
       // Transaction automatically rolled back by Prisma
@@ -586,6 +597,112 @@ const initiateBulkPayment = async (req, res, next) => {
   } catch (error) {
     console.error('[Bulk Payment] Unexpected error:', error);
     next(error);
+  }
+};
+
+/**
+ * POST /api/donations/turkiye-finans/test - Türkiye Finans Test Endpoint
+ * Test kartları ile basit bir ödeme başlatır
+ */
+const initiateTurkiyeFinansTest = async (req, res, next) => {
+  try {
+    const {
+      amount = 10.00, // Test tutarı
+      recurringPaymentNumber = null, // Tekrarlayan ödeme sayısı (opsiyonel)
+      recurringFrequency = null, // Aralık (opsiyonel, örn: 1)
+      recurringFrequencyUnit = null // Birim (opsiyonel, M/W/D)
+    } = req.body;
+
+    // 1. Test order ID oluştur
+    const orderId = `TF-TEST-${Date.now()}`;
+
+    // 2. Callback URLs
+    const okUrl = process.env.TURKIYE_FINANS_CALLBACK_URL;
+    const failUrl = process.env.TURKIYE_FINANS_CALLBACK_URL;
+
+    // 3. Türkiye Finans service ile 3D form oluştur
+    const turkiyeFinans = require('../../../services/turkiyeFinansService');
+    const formData = turkiyeFinans.create3DSecureForm({
+      orderId,
+      amount: parseFloat(amount),
+      okUrl,
+      failUrl,
+      recurringPaymentNumber,
+      recurringFrequencyUnit,
+      recurringFrequency,
+      email: 'test@test.com',
+      userId: 'test-user'
+    });
+
+    // 4. Response döndür
+    res.status(200).json({
+      success: true,
+      message: 'Türkiye Finans test formu oluşturuldu',
+      data: {
+        orderId,
+        formData,
+        testInfo: {
+          testCards: [
+            '5218487962459752',
+            '4446763125813623',
+            '5200190005138652'
+          ],
+          cvv: '000',
+          expiryDate: 'İleri bir tarih (örn: 12/25)',
+          note: 'Test ortamı - Gerçek para çekilmez'
+        }
+      },
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('Turkiye Finans Test Error:', error);
+    next(error);
+  }
+};
+
+/**
+ * POST /api/donations/turkiye-finans/callback - Türkiye Finans 3D Secure Callback
+ * 3D Secure doğrulamasından sonra buraya yönlendirilir
+ */
+const handleTurkiyeFinansCallback = async (req, res, next) => {
+  try {
+    console.log('=== TÜRKİYE FİNANS CALLBACK RECEIVED ===');
+    console.log('Body:', JSON.stringify(req.body, null, 2));
+    console.log('Query:', JSON.stringify(req.query, null, 2));
+
+    const callbackData = { ...req.body, ...req.query };
+
+    // Türkiye Finans service ile validate et
+    const turkiyeFinans = require('../../../services/turkiyeFinansService');
+    const validationResult = turkiyeFinans.validate3DCallback(callbackData);
+
+    console.log('Validation Result:', JSON.stringify(validationResult, null, 2));
+
+    if (validationResult.success) {
+      // Başarılı ödeme
+      res.status(200).json({
+        success: true,
+        message: 'Ödeme başarılı',
+        data: validationResult.data
+      });
+    } else {
+      // Başarısız ödeme
+      res.status(400).json({
+        success: false,
+        message: validationResult.message,
+        code: validationResult.code,
+        data: validationResult.data
+      });
+    }
+
+  } catch (error) {
+    console.error('Turkiye Finans Callback Error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Callback işleme hatası',
+      error: error.message
+    });
   }
 };
 
@@ -705,4 +822,8 @@ module.exports = {
   initiateAlbarakaPayment, // Albaraka-specific
   initiateTurkiyeFinansPayment, // Türkiye Finans-specific
   handleAlbarakaCallback,
+
+  // Türkiye Finans Endpoints
+  initiateTurkiyeFinansTest,
+  handleTurkiyeFinansCallback,
 };

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Türkiye Finans Test - 3D Secure</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+        .info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        .test-cards {
+            background: #fff3e0;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        label {
+            font-weight: bold;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏦 Türkiye Finans VPOS Test</h1>
+
+        <div class="info">
+            <h3>📋 Test Bilgileri:</h3>
+            <p><strong>Test Endpoint:</strong> http://localhost:5000/api/donations/turkiye-finans/test</p>
+            <p><strong>Callback URL:</strong> http://localhost:5000/api/donations/turkiye-finans/callback</p>
+        </div>
+
+        <div class="test-cards">
+            <h3>💳 Test Kartları:</h3>
+            <ul>
+                <li><strong>5218487962459752</strong></li>
+                <li><strong>4446763125813623</strong></li>
+                <li><strong>5200190005138652</strong></li>
+            </ul>
+            <p><strong>CVV:</strong> 000 (Başarılı işlem için)</p>
+            <p><strong>Son Kullanma:</strong> İleri bir tarih (örn: 12/25)</p>
+        </div>
+
+        <h3>⚙️ Test Parametreleri:</h3>
+
+        <label>Tutar (TL):</label>
+        <input type="number" id="amount" value="10" min="1" step="0.01">
+
+        <label>Tekrarlayan Ödeme Sayısı (opsiyonel):</label>
+        <input type="number" id="recurringNumber" placeholder="Örn: 12 (boş bırakabilirsiniz)">
+
+        <label>Tekrarlayan Ödeme Sıklığı:</label>
+        <select id="recurringUnit">
+            <option value="">Yok (Tek Seferlik)</option>
+            <option value="M" selected>M - Aylık</option>
+            <option value="W">W - Haftalık</option>
+            <option value="D">D - Günlük</option>
+        </select>
+
+        <label>Aralık Değeri:</label>
+        <input type="number" id="recurringFreq" placeholder="Örn: 1 (her 1 ay/hafta/gün)">
+
+        <button onclick="initiate3DPayment()">🚀 3D Secure Ödeme Başlat</button>
+
+        <div class="loading" id="loading">
+            <p>⏳ 3D Secure formu oluşturuluyor...</p>
+        </div>
+    </div>
+
+    <!-- 3D Form will be inserted here -->
+    <div id="formContainer"></div>
+
+    <script>
+        async function initiate3DPayment() {
+            const amount = document.getElementById('amount').value;
+            const recurringNumber = document.getElementById('recurringNumber').value;
+            const recurringUnit = document.getElementById('recurringUnit').value;
+            const recurringFreq = document.getElementById('recurringFreq').value;
+
+            const payload = {
+                amount: parseFloat(amount)
+            };
+
+            // Add recurring params if provided
+            if (recurringNumber && recurringUnit && recurringFreq) {
+                payload.recurringPaymentNumber = parseInt(recurringNumber);
+                payload.recurringFrequencyUnit = recurringUnit;
+                payload.recurringFrequency = parseInt(recurringFreq);
+            }
+
+            document.getElementById('loading').style.display = 'block';
+
+            try {
+                const response = await fetch('http://localhost:5000/api/donations/turkiye-finans/test', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    console.log('✅ Response:', data);
+
+                    // Create and submit form
+                    const form = document.createElement('form');
+                    form.method = data.data.formData.method;
+                    form.action = data.data.formData.action;
+
+                    // Add all fields
+                    Object.keys(data.data.formData.fields).forEach(key => {
+                        const input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = key;
+                        input.value = data.data.formData.fields[key];
+                        form.appendChild(input);
+                    });
+
+                    document.getElementById('formContainer').appendChild(form);
+
+                    alert('✅ Form oluşturuldu! 3D Secure sayfasına yönlendiriliyorsunuz...\n\nTest kartı kullanın:\n5218487962459752\nCVV: 000\nSon Kullanma: 12/25');
+
+                    form.submit();
+                } else {
+                    alert('❌ Hata: ' + data.message);
+                    document.getElementById('loading').style.display = 'none';
+                }
+            } catch (error) {
+                alert('❌ İstek hatası: ' + error.message);
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

@@ -229,7 +229,7 @@ const processDonationPayment = async (donationId, paymentResult) => {
  *   cardInfo: { cardBin: '540061', cardLastFour: '4581' }
  * });
  */
-const createBulkDonationsTransaction = async ({ donations, donor, orderId, cardInfo }) => {
+const createBulkDonationsTransaction = async ({ donations, donor, orderId, cardInfo, paymentGateway = 'albaraka' }) => {
   const prisma = require('../../../config/prismaClient');
 
   return await prisma.$transaction(async (tx) => {
@@ -260,7 +260,7 @@ const createBulkDonationsTransaction = async ({ donations, donor, orderId, cardI
           donorId: donorRecord.id,
           paymentMethod: 'credit_card',
           paymentStatus: 'pending',
-          paymentGateway: 'albaraka',
+          paymentGateway: paymentGateway,
           isAnonymous: donationData.isAnonymous || false,
           message: donationData.message || null,
           donorName: `${donor.firstName} ${donor.lastName}`,
