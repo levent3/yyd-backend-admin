@@ -8,9 +8,58 @@ const router = express.Router();
 
 // ========== PUBLIC ROUTES (Bağış yapma için auth gerekmaz) ==========
 
-// Türkiye Finans Test & Callback Routes (PUBLIC)
+/**
+ * @swagger
+ * /api/donations/turkiye-finans/test:
+ *   post:
+ *     summary: 🧪 Türkiye Finans 3D Secure Test Endpoint
+ *     description: |
+ *       **Test amaçlı endpoint - Türkiye Finans VPOS entegrasyonunu test eder**
+ *
+ *       Bu endpoint, Türkiye Finans 3D Secure formunu oluşturur ve test kartları ile işlem yapılmasını sağlar.
+ *     tags: [Donations, Payment, Test]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               amount:
+ *                 type: number
+ *                 example: 10
+ *               recurringPaymentNumber:
+ *                 type: integer
+ *                 example: 12
+ *               recurringFrequency:
+ *                 type: integer
+ *                 example: 1
+ *               recurringFrequencyUnit:
+ *                 type: string
+ *                 enum: [D, W, M]
+ *                 example: M
+ *     responses:
+ *       200:
+ *         description: Success
+ */
 router.post('/turkiye-finans/test', donationController.initiateTurkiyeFinansTest);
+
+/**
+ * @swagger
+ * /api/donations/turkiye-finans/callback:
+ *   post:
+ *     summary: 🔄 Türkiye Finans 3D Secure Callback
+ *     description: |
+ *       **Türkiye Finans VPOS'tan dönen callback endpoint**
+ *
+ *       ⚠️ Bu endpoint VPOS tarafından otomatik olarak çağrılır.
+ *     tags: [Donations, Payment, Callback]
+ *     responses:
+ *       302:
+ *         description: Redirect to success/fail page
+ */
 router.post('/turkiye-finans/callback', donationController.handleTurkiyeFinansCallback);
+
 /**
  * @swagger
  * /api/donations/albaraka/initiate:
@@ -135,11 +184,21 @@ router.post('/turkiye-finans/callback', donationController.handleTurkiyeFinansCa
  *               message: { type: string, example: "Hayırlı olsun" }
  *     responses:
  *       200:
- *         description: Successfully routed to appropriate VPOS
+ *         description: Successfully routed to appropriate VPOS (Albaraka or Türkiye Finans)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success: { type: boolean }
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     orderId: { type: string }
+ *                     formData: { type: object }
+ *                     vposType: { type: string, enum: [albaraka, turkiye_finans] }
  *       400:
  *         description: Validation error
- *       501:
- *         description: Türkiye Finans VPOS not implemented yet
  */
 router.post('/initiate', donationController.initiatePayment);
 
@@ -155,7 +214,11 @@ router.post('/initiate', donationController.initiatePayment);
  *       bu endpoint TÜM donations için tek bir orderId ile kayıt oluşturur ve
  *       TOPLAM tutar üzerinden TEK bir 3D Secure işlemi başlatır.
  *
- *       VPOS Routing: BIN-based (same as /initiate)
+ *       **VPOS Routing (BIN-based):**
+ *       - BIN 540061 → Albaraka VPOS (isVirtualPosActive=true)
+ *       - BIN 521848 → Türkiye Finans VPOS (isVirtualPosActive=false)
+ *       - Recurring=true → Her zaman Türkiye Finans VPOS
+ *       - BIN bulunamadı → Default: Türkiye Finans VPOS
  *
  *       **Önemli:** Kullanıcı sadece 1 kez SMS alır!
  *     tags: [Donations, Payment, Cart]
