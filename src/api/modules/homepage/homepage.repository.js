@@ -1,8 +1,9 @@
 const prisma = require('../../../config/prismaClient');
+const { includeTranslations } = require('../../../utils/translationHelper');
 
 // ========== HOME SLIDER ==========
 
-const getAllSliders = () => {
+const getAllSliders = (language = null) => {
   return prisma.homeSlider.findMany({
     where: { isActive: true },
     include: {
@@ -12,13 +13,14 @@ const getAllSliders = () => {
           shortCode: true,
           translations: true
         }
-      }
+      },
+      ...includeTranslations(language)
     },
     orderBy: { displayOrder: 'asc' },
   });
 };
 
-const getSliderById = (id) => {
+const getSliderById = (id, language = null) => {
   return prisma.homeSlider.findUnique({
     where: { id },
     include: {
@@ -28,7 +30,8 @@ const getSliderById = (id) => {
           shortCode: true,
           translations: true
         }
-      }
+      },
+      ...includeTranslations(language)
     },
   });
 };

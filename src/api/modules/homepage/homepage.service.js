@@ -2,12 +2,12 @@ const homepageRepo = require('./homepage.repository');
 
 // ========== HOME SLIDER ==========
 
-const getAllSliders = async () => {
-  return await homepageRepo.getAllSliders();
+const getAllSliders = async (language = null) => {
+  return await homepageRepo.getAllSliders(language);
 };
 
-const getSliderById = async (id) => {
-  const slider = await homepageRepo.getSliderById(id);
+const getSliderById = async (id, language = null) => {
+  const slider = await homepageRepo.getSliderById(id, language);
   if (!slider) {
     const error = new Error('Slider bulunamadı');
     error.statusCode = 404;

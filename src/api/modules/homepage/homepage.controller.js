@@ -4,7 +4,8 @@ const homepageService = require('./homepage.service');
 
 const getAllSliders = async (req, res, next) => {
   try {
-    const sliders = await homepageService.getAllSliders();
+    const { language } = req.query;
+    const sliders = await homepageService.getAllSliders(language);
     res.status(200).json(sliders);
   } catch (error) {
     next(error);
@@ -14,7 +15,8 @@ const getAllSliders = async (req, res, next) => {
 const getSliderById = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const slider = await homepageService.getSliderById(parseInt(id));
+    const { language } = req.query;
+    const slider = await homepageService.getSliderById(parseInt(id), language);
     res.status(200).json(slider);
   } catch (error) {
     next(error);

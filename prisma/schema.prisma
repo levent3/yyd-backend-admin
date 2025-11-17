@@ -329,19 +329,35 @@ model RecurringDonation {
 }
 
 model BankAccount {
-  id            Int      @id @default(autoincrement())
-  bankName      String
-  accountName   String
-  iban          String   @unique
+  id            Int                       @id @default(autoincrement())
+  iban          String                    @unique
   swift         String?
   accountNumber String?
   branch        String?
   branchCode    String?
-  currency      String   @default("TRY")
-  isActive      Boolean  @default(true)
-  displayOrder  Int      @default(0)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  currency      String                    @default("TRY")
+  isActive      Boolean                   @default(true)
+  displayOrder  Int                       @default(0)
+  createdAt     DateTime                  @default(now())
+  updatedAt     DateTime                  @updatedAt
+  translations  BankAccountTranslation[]
+
+  @@index([isActive])
+  @@index([currency])
+}
+
+model BankAccountTranslation {
+  id            Int         @id @default(autoincrement())
+  accountId     Int
+  language      String
+  accountName   String
+  bankName      String
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  account       BankAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@unique([accountId, language])
+  @@index([language])
 }
 
 model Volunteer {
@@ -731,21 +747,42 @@ model BinCode {
 // ========== HOMEPAGE MODELS ==========
 
 model HomeSlider {
-  id           Int      @id @default(autoincrement())
-  title        String
-  description  String?  @db.Text
+  id           Int                    @id @default(autoincrement())
   imageUrl     String
-  buttonText   String?
-  buttonLink   String?
+  mobileImageUrl String?
+  videoUrl     String?
+  displayOrder Int                    @default(0)
+  isActive     Boolean                @default(true)
+  showTitle    Boolean                @default(true)
+  startDate    DateTime?
+  endDate      DateTime?
   projectId    Int?
-  displayOrder Int      @default(0)
-  isActive     Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  project      Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  createdAt    DateTime               @default(now())
+  updatedAt    DateTime               @updatedAt
+  project      Project?               @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  translations HomeSliderTranslation[]
 
   @@index([displayOrder])
   @@index([isActive])
+  @@index([startDate])
+  @@index([endDate])
+}
+
+model HomeSliderTranslation {
+  id          Int        @id @default(autoincrement())
+  sliderId    Int
+  language    String
+  title       String
+  subtitle    String?
+  summary     String?    @db.Text
+  buttonText  String?
+  buttonLink  String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  slider      HomeSlider @relation(fields: [sliderId], references: [id], onDelete: Cascade)
+
+  @@unique([sliderId, language])
+  @@index([language])
 }
 
 model SiteStatistics {

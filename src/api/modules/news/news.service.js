@@ -14,14 +14,16 @@ const getAllNews = async (queryParams = {}) => {
   if (status) where.status = status;
   if (authorId) where.authorId = parseInt(authorId);
 
+  // Admin paneli için tüm dillerdeki translations'ları getir (language=null)
   const [news, total] = await Promise.all([
-    newsRepo.findMany({ skip, take, where, language }),
+    newsRepo.findMany({ skip, take, where, language: null }),
     newsRepo.count(where),
   ]);
 
   // Format her bir haberi çevirisiyle birlikte
+  // Admin paneli için tüm çevirileri dahil et (edit için gerekli)
   const formattedNews = news.map(item =>
-    formatEntityWithTranslation(item, language, false)
+    formatEntityWithTranslation(item, language, true)
   );
 
   return createPaginatedResponse(formattedNews, total, parseInt(page) || 1, take);
