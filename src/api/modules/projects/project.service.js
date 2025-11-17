@@ -46,13 +46,13 @@ const getAllProjects = async (queryParams = {}) => {
   if (isActive !== undefined) where.isActive = isActive === 'true';
 
   const [projects, total] = await Promise.all([
-    projectRepo.findMany({ skip, take, where, language }),
+    projectRepo.findMany({ skip, take, where, language: null }), // tüm diller için null
     projectRepo.count(where),
   ]);
 
-  // Format her bir projeyi çevirisiyle birlikte
+  // Format her bir projeyi tüm çevirileriyle birlikte (admin panel için)
   const formattedProjects = projects.map(item =>
-    normalizeProject(item, language, false)
+    normalizeProject(item, language, true)
   );
 
   return createPaginatedResponse(formattedProjects, total, parseInt(page) || 1, take);
