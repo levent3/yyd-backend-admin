@@ -152,20 +152,45 @@ model NewsTranslation {
   @@index([slug])
 }
 
+model GallerySettings {
+  id           Int                          @id @default(autoincrement())
+  coverImage   String?
+  isActive     Boolean                      @default(true)
+  createdAt    DateTime                     @default(now())
+  updatedAt    DateTime                     @updatedAt
+  translations GallerySettingsTranslation[]
+}
+
+model GallerySettingsTranslation {
+  id          Int             @id @default(autoincrement())
+  settingsId  Int
+  language    String
+  title       String
+  description String?         @db.Text
+  settings    GallerySettings @relation(fields: [settingsId], references: [id], onDelete: Cascade)
+
+  @@unique([settingsId, language])
+  @@index([language])
+}
+
 model GalleryItem {
-  id         Int      @id @default(autoincrement())
-  title      String?
-  mediaType  String
-  fileUrl    String
-  createdAt  DateTime @default(now())
-  projectId  Int?
-  uploaderId Int?
-  project    Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  uploader   User?    @relation(fields: [uploaderId], references: [id])
+  id           Int      @id @default(autoincrement())
+  title        String?
+  mediaType    String
+  fileUrl      String
+  displayOrder Int      @default(0)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  projectId    Int?
+  uploaderId   Int?
+  project      Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  uploader     User?    @relation(fields: [uploaderId], references: [id])
 
   @@index([mediaType])
   @@index([projectId])
   @@index([createdAt])
+  @@index([displayOrder])
 }
 
 model Page {

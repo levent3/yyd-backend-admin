@@ -45,6 +45,7 @@ async function main() {
   const homepageParent = await prisma.adminModule.findUnique({ where: { moduleKey: 'homepage' } });
   const mediaParent = await prisma.adminModule.findUnique({ where: { moduleKey: 'media' } });
   const careersParent = await prisma.adminModule.findUnique({ where: { moduleKey: 'careers' } });
+  const galleryParent = await prisma.adminModule.findUnique({ where: { moduleKey: 'gallery' } });
 
   // Projeler alt modülleri
   const projectSubModules = [
@@ -143,6 +144,27 @@ async function main() {
   ];
 
   for (const module of careerSubModules) {
+    await prisma.adminModule.upsert({
+      where: { moduleKey: module.moduleKey },
+      update: {
+        name: module.name,
+        path: module.path,
+        icon: module.icon,
+        displayOrder: module.displayOrder,
+        parentId: module.parentId,
+      },
+      create: module,
+    });
+    console.log(`  └─ ${module.name}`);
+  }
+
+  // Galeri alt modülleri
+  const gallerySubModules = [
+    { name: 'Galeri Öğeleri', moduleKey: 'gallery-items', path: '/admin/gallery', icon: 'image', displayOrder: 1, parentId: galleryParent.id },
+    { name: 'Galeri Ayarları', moduleKey: 'gallery-settings', path: '/admin/gallery-settings', icon: 'settings', displayOrder: 2, parentId: galleryParent.id },
+  ];
+
+  for (const module of gallerySubModules) {
     await prisma.adminModule.upsert({
       where: { moduleKey: module.moduleKey },
       update: {

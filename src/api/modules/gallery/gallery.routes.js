@@ -55,10 +55,80 @@ const { validationMiddleware } = require('../../validators/dynamicValidator');
  */
 router.get('/public', cacheMiddleware(600), galleryController.getPublicGallery);
 
+/**
+ * @swagger
+ * /gallery/settings:
+ *   get:
+ *     summary: Get gallery settings (public)
+ *     description: Retrieve gallery page settings with title, description, and cover image
+ *     tags: [Gallery]
+ *     parameters:
+ *       - in: query
+ *         name: language
+ *         schema:
+ *           type: string
+ *           enum: [tr, en, ar]
+ *           default: tr
+ *         description: Language code
+ *       - in: query
+ *         name: includeAllTranslations
+ *         schema:
+ *           type: boolean
+ *           default: false
+ *         description: Include all translations
+ *     responses:
+ *       200:
+ *         description: Gallery settings retrieved successfully
+ */
+router.get('/settings', cacheMiddleware(600), galleryController.getSettings);
+
 // Protected routes (require authentication)
 router.use(authMiddleware);
 
 // Admin routes with permission checks
+
+/**
+ * @swagger
+ * /gallery/settings:
+ *   put:
+ *     summary: Update gallery settings (admin only)
+ *     description: Update gallery page settings
+ *     tags: [Gallery]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               coverImage:
+ *                 type: string
+ *               isActive:
+ *                 type: boolean
+ *               translations:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     language:
+ *                       type: string
+ *                       enum: [tr, en, ar]
+ *                     title:
+ *                       type: string
+ *                     description:
+ *                       type: string
+ *     responses:
+ *       200:
+ *         description: Gallery settings updated successfully
+ */
+router.put(
+  '/settings',
+  checkPermission('gallery-settings', 'update'),
+  galleryController.updateSettings
+);
+
 router.get(
   '/',
   checkPermission('gallery', 'read'),

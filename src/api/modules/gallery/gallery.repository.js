@@ -29,7 +29,10 @@ const findMany = (options = {}) => {
         }
       }
     },
-    orderBy: orderBy || { createdAt: 'desc' }
+    orderBy: orderBy || [
+      { displayOrder: 'asc' },
+      { createdAt: 'desc' }
+    ]
   });
 };
 
@@ -124,7 +127,9 @@ const deleteById = (id) => {
 
 // Get public gallery items (for public website)
 const findPublic = (filters = {}) => {
-  const where = {};
+  const where = {
+    isActive: true // Only active items for public
+  };
 
   if (filters.mediaType) {
     where.mediaType = filters.mediaType;
@@ -152,9 +157,10 @@ const findPublic = (filters = {}) => {
         }
       }
     },
-    orderBy: {
-      createdAt: 'desc'
-    }
+    orderBy: [
+      { displayOrder: 'asc' },
+      { createdAt: 'desc' }
+    ]
   });
 };
 

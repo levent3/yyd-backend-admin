@@ -53,6 +53,8 @@ const createGalleryItem = async (data) => {
     title: data.title || null,
     mediaType: data.mediaType || 'image', // "image" or "video" - default to "image"
     fileUrl: data.fileUrl || data.imageUrl, // Support both fileUrl and imageUrl
+    displayOrder: data.displayOrder ? parseInt(data.displayOrder) : 0,
+    isActive: data.isActive !== undefined ? data.isActive : true,
     projectId: data.projectId ? parseInt(data.projectId) : null,
     uploaderId: data.uploaderId
   };
@@ -74,6 +76,14 @@ const updateGalleryItem = async (id, data) => {
 
   if (data.fileUrl !== undefined) {
     mappedData.fileUrl = data.fileUrl;
+  }
+
+  if (data.displayOrder !== undefined) {
+    mappedData.displayOrder = parseInt(data.displayOrder);
+  }
+
+  if (data.isActive !== undefined) {
+    mappedData.isActive = data.isActive;
   }
 
   if (data.projectId !== undefined) {

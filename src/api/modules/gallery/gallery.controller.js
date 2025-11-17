@@ -10,7 +10,9 @@
  */
 
 const galleryService = require('./gallery.service');
+const settingsService = require('./gallery-settings.service');
 const { createCRUDController } = require('../../../utils/controllerFactory');
+const { invalidateCache } = require('../../middlewares/cacheMiddleware');
 
 // ========== STANDARD CRUD OPERATIONS (Factory ile) ==========
 
@@ -51,6 +53,36 @@ const getPublicGallery = async (req, res, next) => {
   }
 };
 
+// GET /api/gallery/settings - Get gallery settings
+const getSettings = async (req, res, next) => {
+  try {
+    const language = req.query.language || 'tr';
+    const includeAllTranslations = req.query.includeAllTranslations === 'true';
+
+    const settings = await settingsService.getSettings(language, includeAllTranslations);
+    res.json(settings);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// PUT /api/gallery/settings - Update gallery settings
+const updateSettings = async (req, res, next) => {
+  try {
+    const settings = await settingsService.updateSettings(req.body);
+
+    // Invalidate gallery settings cache
+    await invalidateCache('cache:*settings*');
+
+    res.json({
+      message: 'Galeri ayarları başarıyla güncellendi',
+      data: settings
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // ========== EXPORT ==========
 
 module.exports = {
@@ -63,4 +95,6 @@ module.exports = {
 
   // Özel metodlar
   getPublicGallery,
+  getSettings,
+  updateSettings
 };
