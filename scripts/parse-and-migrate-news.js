@@ -20,7 +20,9 @@ const LANGUAGE_MAP = {
 async function parseAndMigrate() {
   try {
     console.log('📖 MSSQL News INSERT script okunuyor...');
-    let sqlContent = fs.readFileSync('C:\\Temp\\news_insert.sql', 'utf16le');
+    const isWindows = process.platform === 'win32';
+    const filePath = isWindows ? 'C:\\Temp\\news_insert.sql' : '/tmp/news_insert.sql';
+    let sqlContent = fs.readFileSync(filePath, 'utf16le');
     sqlContent = sqlContent.replace(/\0/g, '');
 
     console.log('🔍 INSERT satırları parse ediliyor (satır satır)...');

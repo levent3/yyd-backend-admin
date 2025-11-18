@@ -23,7 +23,9 @@ const LANGUAGE_MAP = {
 async function parseAndMigrate() {
   try {
     console.log('📖 MSSQL INSERT script okunuyor...');
-    let sqlContent = fs.readFileSync('C:\\Temp\\projects_insert.sql', 'utf16le'); // MSSQL UTF-16 LE encoding
+    const isWindows = process.platform === 'win32';
+    const filePath = isWindows ? 'C:\\Temp\\projects_insert.sql' : '/tmp/projects_insert.sql';
+    let sqlContent = fs.readFileSync(filePath, 'utf16le'); // MSSQL UTF-16 LE encoding
 
     // UTF-16 LE dosyasında bazen ekstra boşluklar olabilir, temizle
     sqlContent = sqlContent.replace(/\0/g, ''); // Null bytes kaldır

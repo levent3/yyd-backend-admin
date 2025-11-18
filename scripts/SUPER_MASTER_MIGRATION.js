@@ -240,17 +240,15 @@ async function migrateProjects() {
 
         await prisma.project.create({
           data: {
-            guid: proj.Id,
-            slug: cleanString(proj.Slug) || `project-${proj.Id.substring(0, 8)}`,
-            thumbnail: cleanString(proj.Thumbnail),
+            imageUrl: cleanString(proj.Thumbnail) || cleanString(proj.CoverImage),
             coverImage: cleanString(proj.CoverImage),
-            videoUrl: cleanString(proj.VideoUrl),
             isActive: parseBool(proj.IsActive),
             isFeatured: parseBool(proj.IsFeatured),
             displayOrder: parseInt32(proj.DisplayOrder) || 0,
             translations: {
               create: {
                 language,
+                slug: cleanString(proj.Slug) || `project-${proj.Id.substring(0, 8)}`,
                 title: cleanString(proj.Title) || 'Untitled Project',
                 description: cleanString(proj.Description),
                 content: cleanString(proj.Content),
@@ -361,14 +359,13 @@ async function migrateNews() {
 
         await prisma.news.create({
           data: {
-            guid: news.Id,
-            slug: cleanString(news.Slug) || `news-${news.Id.substring(0, 8)}`,
-            thumbnail: cleanString(news.Thumbnail),
-            isActive: parseBool(news.IsActive),
-            displayOrder: parseInt32(news.DisplayOrder) || 0,
+            imageUrl: cleanString(news.Thumbnail),
+            status: parseBool(news.IsActive) ? 'published' : 'draft',
+            publishedAt: parseBool(news.IsActive) ? (parseDate(news.CreatedOn) || new Date()) : null,
             translations: {
               create: {
                 language,
+                slug: cleanString(news.Slug) || `news-${news.Id.substring(0, 8)}`,
                 title: cleanString(news.Title) || 'Untitled News',
                 summary: cleanString(news.Summary),
                 content: cleanString(news.Content),
@@ -518,15 +515,14 @@ async function migrateOtherTables() {
         const language = LANGUAGE_MAP[item.LanguageId] || 'tr';
         await prisma.homeSlider.create({
           data: {
-            guid: item.Id,
-            imageUrl: cleanString(item.ImageUrl),
+            imageUrl: cleanString(item.ImageUrl) || 'https://via.placeholder.com/1920x600',
             isActive: parseBool(item.IsActive),
             displayOrder: parseInt32(item.DisplayOrder) || 0,
             translations: {
               create: {
                 language,
-                title: cleanString(item.Title),
-                description: cleanString(item.Description),
+                title: cleanString(item.Title) || 'Untitled Slider',
+                summary: cleanString(item.Description) || '',
                 buttonText: cleanString(item.ButtonText),
                 buttonLink: cleanString(item.ButtonLink),
               }
@@ -546,23 +542,21 @@ async function migrateOtherTables() {
     let volunteerCount = 0;
     for (const item of allItems.volunteer) {
       try {
+        const messageContent = [
+          cleanString(item.Skills) ? `Skills: ${cleanString(item.Skills)}` : null,
+          cleanString(item.Experience) ? `Experience: ${cleanString(item.Experience)}` : null,
+          cleanString(item.Motivation) ? `Motivation: ${cleanString(item.Motivation)}` : null,
+          cleanString(item.Availability) ? `Availability: ${cleanString(item.Availability)}` : null
+        ].filter(Boolean).join('\n');
+
         await prisma.volunteer.create({
           data: {
-            guid: item.Id,
             fullName: cleanString(item.FullName) || 'Unknown',
-            email: cleanString(item.Email),
-            phone: cleanString(item.Phone),
-            address: cleanString(item.Address),
-            city: cleanString(item.City),
-            country: cleanString(item.Country),
-            birthDate: parseDate(item.BirthDate),
-            profession: cleanString(item.Profession),
-            skills: cleanString(item.Skills),
-            experience: cleanString(item.Experience),
-            motivation: cleanString(item.Motivation),
-            availability: cleanString(item.Availability),
-            isApproved: parseBool(item.IsApproved),
-            createdAt: parseDate(item.CreatedOn) || new Date(),
+            email: cleanString(item.Email) || `volunteer${item.Id}@temp.com`,
+            phoneNumber: cleanString(item.Phone),
+            message: messageContent || null,
+            status: parseBool(item.IsApproved) ? 'approved' : 'new',
+            submittedAt: parseDate(item.CreatedOn) || new Date(),
           }
         });
         volunteerCount++;
@@ -579,15 +573,14 @@ async function migrateOtherTables() {
       try {
         await prisma.donation.create({
           data: {
-            guid: item.Id,
             donorName: cleanString(item.DonorName),
             donorEmail: cleanString(item.DonorEmail),
             donorPhone: cleanString(item.DonorPhone),
             amount: parseFloat64(item.Amount) || 0,
             currency: cleanString(item.Currency) || 'TRY',
-            paymentMethod: cleanString(item.PaymentMethod),
+            paymentMethod: cleanString(item.PaymentMethod) || 'bank_transfer',
             transactionId: cleanString(item.TransactionId),
-            status: cleanString(item.Status) || 'pending',
+            paymentStatus: cleanString(item.Status) || 'pending',
             message: cleanString(item.Message),
             isAnonymous: parseBool(item.IsAnonymous),
             createdAt: parseDate(item.CreatedOn) || new Date(),
@@ -607,14 +600,13 @@ async function migrateOtherTables() {
       try {
         await prisma.contactMessage.create({
           data: {
-            guid: item.Id,
             fullName: cleanString(item.FullName) || 'Unknown',
-            email: cleanString(item.Email),
-            phone: cleanString(item.Phone),
-            subject: cleanString(item.Subject),
+            email: cleanString(item.Email) || `contact${item.Id}@temp.com`,
+            phoneNumber: cleanString(item.Phone),
+            subject: cleanString(item.Subject) || 'No Subject',
             message: cleanString(item.Message) || '',
-            isRead: parseBool(item.IsRead),
-            createdAt: parseDate(item.CreatedOn) || new Date(),
+            status: parseBool(item.IsRead) ? 'read' : 'new',
+            submittedAt: parseDate(item.CreatedOn) || new Date(),
           }
         });
         contactCount++;
@@ -667,10 +659,7 @@ async function migrateOtherTables() {
 
         await prisma.bankAccount.create({
           data: {
-            guid: item.Id,
-            bankId: bank.id,
-            accountName: cleanString(item.AccountName) || 'Unknown Account',
-            iban: cleanString(item.IBAN),
+            iban: cleanString(item.IBAN) || `TR${Math.random().toString().slice(2,28)}`,
             accountNumber: cleanString(item.AccountNumber),
             branch: cleanString(item.Branch),
             currency: cleanString(item.Currency) || 'TRY',
@@ -680,6 +669,7 @@ async function migrateOtherTables() {
               create: {
                 language,
                 accountName: cleanString(item.AccountName) || 'Unknown Account',
+                bankName: bank ? bank.name : 'Unknown Bank',
               }
             },
             createdAt: parseDate(item.CreatedOn) || new Date(),
