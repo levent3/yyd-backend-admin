@@ -131,6 +131,10 @@ const formatEntityWithTranslation = (
     biography: preferredTranslation.biography,
     education: preferredTranslation.education,
     experience: preferredTranslation.experience,
+    // HomeSlider için ek alanlar
+    subtitle: preferredTranslation.subtitle,
+    buttonText: preferredTranslation.buttonText,
+    buttonLink: preferredTranslation.buttonLink,
     // Çeviri bilgisi
     translation: preferredTranslation,
     // Tüm çevirileri de dahil et (isteğe bağlı)

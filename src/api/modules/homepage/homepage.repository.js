@@ -37,16 +37,29 @@ const getSliderById = (id, language = null) => {
 };
 
 const createSlider = (data) => {
+  const { translations, ...rest } = data;
+
   return prisma.homeSlider.create({
     data: {
-      title: data.title,
-      description: data.description,
-      imageUrl: data.imageUrl,
-      buttonText: data.buttonText,
-      buttonLink: data.buttonLink,
-      projectId: data.projectId,
-      displayOrder: data.displayOrder || 0,
-      isActive: data.isActive !== undefined ? data.isActive : true,
+      imageUrl: rest.imageUrl,
+      mobileImageUrl: rest.mobileImageUrl || null,
+      videoUrl: rest.videoUrl || null,
+      projectId: rest.projectId || null,
+      displayOrder: rest.displayOrder || 0,
+      isActive: rest.isActive !== undefined ? rest.isActive : true,
+      showTitle: rest.showTitle !== undefined ? rest.showTitle : true,
+      startDate: rest.startDate || null,
+      endDate: rest.endDate || null,
+      translations: translations ? {
+        create: translations.map(trans => ({
+          language: trans.language,
+          title: trans.title,
+          subtitle: trans.subtitle || null,
+          summary: trans.summary || null,
+          buttonText: trans.buttonText || null,
+          buttonLink: trans.buttonLink || null
+        }))
+      } : undefined
     },
     include: {
       project: {
@@ -55,24 +68,59 @@ const createSlider = (data) => {
           shortCode: true,
           translations: true
         }
-      }
+      },
+      translations: true
     },
   });
 };
 
 const updateSlider = (id, data) => {
+  const { translations, ...rest } = data;
+  const updateData = {};
+
+  // Dil-bağımsız alanları güncelle
+  if (rest.imageUrl !== undefined) updateData.imageUrl = rest.imageUrl;
+  if (rest.mobileImageUrl !== undefined) updateData.mobileImageUrl = rest.mobileImageUrl;
+  if (rest.videoUrl !== undefined) updateData.videoUrl = rest.videoUrl;
+  if (rest.projectId !== undefined) updateData.projectId = rest.projectId;
+  if (rest.displayOrder !== undefined) updateData.displayOrder = rest.displayOrder;
+  if (rest.isActive !== undefined) updateData.isActive = rest.isActive;
+  if (rest.showTitle !== undefined) updateData.showTitle = rest.showTitle;
+  if (rest.startDate !== undefined) updateData.startDate = rest.startDate;
+  if (rest.endDate !== undefined) updateData.endDate = rest.endDate;
+
+  // Translations güncelleme (varsa)
+  if (translations && translations.length > 0) {
+    updateData.translations = {
+      upsert: translations.map(trans => ({
+        where: {
+          sliderId_language: {
+            sliderId: id,
+            language: trans.language
+          }
+        },
+        create: {
+          language: trans.language,
+          title: trans.title,
+          subtitle: trans.subtitle || null,
+          summary: trans.summary || null,
+          buttonText: trans.buttonText || null,
+          buttonLink: trans.buttonLink || null
+        },
+        update: {
+          title: trans.title,
+          subtitle: trans.subtitle || null,
+          summary: trans.summary || null,
+          buttonText: trans.buttonText || null,
+          buttonLink: trans.buttonLink || null
+        }
+      }))
+    };
+  }
+
   return prisma.homeSlider.update({
     where: { id },
-    data: {
-      title: data.title,
-      description: data.description,
-      imageUrl: data.imageUrl,
-      buttonText: data.buttonText,
-      buttonLink: data.buttonLink,
-      projectId: data.projectId,
-      displayOrder: data.displayOrder,
-      isActive: data.isActive,
-    },
+    data: updateData,
     include: {
       project: {
         select: {
@@ -80,7 +128,8 @@ const updateSlider = (id, data) => {
           shortCode: true,
           translations: true
         }
-      }
+      },
+      translations: true
     },
   });
 };

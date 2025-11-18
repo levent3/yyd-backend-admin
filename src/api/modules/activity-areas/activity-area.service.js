@@ -14,13 +14,14 @@ const getAllActivityAreas = async (queryParams = {}) => {
   if (isActive !== undefined) where.isActive = isActive === 'true';
 
   const [activityAreas, total] = await Promise.all([
-    activityAreaRepo.findMany({ skip, take, where, language }),
+    // Admin paneli için tüm dillerdeki translations'ları getir (language=null)
+    activityAreaRepo.findMany({ skip, take, where, language: null }),
     activityAreaRepo.count(where),
   ]);
 
-  // Format her bir faaliyet alanını çevirisiyle birlikte
+  // Format her bir faaliyet alanını TÜM translations ile birlikte (includeAllTranslations=true)
   const formattedActivityAreas = activityAreas.map(item =>
-    formatEntityWithTranslation(item, language, false)
+    formatEntityWithTranslation(item, language, true)
   );
 
   return createPaginatedResponse(formattedActivityAreas, total, parseInt(page) || 1, take);

@@ -1,25 +1,29 @@
 const homepageRepo = require('./homepage.repository');
+const { formatEntityWithTranslation } = require('../../../utils/translationHelper');
 
 // ========== HOME SLIDER ==========
 
-const getAllSliders = async (language = null) => {
-  return await homepageRepo.getAllSliders(language);
+const getAllSliders = async (language = 'tr') => {
+  const sliders = await homepageRepo.getAllSliders(null); // Tüm dilleri getir
+  // Her slider'ı translation ile formatla (includeAllTranslations=true for admin panel)
+  return sliders.map(slider => formatEntityWithTranslation(slider, language, true));
 };
 
-const getSliderById = async (id, language = null) => {
-  const slider = await homepageRepo.getSliderById(id, language);
+const getSliderById = async (id, language = 'tr') => {
+  const slider = await homepageRepo.getSliderById(id, null); // Tüm dilleri getir
   if (!slider) {
     const error = new Error('Slider bulunamadı');
     error.statusCode = 404;
     throw error;
   }
-  return slider;
+  // Translation ile formatla (admin için tüm translations dahil)
+  return formatEntityWithTranslation(slider, language, true);
 };
 
 const createSlider = async (data) => {
   // Validations
-  if (!data.title || !data.title.trim()) {
-    const error = new Error('Başlık gereklidir');
+  if (!data.translations || data.translations.length === 0) {
+    const error = new Error('En az bir dil için içerik gereklidir');
     error.statusCode = 400;
     throw error;
   }
@@ -38,12 +42,6 @@ const updateSlider = async (id, data) => {
   await getSliderById(id);
 
   // Validations
-  if (data.title !== undefined && !data.title.trim()) {
-    const error = new Error('Başlık boş olamaz');
-    error.statusCode = 400;
-    throw error;
-  }
-
   if (data.imageUrl !== undefined && !data.imageUrl.trim()) {
     const error = new Error('Görsel URL boş olamaz');
     error.statusCode = 400;
