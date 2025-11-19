@@ -8,7 +8,7 @@ const { validationMiddleware } = require('../../validators/dynamicValidator');
 
 /**
  * @swagger
- * /news/published:
+ * /api/news/published:
  *   get:
  *     summary: Get all published news (Public)
  *     description: Retrieve all published news articles with pagination (cached for 10 minutes)
@@ -46,7 +46,7 @@ router.get('/published', cacheMiddleware(600), newsController.getPublishedNews);
 
 /**
  * @swagger
- * /news/slug/{slug}:
+ * /api/news/slug/{slug}:
  *   get:
  *     summary: Get news by slug (Public)
  *     description: Retrieve a single news article by its slug (cached for 10 minutes)
