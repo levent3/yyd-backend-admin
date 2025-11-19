@@ -94,7 +94,8 @@ const deleteMenu = async (req, res, next) => {
 // GET /api/menu/:menuId/items - Get all menu items by menu ID
 const getMenuItemsByMenuId = async (req, res, next) => {
   try {
-    const items = await menuService.getMenuItemsByMenuId(parseInt(req.params.menuId));
+    const language = req.query.language || 'tr';
+    const items = await menuService.getMenuItemsByMenuId(parseInt(req.params.menuId), language);
     res.status(200).json(items);
   } catch (error) {
     next(error);

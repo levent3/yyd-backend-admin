@@ -79,11 +79,14 @@ const deleteMenu = async (id) => {
 
 // ========== MENU ITEM SERVICES ==========
 
-const getMenuItemsByMenuId = async (menuId) => {
+const getMenuItemsByMenuId = async (menuId, language = 'tr') => {
   // Menü var mı kontrol et
   await getMenuById(menuId);
 
-  return await menuRepo.getMenuItemsByMenuId(menuId);
+  const items = await menuRepo.getMenuItemsByMenuId(menuId);
+
+  // Format each item with translation for the specified language
+  return items.map(item => formatEntityWithTranslation(item, language, false));
 };
 
 const getMenuItemById = async (id) => {
