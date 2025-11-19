@@ -841,7 +841,7 @@ model MenuItem {
   id       Int    @id @default(autoincrement())
   menuId   Int
   parentId Int?
-  title    String // "Hakkımızda", "Projeler"
+  title    String? // Deprecated - use translations instead
 
   // Link configuration
   linkType String // "page", "project", "news", "activityArea", "custom", "external"
@@ -874,9 +874,28 @@ model MenuItem {
   news         News?         @relation(fields: [newsId], references: [id], onDelete: SetNull)
   activityArea ActivityArea? @relation(fields: [activityAreaId], references: [id], onDelete: SetNull)
 
+  // Multi-language support
+  translations MenuItemTranslation[]
+
   @@index([menuId])
   @@index([parentId])
   @@index([displayOrder])
   @@index([isActive])
   @@index([linkType])
+}
+
+model MenuItemTranslation {
+  id         Int      @id @default(autoincrement())
+  menuItemId Int
+  language   String   // 'tr', 'en', 'ar'
+  title      String   // "Hakkımızda", "About Us", "معلومات عنا"
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relation
+  menuItem MenuItem @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+
+  @@unique([menuItemId, language])
+  @@index([language])
+  @@index([menuItemId])
 }

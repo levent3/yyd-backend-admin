@@ -42,12 +42,18 @@ async function main() {
     create: {
       id: 1,
       menuId: mainMenu.id,
-      title: 'Anasayfa',
       linkType: 'custom',
       customUrl: '/',
       icon: 'home',
       displayOrder: 1,
-      isActive: true
+      isActive: true,
+      translations: {
+        create: [
+          { language: 'tr', title: 'Anasayfa' },
+          { language: 'en', title: 'Home' },
+          { language: 'ar', title: 'الصفحة الرئيسية' }
+        ]
+      }
     }
   });
   console.log('  └─ Anasayfa');
@@ -59,11 +65,17 @@ async function main() {
     create: {
       id: 2,
       menuId: mainMenu.id,
-      title: 'Hakkımızda',
       linkType: 'custom',
       customUrl: '/hakkimizda',
       displayOrder: 2,
-      isActive: true
+      isActive: true,
+      translations: {
+        create: [
+          { language: 'tr', title: 'Hakkımızda' },
+          { language: 'en', title: 'About Us' },
+          { language: 'ar', title: 'معلومات عنا' }
+        ]
+      }
     }
   });
   console.log('  └─ Hakkımızda');
@@ -76,11 +88,17 @@ async function main() {
       id: 21,
       menuId: mainMenu.id,
       parentId: 2,
-      title: 'Biz Kimiz',
       linkType: 'custom',
       customUrl: '/hakkimizda/biz-kimiz',
       displayOrder: 1,
-      isActive: true
+      isActive: true,
+      translations: {
+        create: [
+          { language: 'tr', title: 'Biz Kimiz' },
+          { language: 'en', title: 'Who We Are' },
+          { language: 'ar', title: 'من نحن' }
+        ]
+      }
     }
   });
   console.log('      └─ Biz Kimiz');
@@ -93,11 +111,17 @@ async function main() {
       id: 22,
       menuId: mainMenu.id,
       parentId: 2,
-      title: 'Misyon & Vizyon',
       linkType: 'custom',
       customUrl: '/hakkimizda/misyon-vizyon',
       displayOrder: 2,
-      isActive: true
+      isActive: true,
+      translations: {
+        create: [
+          { language: 'tr', title: 'Misyon & Vizyon' },
+          { language: 'en', title: 'Mission & Vision' },
+          { language: 'ar', title: 'المهمة والرؤية' }
+        ]
+      }
     }
   });
   console.log('      └─ Misyon & Vizyon');
@@ -110,11 +134,17 @@ async function main() {
       id: 23,
       menuId: mainMenu.id,
       parentId: 2,
-      title: 'Tarihçe',
       linkType: 'custom',
       customUrl: '/hakkimizda/tarihce',
       displayOrder: 3,
-      isActive: true
+      isActive: true,
+      translations: {
+        create: [
+          { language: 'tr', title: 'Tarihçe' },
+          { language: 'en', title: 'History' },
+          { language: 'ar', title: 'التاريخ' }
+        ]
+      }
     }
   });
   console.log('      └─ Tarihçe');
@@ -127,11 +157,17 @@ async function main() {
       id: 24,
       menuId: mainMenu.id,
       parentId: 2,
-      title: 'Yönetim Kurulu',
       linkType: 'custom',
       customUrl: '/hakkimizda/yonetim-kurulu',
       displayOrder: 4,
-      isActive: true
+      isActive: true,
+      translations: {
+        create: [
+          { language: 'tr', title: 'Yönetim Kurulu' },
+          { language: 'en', title: 'Board of Directors' },
+          { language: 'ar', title: 'مجلس الإدارة' }
+        ]
+      }
     }
   });
   console.log('      └─ Yönetim Kurulu');
@@ -144,11 +180,17 @@ async function main() {
       id: 25,
       menuId: mainMenu.id,
       parentId: 2,
-      title: 'Denetim Kurulu',
       linkType: 'custom',
       customUrl: '/hakkimizda/denetim-kurulu',
       displayOrder: 5,
-      isActive: true
+      isActive: true,
+      translations: {
+        create: [
+          { language: 'tr', title: 'Denetim Kurulu' },
+          { language: 'en', title: 'Audit Committee' },
+          { language: 'ar', title: 'لجنة التدقيق' }
+        ]
+      }
     }
   });
   console.log('      └─ Denetim Kurulu');
@@ -161,11 +203,17 @@ async function main() {
       id: 26,
       menuId: mainMenu.id,
       parentId: 2,
-      title: 'Onursal Başkanlar',
       linkType: 'custom',
       customUrl: '/hakkimizda/onursal-baskanlar',
       displayOrder: 6,
-      isActive: true
+      isActive: true,
+      translations: {
+        create: [
+          { language: 'tr', title: 'Onursal Başkanlar' },
+          { language: 'en', title: 'Honorary Presidents' },
+          { language: 'ar', title: 'الرؤساء الفخريون' }
+        ]
+      }
     }
   });
   console.log('      └─ Onursal Başkanlar');
@@ -178,11 +226,17 @@ async function main() {
       id: 27,
       menuId: mainMenu.id,
       parentId: 2,
-      title: 'İş Ortaklarımız',
       linkType: 'custom',
       customUrl: '/hakkimizda/is-ortaklarimiz',
       displayOrder: 7,
-      isActive: true
+      isActive: true,
+      translations: {
+        create: [
+          { language: 'tr', title: 'İş Ortaklarımız' },
+          { language: 'en', title: 'Our Partners' },
+          { language: 'ar', title: 'شركاؤنا' }
+        ]
+      }
     }
   });
   console.log('      └─ İş Ortaklarımız');
@@ -195,11 +249,17 @@ async function main() {
       id: 28,
       menuId: mainMenu.id,
       parentId: 2,
-      title: 'Faaliyet Raporları',
       linkType: 'custom',
       customUrl: '/hakkimizda/faaliyet-raporlari',
       displayOrder: 8,
-      isActive: true
+      isActive: true,
+      translations: {
+        create: [
+          { language: 'tr', title: 'Faaliyet Raporları' },
+          { language: 'en', title: 'Activity Reports' },
+          { language: 'ar', title: 'تقارير الأنشطة' }
+        ]
+      }
     }
   });
   console.log('      └─ Faaliyet Raporları');
@@ -211,11 +271,17 @@ async function main() {
     create: {
       id: 3,
       menuId: mainMenu.id,
-      title: 'Projeler',
       linkType: 'custom',
       customUrl: '/projeler',
       displayOrder: 3,
-      isActive: true
+      isActive: true,
+      translations: {
+        create: [
+          { language: 'tr', title: 'Projeler' },
+          { language: 'en', title: 'Projects' },
+          { language: 'ar', title: 'المشاريع' }
+        ]
+      }
     }
   });
   console.log('  └─ Projeler');
@@ -227,11 +293,17 @@ async function main() {
     create: {
       id: 4,
       menuId: mainMenu.id,
-      title: 'Faaliyet Alanları',
       linkType: 'custom',
       customUrl: '/faaliyet-alanlari',
       displayOrder: 4,
-      isActive: true
+      isActive: true,
+      translations: {
+        create: [
+          { language: 'tr', title: 'Faaliyet Alanları' },
+          { language: 'en', title: 'Activity Areas' },
+          { language: 'ar', title: 'مجالات النشاط' }
+        ]
+      }
     }
   });
   console.log('  └─ Faaliyet Alanları');
@@ -244,11 +316,17 @@ async function main() {
       id: 41,
       menuId: mainMenu.id,
       parentId: 4,
-      title: 'Göz Sağlığı',
       linkType: 'custom',
       customUrl: '/faaliyet-alanlari/goz-sagligi',
       displayOrder: 1,
-      isActive: true
+      isActive: true,
+      translations: {
+        create: [
+          { language: 'tr', title: 'Göz Sağlığı' },
+          { language: 'en', title: 'Eye Health' },
+          { language: 'ar', title: 'صحة العين' }
+        ]
+      }
     }
   });
   console.log('      └─ Göz Sağlığı');
@@ -261,11 +339,17 @@ async function main() {
       id: 42,
       menuId: mainMenu.id,
       parentId: 4,
-      title: 'Genel Sağlık Taramaları',
       linkType: 'custom',
       customUrl: '/faaliyet-alanlari/genel-saglik-taramalari',
       displayOrder: 2,
-      isActive: true
+      isActive: true,
+      translations: {
+        create: [
+          { language: 'tr', title: 'Genel Sağlık Taramaları' },
+          { language: 'en', title: 'General Health Screenings' },
+          { language: 'ar', title: 'الفحوصات الصحية العامة' }
+        ]
+      }
     }
   });
   console.log('      └─ Genel Sağlık Taramaları');
@@ -278,11 +362,17 @@ async function main() {
       id: 43,
       menuId: mainMenu.id,
       parentId: 4,
-      title: 'Eğitim',
       linkType: 'custom',
       customUrl: '/faaliyet-alanlari/egitim',
       displayOrder: 3,
-      isActive: true
+      isActive: true,
+      translations: {
+        create: [
+          { language: 'tr', title: 'Eğitim' },
+          { language: 'en', title: 'Education' },
+          { language: 'ar', title: 'التعليم' }
+        ]
+      }
     }
   });
   console.log('      └─ Eğitim');
@@ -295,11 +385,17 @@ async function main() {
       id: 44,
       menuId: mainMenu.id,
       parentId: 4,
-      title: 'Sosyal Sorumluluk',
       linkType: 'custom',
       customUrl: '/faaliyet-alanlari/sosyal-sorumluluk',
       displayOrder: 4,
-      isActive: true
+      isActive: true,
+      translations: {
+        create: [
+          { language: 'tr', title: 'Sosyal Sorumluluk' },
+          { language: 'en', title: 'Social Responsibility' },
+          { language: 'ar', title: 'المسؤولية الاجتماعية' }
+        ]
+      }
     }
   });
   console.log('      └─ Sosyal Sorumluluk');
@@ -312,11 +408,17 @@ async function main() {
       id: 45,
       menuId: mainMenu.id,
       parentId: 4,
-      title: 'Çevre ve Sürdürülebilirlik',
       linkType: 'custom',
       customUrl: '/faaliyet-alanlari/cevre-surdurulebilirlik',
       displayOrder: 5,
-      isActive: true
+      isActive: true,
+      translations: {
+        create: [
+          { language: 'tr', title: 'Çevre ve Sürdürülebilirlik' },
+          { language: 'en', title: 'Environment and Sustainability' },
+          { language: 'ar', title: 'البيئة والاستدامة' }
+        ]
+      }
     }
   });
   console.log('      └─ Çevre ve Sürdürülebilirlik');
@@ -329,11 +431,17 @@ async function main() {
       id: 46,
       menuId: mainMenu.id,
       parentId: 4,
-      title: 'Afet ve Acil Durum Yardımı',
       linkType: 'custom',
       customUrl: '/faaliyet-alanlari/afet-acil-durum',
       displayOrder: 6,
-      isActive: true
+      isActive: true,
+      translations: {
+        create: [
+          { language: 'tr', title: 'Afet ve Acil Durum Yardımı' },
+          { language: 'en', title: 'Disaster and Emergency Relief' },
+          { language: 'ar', title: 'الإغاثة في حالات الكوارث والطوارئ' }
+        ]
+      }
     }
   });
   console.log('      └─ Afet ve Acil Durum Yardımı');
@@ -346,11 +454,17 @@ async function main() {
       id: 47,
       menuId: mainMenu.id,
       parentId: 4,
-      title: 'Gençlik Programları',
       linkType: 'custom',
       customUrl: '/faaliyet-alanlari/genclik-programlari',
       displayOrder: 7,
-      isActive: true
+      isActive: true,
+      translations: {
+        create: [
+          { language: 'tr', title: 'Gençlik Programları' },
+          { language: 'en', title: 'Youth Programs' },
+          { language: 'ar', title: 'برامج الشباب' }
+        ]
+      }
     }
   });
   console.log('      └─ Gençlik Programları');
@@ -363,11 +477,17 @@ async function main() {
       id: 48,
       menuId: mainMenu.id,
       parentId: 4,
-      title: 'Teknoloji ve İnovasyon',
       linkType: 'custom',
       customUrl: '/faaliyet-alanlari/teknoloji-inovasyon',
       displayOrder: 8,
-      isActive: true
+      isActive: true,
+      translations: {
+        create: [
+          { language: 'tr', title: 'Teknoloji ve İnovasyon' },
+          { language: 'en', title: 'Technology and Innovation' },
+          { language: 'ar', title: 'التكنولوجيا والابتكار' }
+        ]
+      }
     }
   });
   console.log('      └─ Teknoloji ve İnovasyon');
@@ -379,16 +499,22 @@ async function main() {
     create: {
       id: 5,
       menuId: mainMenu.id,
-      title: 'Medya',
       linkType: 'custom',
       customUrl: '/medya',
       displayOrder: 5,
-      isActive: true
+      isActive: true,
+      translations: {
+        create: [
+          { language: 'tr', title: 'Medya' },
+          { language: 'en', title: 'Media' },
+          { language: 'ar', title: 'الإعلام' }
+        ]
+      }
     }
   });
   console.log('  └─ Medya');
 
-  // 5.1 Medya > Haberler (Alt menü)
+  // 5.1 Medya > Haberler
   await prisma.menuItem.upsert({
     where: { id: 51 },
     update: {},
@@ -396,11 +522,17 @@ async function main() {
       id: 51,
       menuId: mainMenu.id,
       parentId: 5,
-      title: 'Haberler',
       linkType: 'custom',
       customUrl: '/haberler',
       displayOrder: 1,
-      isActive: true
+      isActive: true,
+      translations: {
+        create: [
+          { language: 'tr', title: 'Haberler' },
+          { language: 'en', title: 'News' },
+          { language: 'ar', title: 'الأخبار' }
+        ]
+      }
     }
   });
   console.log('      └─ Haberler');
@@ -413,11 +545,17 @@ async function main() {
       id: 52,
       menuId: mainMenu.id,
       parentId: 5,
-      title: 'Galeri',
       linkType: 'custom',
       customUrl: '/galeri',
       displayOrder: 2,
-      isActive: true
+      isActive: true,
+      translations: {
+        create: [
+          { language: 'tr', title: 'Galeri' },
+          { language: 'en', title: 'Gallery' },
+          { language: 'ar', title: 'المعرض' }
+        ]
+      }
     }
   });
   console.log('      └─ Galeri');
@@ -430,11 +568,17 @@ async function main() {
       id: 53,
       menuId: mainMenu.id,
       parentId: 5,
-      title: 'Basında Biz',
       linkType: 'custom',
       customUrl: '/basinda-biz',
       displayOrder: 3,
-      isActive: true
+      isActive: true,
+      translations: {
+        create: [
+          { language: 'tr', title: 'Basında Biz' },
+          { language: 'en', title: 'In The Press' },
+          { language: 'ar', title: 'في الصحافة' }
+        ]
+      }
     }
   });
   console.log('      └─ Basında Biz');
@@ -447,11 +591,17 @@ async function main() {
       id: 54,
       menuId: mainMenu.id,
       parentId: 5,
-      title: 'Video Galeri',
       linkType: 'custom',
       customUrl: '/video-galeri',
       displayOrder: 4,
-      isActive: true
+      isActive: true,
+      translations: {
+        create: [
+          { language: 'tr', title: 'Video Galeri' },
+          { language: 'en', title: 'Video Gallery' },
+          { language: 'ar', title: 'معرض الفيديو' }
+        ]
+      }
     }
   });
   console.log('      └─ Video Galeri');
@@ -464,11 +614,17 @@ async function main() {
       id: 55,
       menuId: mainMenu.id,
       parentId: 5,
-      title: 'Basın Bültenleri',
       linkType: 'custom',
       customUrl: '/basin-bultenleri',
       displayOrder: 5,
-      isActive: true
+      isActive: true,
+      translations: {
+        create: [
+          { language: 'tr', title: 'Basın Bültenleri' },
+          { language: 'en', title: 'Press Releases' },
+          { language: 'ar', title: 'البيانات الصحفية' }
+        ]
+      }
     }
   });
   console.log('      └─ Basın Bültenleri');
@@ -481,11 +637,17 @@ async function main() {
       id: 56,
       menuId: mainMenu.id,
       parentId: 5,
-      title: 'Sosyal Medya',
       linkType: 'custom',
       customUrl: '/sosyal-medya',
       displayOrder: 6,
-      isActive: true
+      isActive: true,
+      translations: {
+        create: [
+          { language: 'tr', title: 'Sosyal Medya' },
+          { language: 'en', title: 'Social Media' },
+          { language: 'ar', title: 'وسائل التواصل الاجتماعي' }
+        ]
+      }
     }
   });
   console.log('      └─ Sosyal Medya');
@@ -498,11 +660,17 @@ async function main() {
       id: 57,
       menuId: mainMenu.id,
       parentId: 5,
-      title: 'Başarı Hikayeleri',
       linkType: 'custom',
       customUrl: '/basari-hikayeleri',
       displayOrder: 7,
-      isActive: true
+      isActive: true,
+      translations: {
+        create: [
+          { language: 'tr', title: 'Başarı Hikayeleri' },
+          { language: 'en', title: 'Success Stories' },
+          { language: 'ar', title: 'قصص النجاح' }
+        ]
+      }
     }
   });
   console.log('      └─ Başarı Hikayeleri');
@@ -514,11 +682,17 @@ async function main() {
     create: {
       id: 6,
       menuId: mainMenu.id,
-      title: 'Gönüllü Ol',
       linkType: 'custom',
       customUrl: '/gonullu-ol',
       displayOrder: 6,
-      isActive: true
+      isActive: true,
+      translations: {
+        create: [
+          { language: 'tr', title: 'Gönüllü Ol' },
+          { language: 'en', title: 'Become a Volunteer' },
+          { language: 'ar', title: 'كن متطوعاً' }
+        ]
+      }
     }
   });
   console.log('  └─ Gönüllü Ol');
@@ -530,11 +704,17 @@ async function main() {
     create: {
       id: 7,
       menuId: mainMenu.id,
-      title: 'Kariyer',
       linkType: 'custom',
       customUrl: '/kariyer',
       displayOrder: 7,
-      isActive: true
+      isActive: true,
+      translations: {
+        create: [
+          { language: 'tr', title: 'Kariyer' },
+          { language: 'en', title: 'Career' },
+          { language: 'ar', title: 'الوظائف' }
+        ]
+      }
     }
   });
   console.log('  └─ Kariyer');
@@ -546,11 +726,17 @@ async function main() {
     create: {
       id: 8,
       menuId: mainMenu.id,
-      title: 'İletişim',
       linkType: 'custom',
       customUrl: '/iletisim',
       displayOrder: 8,
-      isActive: true
+      isActive: true,
+      translations: {
+        create: [
+          { language: 'tr', title: 'İletişim' },
+          { language: 'en', title: 'Contact' },
+          { language: 'ar', title: 'اتصل بنا' }
+        ]
+      }
     }
   });
   console.log('  └─ İletişim');
@@ -562,12 +748,18 @@ async function main() {
     create: {
       id: 9,
       menuId: mainMenu.id,
-      title: 'Bağış Yap',
       linkType: 'custom',
       customUrl: '/bagis-yap',
       cssClass: 'btn-donate',
       displayOrder: 9,
-      isActive: true
+      isActive: true,
+      translations: {
+        create: [
+          { language: 'tr', title: 'Bağış Yap' },
+          { language: 'en', title: 'Donate' },
+          { language: 'ar', title: 'تبرع' }
+        ]
+      }
     }
   });
   console.log('  └─ Bağış Yap');
@@ -581,11 +773,17 @@ async function main() {
     create: {
       id: 101,
       menuId: footerMenu.id,
-      title: 'Hakkımızda',
       linkType: 'custom',
       customUrl: '/hakkimizda',
       displayOrder: 1,
-      isActive: true
+      isActive: true,
+      translations: {
+        create: [
+          { language: 'tr', title: 'Hakkımızda' },
+          { language: 'en', title: 'About Us' },
+          { language: 'ar', title: 'معلومات عنا' }
+        ]
+      }
     }
   });
   console.log('  └─ Hakkımızda');
@@ -596,11 +794,17 @@ async function main() {
     create: {
       id: 102,
       menuId: footerMenu.id,
-      title: 'İletişim',
       linkType: 'custom',
       customUrl: '/iletisim',
       displayOrder: 2,
-      isActive: true
+      isActive: true,
+      translations: {
+        create: [
+          { language: 'tr', title: 'İletişim' },
+          { language: 'en', title: 'Contact' },
+          { language: 'ar', title: 'اتصل بنا' }
+        ]
+      }
     }
   });
   console.log('  └─ İletişim');
@@ -611,11 +815,17 @@ async function main() {
     create: {
       id: 103,
       menuId: footerMenu.id,
-      title: 'Gizlilik Politikası',
       linkType: 'custom',
       customUrl: '/gizlilik-politikasi',
       displayOrder: 3,
-      isActive: true
+      isActive: true,
+      translations: {
+        create: [
+          { language: 'tr', title: 'Gizlilik Politikası' },
+          { language: 'en', title: 'Privacy Policy' },
+          { language: 'ar', title: 'سياسة الخصوصية' }
+        ]
+      }
     }
   });
   console.log('  └─ Gizlilik Politikası');
@@ -626,11 +836,17 @@ async function main() {
     create: {
       id: 104,
       menuId: footerMenu.id,
-      title: 'Kullanım Koşulları',
       linkType: 'custom',
       customUrl: '/kullanim-kosullari',
       displayOrder: 4,
-      isActive: true
+      isActive: true,
+      translations: {
+        create: [
+          { language: 'tr', title: 'Kullanım Koşulları' },
+          { language: 'en', title: 'Terms of Use' },
+          { language: 'ar', title: 'شروط الاستخدام' }
+        ]
+      }
     }
   });
   console.log('  └─ Kullanım Koşulları');

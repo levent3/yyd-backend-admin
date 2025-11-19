@@ -76,6 +76,9 @@ const getMenuBySlug = (slug) => {
         where: { isActive: true, parentId: null },
         orderBy: { displayOrder: 'asc' },
         include: {
+          translations: {
+            orderBy: { language: 'asc' }
+          },
           page: {
             select: {
               id: true,
@@ -97,6 +100,9 @@ const getMenuBySlug = (slug) => {
             where: { isActive: true },
             orderBy: { displayOrder: 'asc' },
             include: {
+              translations: {
+                orderBy: { language: 'asc' }
+              },
               page: {
                 select: {
                   id: true,
@@ -168,6 +174,9 @@ const getMenuItemsByMenuId = (menuId) => {
     where: { menuId },
     orderBy: { displayOrder: 'asc' },
     include: {
+      translations: {
+        orderBy: { language: 'asc' }
+      },
       page: {
         select: {
           id: true,
@@ -202,10 +211,19 @@ const getMenuItemsByMenuId = (menuId) => {
         }
       },
       parent: {
-        select: { id: true, title: true }
+        select: {
+          id: true,
+          title: true,
+          translations: true
+        }
       },
       children: {
-        orderBy: { displayOrder: 'asc' }
+        orderBy: { displayOrder: 'asc' },
+        include: {
+          translations: {
+            orderBy: { language: 'asc' }
+          }
+        }
       }
     }
   });
@@ -216,6 +234,9 @@ const getMenuItemById = (id) => {
   return prisma.menuItem.findUnique({
     where: { id },
     include: {
+      translations: {
+        orderBy: { language: 'asc' }
+      },
       page: {
         select: {
           id: true,
@@ -249,16 +270,32 @@ const getMenuItemById = (id) => {
           }
         }
       },
-      children: true
+      children: {
+        include: {
+          translations: {
+            orderBy: { language: 'asc' }
+          }
+        }
+      }
     }
   });
 };
 
 // Create menu item
 const createMenuItem = (data) => {
+  const { translations, ...menuItemData } = data;
+
   return prisma.menuItem.create({
-    data,
+    data: {
+      ...menuItemData,
+      translations: translations ? {
+        create: translations
+      } : undefined
+    },
     include: {
+      translations: {
+        orderBy: { language: 'asc' }
+      },
       page: true,
       project: true,
       news: true,
@@ -268,11 +305,28 @@ const createMenuItem = (data) => {
 };
 
 // Update menu item
-const updateMenuItem = (id, data) => {
+const updateMenuItem = async (id, data) => {
+  const { translations, ...menuItemData } = data;
+
+  // Eğer translations varsa, önce mevcut olanları sil, sonra yenilerini ekle
+  if (translations) {
+    await prisma.menuItemTranslation.deleteMany({
+      where: { menuItemId: id }
+    });
+  }
+
   return prisma.menuItem.update({
     where: { id },
-    data,
+    data: {
+      ...menuItemData,
+      translations: translations ? {
+        create: translations
+      } : undefined
+    },
     include: {
+      translations: {
+        orderBy: { language: 'asc' }
+      },
       page: true,
       project: true,
       news: true,

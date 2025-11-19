@@ -31,7 +31,8 @@ const getMenuById = async (req, res, next) => {
 // GET /api/menu/slug/:slug - Get menu by slug
 const getMenuBySlug = async (req, res, next) => {
   try {
-    const menu = await menuService.getMenuBySlug(req.params.slug);
+    const language = req.query.language || 'tr';
+    const menu = await menuService.getMenuBySlug(req.params.slug, language);
     res.status(200).json(menu);
   } catch (error) {
     next(error);

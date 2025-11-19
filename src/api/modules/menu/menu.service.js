@@ -1,4 +1,5 @@
 const menuRepo = require('./menu.repository');
+const { formatEntityWithTranslation } = require('../../../utils/translationHelper');
 
 // ========== MENU SERVICES ==========
 
@@ -14,11 +15,28 @@ const getMenuById = async (id) => {
   return menu;
 };
 
-const getMenuBySlug = async (slug) => {
+const getMenuBySlug = async (slug, language = 'tr') => {
   const menu = await menuRepo.getMenuBySlug(slug);
   if (!menu) {
     throw new Error('Menü bulunamadı');
   }
+
+  // Format menu items with translations
+  if (menu.menuItems && menu.menuItems.length > 0) {
+    menu.menuItems = menu.menuItems.map(item => {
+      const formattedItem = formatEntityWithTranslation(item, language, true);
+
+      // Format children recursively
+      if (formattedItem.children && formattedItem.children.length > 0) {
+        formattedItem.children = formattedItem.children.map(child =>
+          formatEntityWithTranslation(child, language, true)
+        );
+      }
+
+      return formattedItem;
+    });
+  }
+
   return menu;
 };
 
@@ -77,9 +95,16 @@ const getMenuItemById = async (id) => {
 };
 
 const createMenuItem = async (data) => {
-  // Gerekli alan kontrolü
-  if (!data.title) {
-    throw new Error('Başlık gereklidir');
+  // Validasyonlar
+  if (!data.translations || !Array.isArray(data.translations) || data.translations.length === 0) {
+    throw new Error('En az bir dil için translation gereklidir');
+  }
+
+  // Her translation için title kontrolü
+  for (const translation of data.translations) {
+    if (!translation.language || !translation.title) {
+      throw new Error('Her translation için language ve title gereklidir');
+    }
   }
 
   if (!data.linkType) {
@@ -123,6 +148,20 @@ const createMenuItem = async (data) => {
 const updateMenuItem = async (id, data) => {
   // Menü öğesi var mı kontrol et
   await getMenuItemById(id);
+
+  // Translations varsa validate et
+  if (data.translations) {
+    if (!Array.isArray(data.translations) || data.translations.length === 0) {
+      throw new Error('Translations array boş olamaz');
+    }
+
+    // Her translation için title kontrolü
+    for (const translation of data.translations) {
+      if (!translation.language || !translation.title) {
+        throw new Error('Her translation için language ve title gereklidir');
+      }
+    }
+  }
 
   // Parent kontrolü (kendisine parent olamaz)
   if (data.parentId) {
