@@ -1,5 +1,5 @@
 # Multi-stage build for production optimization
-FROM node:18-alpine AS base
+FROM node:18-slim AS base
 WORKDIR /usr/src/app
 
 # Dependencies stage
@@ -15,6 +15,9 @@ RUN npm ci
 
 # Build stage
 FROM base AS builder
+# OpenSSL yükle (Prisma için gerekli)
+RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
+ENV PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=1
 COPY --from=deps-dev /usr/src/app/node_modules ./node_modules
 COPY . .
 RUN npx prisma generate
@@ -22,6 +25,9 @@ RUN npx prisma generate
 # Production stage
 FROM base AS production
 ENV NODE_ENV=production
+
+# OpenSSL yükle (Prisma runtime için gerekli)
+RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 
 # Copy only production dependencies
 COPY --from=deps /usr/src/app/node_modules ./node_modules
