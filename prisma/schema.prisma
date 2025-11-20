@@ -100,16 +100,23 @@ model Project {
 }
 
 model ProjectTranslation {
-  id          Int      @id @default(autoincrement())
-  projectId   Int
-  language    String
-  title       String
-  slug        String
-  description String?
-  content     String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  id             Int      @id @default(autoincrement())
+  projectId      Int
+  language       String
+  title          String
+  slug           String
+  description    String?
+  content        String?
+
+  // Page Builder fields
+  builderData    Json?    // Widget array for page builder
+  builderHtml    String?  // Rendered HTML (cache)
+  builderCss     String?  // Custom CSS
+  usePageBuilder Boolean  @default(false) // Flag to enable/disable page builder
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  project        Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@unique([projectId, language])
   @@unique([language, slug])

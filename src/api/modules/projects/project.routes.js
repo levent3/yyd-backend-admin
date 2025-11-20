@@ -502,4 +502,160 @@ router.post('/upload-image',
   projectController.uploadImage
 );
 
+// ========== PAGE BUILDER ROUTES ==========
+
+/**
+ * @swagger
+ * /api/projects/{id}/builder:
+ *   put:
+ *     summary: Update project page builder data
+ *     description: Save page builder content for a specific project and language
+ *     tags: [Projects - Page Builder]
+ *     security:
+ *       - bearerAuth: []
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Project ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               language:
+ *                 type: string
+ *                 enum: [tr, en, ar]
+ *                 default: tr
+ *                 description: Language code
+ *               builderData:
+ *                 type: string
+ *                 description: JSON string of widget array
+ *               builderHtml:
+ *                 type: string
+ *                 nullable: true
+ *                 description: Rendered HTML (optional)
+ *               builderCss:
+ *                 type: string
+ *                 nullable: true
+ *                 description: Custom CSS (optional)
+ *     responses:
+ *       200:
+ *         description: Builder data successfully updated
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Project not found
+ */
+router.put('/:id/builder',
+  authMiddleware,
+  checkPermission('projects', 'update'),
+  projectController.updateBuilderData
+);
+
+/**
+ * @swagger
+ * /api/projects/{id}/builder:
+ *   get:
+ *     summary: Get project page builder data
+ *     description: Retrieve page builder content for a specific project and language
+ *     tags: [Projects - Page Builder]
+ *     security:
+ *       - bearerAuth: []
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Project ID
+ *       - in: query
+ *         name: language
+ *         schema:
+ *           type: string
+ *           enum: [tr, en, ar]
+ *           default: tr
+ *         description: Language code
+ *     responses:
+ *       200:
+ *         description: Builder data retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 builderData:
+ *                   type: object
+ *                   nullable: true
+ *                 builderHtml:
+ *                   type: string
+ *                   nullable: true
+ *                 builderCss:
+ *                   type: string
+ *                   nullable: true
+ *                 usePageBuilder:
+ *                   type: boolean
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Project not found
+ */
+router.get('/:id/builder',
+  authMiddleware,
+  checkPermission('projects', 'read'),
+  projectController.getBuilderData
+);
+
+/**
+ * @swagger
+ * /api/projects/migrate-to-builder:
+ *   post:
+ *     summary: Migrate content to page builder
+ *     description: Convert existing project content to page builder format (Admin only)
+ *     tags: [Projects - Migration]
+ *     security:
+ *       - bearerAuth: []
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: Migration completed successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     total:
+ *                       type: integer
+ *                     success:
+ *                       type: integer
+ *                     skipped:
+ *                       type: integer
+ *                     error:
+ *                       type: integer
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ */
+router.post('/migrate-to-builder',
+  authMiddleware,
+  checkPermission('projects', 'update'),
+  projectController.migrateContentToBuilder
+);
+
 module.exports = router;

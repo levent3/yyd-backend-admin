@@ -32,7 +32,7 @@ const findMany = (options = {}) => {
 const count = (where = {}) => prisma.project.count({ where });
 
 const findById = (id, language = null) => prisma.project.findUnique({
-  where: { id },
+  where: { id: parseInt(id) },
   include: {
     author: {
       select: { id: true, fullName: true }
@@ -90,7 +90,50 @@ const findByShortCode = (shortCode, language = 'tr') => {
 };
 
 const create = (data) => prisma.project.create({ data });
-const update = (id, data) => prisma.project.update({ where: { id }, data });
-const deleteById = (id) => prisma.project.delete({ where: { id } });
+const update = (id, data) => prisma.project.update({ where: { id: parseInt(id) }, data });
+const deleteById = (id) => prisma.project.delete({ where: { id: parseInt(id) } });
 
-module.exports = { findMany, count, findById, findBySlug, findByShortCode, create, update, deleteById };
+// ========== PAGE BUILDER OPERATIONS ==========
+
+const updateBuilderData = async (projectId, language, builderData) => {
+  const { builderData: data, builderHtml, builderCss } = builderData;
+
+  // Check if translation exists
+  const existingTranslation = await prisma.projectTranslation.findFirst({
+    where: {
+      projectId: parseInt(projectId),
+      language: language,
+    },
+  });
+
+  if (existingTranslation) {
+    // Update existing translation
+    return await prisma.projectTranslation.update({
+      where: {
+        id: existingTranslation.id,
+      },
+      data: {
+        builderData: data,
+        builderHtml: builderHtml,
+        builderCss: builderCss,
+        usePageBuilder: true, // Automatically enable page builder when saving
+        updatedAt: new Date(),
+      },
+    });
+  } else {
+    // If translation doesn't exist, throw error (translations should be created first)
+    throw new Error(`Translation for language '${language}' does not exist for project ${projectId}`);
+  }
+};
+
+module.exports = {
+  findMany,
+  count,
+  findById,
+  findBySlug,
+  findByShortCode,
+  create,
+  update,
+  deleteById,
+  updateBuilderData
+};

@@ -211,6 +211,58 @@ const uploadImage = async (req, res, next) => {
   }
 };
 
+// ========== PAGE BUILDER CONTROLLERS ==========
+
+// PUT /api/projects/:id/builder - Save builder data
+const updateBuilderData = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { language = 'tr', builderData, builderHtml, builderCss } = req.body;
+
+    const result = await projectService.updateBuilderData(parseInt(id), language, {
+      builderData,
+      builderHtml,
+      builderCss
+    });
+
+    res.status(200).json({
+      message: 'Builder data başarıyla güncellendi',
+      data: result
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// GET /api/projects/:id/builder - Get builder data
+const getBuilderData = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const language = req.query.language || 'tr';
+
+    const builderData = await projectService.getBuilderData(parseInt(id), language);
+    res.status(200).json(builderData);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// POST /api/projects/migrate-to-builder - Migrate content to page builder
+const migrateContentToBuilder = async (req, res, next) => {
+  try {
+    const { migrateProjectContents } = require('./migrations/content-to-builder');
+
+    const result = await migrateProjectContents();
+
+    res.status(200).json({
+      message: 'Migration tamamlandı',
+      data: result
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // ========== EXPORT ==========
 
 module.exports = {
@@ -229,4 +281,9 @@ module.exports = {
   // Upload
   uploadImage,
   upload, // Multer middleware'ini export et
+
+  // Page Builder
+  updateBuilderData,
+  getBuilderData,
+  migrateContentToBuilder,
 };

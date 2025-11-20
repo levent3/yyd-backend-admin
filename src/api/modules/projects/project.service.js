@@ -232,4 +232,43 @@ const updateProject = async (id, data) => {
 
 const deleteProject = (id) => projectRepo.deleteById(id);
 
-module.exports = { getAllProjects, getProjectById, getProjectBySlug, getProjectByShortCode, createProject, updateProject, deleteProject };
+// ========== PAGE BUILDER SERVICES ==========
+
+const updateBuilderData = async (id, language, builderData) => {
+  // Check if project exists
+  const project = await projectRepo.findById(id);
+  if (!project) {
+    throw { status: 404, message: 'Project not found' };
+  }
+
+  // Update builder data for specific language translation
+  return await projectRepo.updateBuilderData(id, language, builderData);
+};
+
+const getBuilderData = async (id, language = 'tr') => {
+  const project = await projectRepo.findById(id, language);
+  if (!project) {
+    throw { status: 404, message: 'Project not found' };
+  }
+
+  // Return builder data from translation
+  const translation = project.translations.find(t => t.language === language);
+  return {
+    builderData: translation?.builderData || null,
+    builderHtml: translation?.builderHtml || null,
+    builderCss: translation?.builderCss || null,
+    usePageBuilder: translation?.usePageBuilder || false,
+  };
+};
+
+module.exports = {
+  getAllProjects,
+  getProjectById,
+  getProjectBySlug,
+  getProjectByShortCode,
+  createProject,
+  updateProject,
+  deleteProject,
+  updateBuilderData,
+  getBuilderData
+};
