@@ -19,7 +19,7 @@ const count = (where = {}) => prisma.activityArea.count({ where });
 
 const findById = (id, language = null) => {
   return prisma.activityArea.findUnique({
-    where: { id },
+    where: { id: parseInt(id) },
     include: {
       ...includeTranslations(language)
     }
@@ -78,6 +78,34 @@ const findActive = (options = {}) => {
   });
 };
 
+// ========== PAGE BUILDER METHODS ==========
+
+const updateBuilderData = async (activityAreaId, language, builderData) => {
+  const { builderData: data, builderHtml, builderCss } = builderData;
+
+  const existingTranslation = await prisma.activityAreaTranslation.findFirst({
+    where: {
+      activityAreaId: parseInt(activityAreaId),
+      language: language,
+    },
+  });
+
+  if (existingTranslation) {
+    return await prisma.activityAreaTranslation.update({
+      where: { id: existingTranslation.id },
+      data: {
+        builderData: data,
+        builderHtml: builderHtml,
+        builderCss: builderCss,
+        usePageBuilder: true,
+        updatedAt: new Date(),
+      },
+    });
+  } else {
+    throw new Error(`Translation for language '${language}' does not exist for activity area ${activityAreaId}`);
+  }
+};
+
 module.exports = {
   findMany,
   count,
@@ -86,5 +114,6 @@ module.exports = {
   create,
   update,
   deleteById,
-  findActive
+  findActive,
+  updateBuilderData
 };

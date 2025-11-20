@@ -439,4 +439,157 @@ router.delete(
   activityAreaController.deleteActivityArea
 );
 
+// ========== PAGE BUILDER ROUTES ==========
+
+/**
+ * @swagger
+ * /activity-areas/{id}/builder:
+ *   put:
+ *     summary: Update activity area page builder data
+ *     description: Save page builder content for a specific activity area and language
+ *     tags: [Activity Areas - Page Builder]
+ *     security:
+ *       - bearerAuth: []
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Activity Area ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               language:
+ *                 type: string
+ *                 enum: [tr, en, ar]
+ *                 default: tr
+ *                 description: Language code
+ *               builderData:
+ *                 type: string
+ *                 description: JSON string of widget array
+ *               builderHtml:
+ *                 type: string
+ *                 nullable: true
+ *                 description: Rendered HTML (optional)
+ *               builderCss:
+ *                 type: string
+ *                 nullable: true
+ *                 description: Custom CSS (optional)
+ *     responses:
+ *       200:
+ *         description: Builder data successfully updated
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Activity Area not found
+ */
+router.put('/:id/builder',
+  checkPermission('activity-areas', 'update'),
+  activityAreaController.updateBuilderData
+);
+
+/**
+ * @swagger
+ * /activity-areas/{id}/builder:
+ *   get:
+ *     summary: Get activity area page builder data
+ *     description: Retrieve page builder content for a specific activity area and language
+ *     tags: [Activity Areas - Page Builder]
+ *     security:
+ *       - bearerAuth: []
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Activity Area ID
+ *       - in: query
+ *         name: language
+ *         schema:
+ *           type: string
+ *           enum: [tr, en, ar]
+ *           default: tr
+ *         description: Language code
+ *     responses:
+ *       200:
+ *         description: Builder data retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 builderData:
+ *                   type: object
+ *                   nullable: true
+ *                 builderHtml:
+ *                   type: string
+ *                   nullable: true
+ *                 builderCss:
+ *                   type: string
+ *                   nullable: true
+ *                 usePageBuilder:
+ *                   type: boolean
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Activity Area not found
+ */
+router.get('/:id/builder',
+  checkPermission('activity-areas', 'read'),
+  activityAreaController.getBuilderData
+);
+
+/**
+ * @swagger
+ * /activity-areas/migrate-to-builder:
+ *   post:
+ *     summary: Migrate content to page builder
+ *     description: Convert existing activity area content to page builder format (Admin only)
+ *     tags: [Activity Areas - Migration]
+ *     security:
+ *       - bearerAuth: []
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: Migration completed successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     total:
+ *                       type: integer
+ *                     success:
+ *                       type: integer
+ *                     skipped:
+ *                       type: integer
+ *                     error:
+ *                       type: integer
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ */
+router.post('/migrate-to-builder',
+  checkPermission('activity-areas', 'update'),
+  activityAreaController.migrateContentToBuilder
+);
+
 module.exports = router;

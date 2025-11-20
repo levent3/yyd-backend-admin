@@ -54,6 +54,57 @@ const getActivityAreaBySlug = async (req, res, next) => {
   }
 };
 
+// ========== PAGE BUILDER METHODS ==========
+
+// PUT /api/activity-areas/:id/builder - Update builder data
+const updateBuilderData = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { language = 'tr', builderData, builderHtml, builderCss } = req.body;
+
+    const result = await activityAreaService.updateBuilderData(parseInt(id), language, {
+      builderData,
+      builderHtml,
+      builderCss
+    });
+
+    res.status(200).json({
+      message: 'Builder data başarıyla güncellendi',
+      data: result
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// GET /api/activity-areas/:id/builder - Get builder data
+const getBuilderData = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const language = req.query.language || 'tr';
+
+    const builderData = await activityAreaService.getBuilderData(parseInt(id), language);
+    res.status(200).json(builderData);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// POST /api/activity-areas/migrate-to-builder - Migrate content to builder
+const migrateContentToBuilder = async (req, res, next) => {
+  try {
+    const { migrateActivityAreaContents } = require('./migrations/content-to-builder');
+    const result = await migrateActivityAreaContents();
+
+    res.status(200).json({
+      message: 'Migration tamamlandı',
+      data: result
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // ========== EXPORT ==========
 
 module.exports = {
@@ -67,4 +118,9 @@ module.exports = {
   // Özel metodlar
   getActiveActivityAreas,
   getActivityAreaBySlug,
+
+  // Page Builder metodları
+  updateBuilderData,
+  getBuilderData,
+  migrateContentToBuilder,
 };

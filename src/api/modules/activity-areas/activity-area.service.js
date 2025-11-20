@@ -167,6 +167,31 @@ const getActiveActivityAreas = async (queryParams = {}) => {
   return createPaginatedResponse(formattedActivityAreas, total, parseInt(page) || 1, take);
 };
 
+// ========== PAGE BUILDER METHODS ==========
+
+const updateBuilderData = async (id, language, builderData) => {
+  const activityArea = await activityAreaRepo.findById(id);
+  if (!activityArea) {
+    throw { status: 404, message: 'Activity Area not found' };
+  }
+  return await activityAreaRepo.updateBuilderData(id, language, builderData);
+};
+
+const getBuilderData = async (id, language = 'tr') => {
+  const activityArea = await activityAreaRepo.findById(id, language);
+  if (!activityArea) {
+    throw { status: 404, message: 'Activity Area not found' };
+  }
+
+  const translation = activityArea.translations.find(t => t.language === language);
+  return {
+    builderData: translation?.builderData || null,
+    builderHtml: translation?.builderHtml || null,
+    builderCss: translation?.builderCss || null,
+    usePageBuilder: translation?.usePageBuilder || false,
+  };
+};
+
 module.exports = {
   getAllActivityAreas,
   getActivityAreaById,
@@ -174,5 +199,7 @@ module.exports = {
   createActivityArea,
   updateActivityArea,
   deleteActivityArea,
-  getActiveActivityAreas
+  getActiveActivityAreas,
+  updateBuilderData,
+  getBuilderData
 };

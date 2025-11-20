@@ -741,6 +741,13 @@ model ActivityAreaTranslation {
   content         String?      @db.Text
   metaTitle       String?
   metaDescription String?
+
+  // Page Builder fields
+  builderData     Json?        // Widget array for page builder
+  builderHtml     String?      @db.Text // Rendered HTML (cache)
+  builderCss      String?      @db.Text // Custom CSS
+  usePageBuilder  Boolean      @default(false) // Flag to enable/disable page builder
+
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
   activityArea    ActivityArea @relation(fields: [activityAreaId], references: [id], onDelete: Cascade)
