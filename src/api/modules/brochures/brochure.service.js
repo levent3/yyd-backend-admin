@@ -3,14 +3,13 @@ const { parsePagination, createPaginatedResponse } = require('../../../utils/pag
 const { formatEntityWithTranslation } = require('../../../utils/translationHelper');
 
 const getAllBrochures = async (queryParams = {}) => {
-  const { page, limit, category, projectId, campaignId, isActive, language } = queryParams;
+  const { page, limit, category, projectId, isActive, language } = queryParams;
   const { skip, limit: take } = parsePagination(page, limit);
 
   // Build where clause
   const where = {};
   if (category) where.category = category;
   if (projectId) where.projectId = parseInt(projectId);
-  if (campaignId) where.campaignId = parseInt(campaignId);
   if (isActive !== undefined) where.isActive = isActive === 'true';
 
   const [brochures, total] = await Promise.all([
@@ -48,7 +47,6 @@ const createBrochure = async (data) => {
     fileSize: brochureData.fileSize ? parseInt(brochureData.fileSize) : null,
     category: brochureData.category || null,
     projectId: brochureData.projectId ? parseInt(brochureData.projectId) : null,
-    campaignId: brochureData.campaignId ? parseInt(brochureData.campaignId) : null,
     isActive: brochureData.isActive !== undefined ? brochureData.isActive : true,
     isFeatured: brochureData.isFeatured !== undefined ? brochureData.isFeatured : false,
     displayOrder: brochureData.displayOrder ? parseInt(brochureData.displayOrder) : 0,
@@ -82,7 +80,6 @@ const updateBrochure = async (id, data) => {
   if (brochureData.fileSize !== undefined) mappedData.fileSize = brochureData.fileSize ? parseInt(brochureData.fileSize) : null;
   if (brochureData.category !== undefined) mappedData.category = brochureData.category;
   if (brochureData.projectId !== undefined) mappedData.projectId = brochureData.projectId ? parseInt(brochureData.projectId) : null;
-  if (brochureData.campaignId !== undefined) mappedData.campaignId = brochureData.campaignId ? parseInt(brochureData.campaignId) : null;
   if (brochureData.isActive !== undefined) mappedData.isActive = brochureData.isActive;
   if (brochureData.isFeatured !== undefined) mappedData.isFeatured = brochureData.isFeatured;
   if (brochureData.displayOrder !== undefined) mappedData.displayOrder = parseInt(brochureData.displayOrder);
