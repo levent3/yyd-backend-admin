@@ -34,6 +34,23 @@ const getFeaturedMediaCoverage = async (req, res, next) => {
   }
 };
 
+// POST /api/media-coverage/import-from-website - Import media coverage from YYD website
+const importFromWebsite = async (req, res, next) => {
+  try {
+    const { importMediaCoverage } = require('../../../scripts/import-media-coverage');
+
+    const result = await importMediaCoverage();
+
+    res.status(200).json({
+      success: true,
+      message: 'Media coverage import tamamlandı',
+      data: result
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getAllMediaCoverage: crudController.getAll,
   getMediaCoverageById: crudController.getById,
@@ -42,4 +59,5 @@ module.exports = {
   deleteMediaCoverage: crudController.delete,
   getAllActiveMediaCoverage,
   getFeaturedMediaCoverage,
+  importFromWebsite,
 };

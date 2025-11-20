@@ -353,10 +353,26 @@ async function importMediaCoverage() {
   console.log(`❌ Hatalı: ${errorCount}`);
   console.log(`📊 Toplam: ${mediaCoverageData.length}`);
 
-  await prisma.$disconnect();
+  return {
+    total: mediaCoverageData.length,
+    success: successCount,
+    error: errorCount
+  };
 }
 
-importMediaCoverage().catch((error) => {
-  console.error('❌ Fatal error:', error);
-  process.exit(1);
-});
+// Export for use in API endpoint
+module.exports = { importMediaCoverage };
+
+// Run directly if executed as a script
+if (require.main === module) {
+  importMediaCoverage()
+    .then(async () => {
+      await prisma.$disconnect();
+      process.exit(0);
+    })
+    .catch(async (error) => {
+      console.error('❌ Fatal error:', error);
+      await prisma.$disconnect();
+      process.exit(1);
+    });
+}
