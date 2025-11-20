@@ -67,6 +67,58 @@ const getNewsBySlug = async (req, res, next) => {
   }
 };
 
+// ========== PAGE BUILDER CONTROLLERS ==========
+
+// PUT /api/news/:id/builder - Save builder data
+const updateBuilderData = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { language = 'tr', builderData, builderHtml, builderCss } = req.body;
+
+    const result = await newsService.updateBuilderData(parseInt(id), language, {
+      builderData,
+      builderHtml,
+      builderCss
+    });
+
+    res.status(200).json({
+      message: 'Builder data başarıyla güncellendi',
+      data: result
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// GET /api/news/:id/builder - Get builder data
+const getBuilderData = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const language = req.query.language || 'tr';
+
+    const builderData = await newsService.getBuilderData(parseInt(id), language);
+    res.status(200).json(builderData);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// POST /api/news/migrate-to-builder - Migrate content to page builder
+const migrateContentToBuilder = async (req, res, next) => {
+  try {
+    const { migrateNewsContents } = require('./migrations/content-to-builder');
+
+    const result = await migrateNewsContents();
+
+    res.status(200).json({
+      message: 'Migration tamamlandı',
+      data: result
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // ========== EXPORT ==========
 
 module.exports = {
@@ -80,4 +132,9 @@ module.exports = {
   // Özel metodlar
   getPublishedNews,
   getNewsBySlug,
+
+  // Page Builder
+  updateBuilderData,
+  getBuilderData,
+  migrateContentToBuilder,
 };

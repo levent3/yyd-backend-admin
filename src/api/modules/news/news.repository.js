@@ -26,7 +26,7 @@ const count = (where = {}) => prisma.news.count({ where });
 
 const findById = (id, language = null) => {
   return prisma.news.findUnique({
-    where: { id },
+    where: { id: parseInt(id) },
     include: {
       author: {
         select: {
@@ -81,7 +81,7 @@ const create = (data) => {
 
 const update = (id, data) => {
   return prisma.news.update({
-    where: { id },
+    where: { id: parseInt(id) },
     data,
     include: {
       author: {
@@ -96,7 +96,7 @@ const update = (id, data) => {
 };
 
 const deleteById = (id) => {
-  return prisma.news.delete({ where: { id } });
+  return prisma.news.delete({ where: { id: parseInt(id) } });
 };
 
 // Get published news for public access
@@ -127,6 +127,39 @@ const findPublished = (options = {}) => {
   });
 };
 
+// ========== PAGE BUILDER OPERATIONS ==========
+
+const updateBuilderData = async (newsId, language, builderData) => {
+  const { builderData: data, builderHtml, builderCss } = builderData;
+
+  // Check if translation exists
+  const existingTranslation = await prisma.newsTranslation.findFirst({
+    where: {
+      newsId: parseInt(newsId),
+      language: language,
+    },
+  });
+
+  if (existingTranslation) {
+    // Update existing translation
+    return await prisma.newsTranslation.update({
+      where: {
+        id: existingTranslation.id,
+      },
+      data: {
+        builderData: data,
+        builderHtml: builderHtml,
+        builderCss: builderCss,
+        usePageBuilder: true, // Automatically enable page builder when saving
+        updatedAt: new Date(),
+      },
+    });
+  } else {
+    // If translation doesn't exist, throw error (translations should be created first)
+    throw new Error(`Translation for language '${language}' does not exist for news ${newsId}`);
+  }
+};
+
 module.exports = {
   findMany,
   count,
@@ -135,5 +168,6 @@ module.exports = {
   create,
   update,
   deleteById,
-  findPublished
+  findPublished,
+  updateBuilderData
 };

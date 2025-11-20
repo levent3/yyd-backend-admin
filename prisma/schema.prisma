@@ -142,16 +142,20 @@ model News {
 }
 
 model NewsTranslation {
-  id        Int      @id @default(autoincrement())
-  newsId    Int
-  language  String
-  title     String
-  slug      String
-  summary   String?
-  content   String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  news      News     @relation(fields: [newsId], references: [id], onDelete: Cascade)
+  id             Int      @id @default(autoincrement())
+  newsId         Int
+  language       String
+  title          String
+  slug           String
+  summary        String?
+  content        String?
+  builderData    Json?
+  builderHtml    String?  @db.Text
+  builderCss     String?  @db.Text
+  usePageBuilder Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  news           News     @relation(fields: [newsId], references: [id], onDelete: Cascade)
 
   @@unique([newsId, language])
   @@unique([language, slug])

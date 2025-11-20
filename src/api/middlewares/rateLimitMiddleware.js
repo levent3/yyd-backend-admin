@@ -15,10 +15,10 @@ const generalLimiter = rateLimit({
   trustProxy: process.env.NODE_ENV === 'production',
 });
 
-// Login endpoint için özel rate limiter - 15 dakikada 5 deneme
+// Login endpoint için özel rate limiter - 15 dakikada 5 deneme (production), 100 (development)
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 dakika
-  max: 5, // maksimum 5 login denemesi
+  max: process.env.NODE_ENV === 'production' ? 5 : 100, // Production: 5, Development: 100
   message: {
     message: 'Çok fazla giriş denemesi yapıldı. Lütfen 15 dakika sonra tekrar deneyin.',
     retryAfter: 15 * 60

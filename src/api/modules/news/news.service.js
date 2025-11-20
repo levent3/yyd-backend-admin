@@ -172,6 +172,35 @@ const getPublishedNews = async (queryParams = {}) => {
   return createPaginatedResponse(formattedNews, total, parseInt(page) || 1, take);
 };
 
+// ========== PAGE BUILDER SERVICES ==========
+
+const updateBuilderData = async (id, language, builderData) => {
+  // Check if news exists
+  const news = await newsRepo.findById(id);
+  if (!news) {
+    throw { status: 404, message: 'News not found' };
+  }
+
+  // Update builder data for specific language translation
+  return await newsRepo.updateBuilderData(id, language, builderData);
+};
+
+const getBuilderData = async (id, language = 'tr') => {
+  const news = await newsRepo.findById(id, language);
+  if (!news) {
+    throw { status: 404, message: 'News not found' };
+  }
+
+  // Return builder data from translation
+  const translation = news.translations.find(t => t.language === language);
+  return {
+    builderData: translation?.builderData || null,
+    builderHtml: translation?.builderHtml || null,
+    builderCss: translation?.builderCss || null,
+    usePageBuilder: translation?.usePageBuilder || false,
+  };
+};
+
 module.exports = {
   getAllNews,
   getNewsById,
@@ -179,5 +208,7 @@ module.exports = {
   createNews,
   updateNews,
   deleteNews,
-  getPublishedNews
+  getPublishedNews,
+  updateBuilderData,
+  getBuilderData
 };
