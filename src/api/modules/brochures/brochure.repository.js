@@ -6,7 +6,11 @@ const includeTranslations = {
       id: true,
       language: true,
       title: true,
-      description: true
+      description: true,
+      builderData: true,
+      builderHtml: true,
+      builderCss: true,
+      usePageBuilder: true
     }
   }
 };
@@ -82,6 +86,39 @@ const findAllActive = () => {
   });
 };
 
+// ========== PAGE BUILDER OPERATIONS ==========
+
+const updateBuilderData = async (brochureId, language, builderData) => {
+  const { builderData: data, builderHtml, builderCss } = builderData;
+
+  // Check if translation exists
+  const existingTranslation = await prisma.brochureTranslation.findFirst({
+    where: {
+      brochureId: parseInt(brochureId),
+      language: language,
+    },
+  });
+
+  if (existingTranslation) {
+    // Update existing translation
+    return await prisma.brochureTranslation.update({
+      where: {
+        id: existingTranslation.id,
+      },
+      data: {
+        builderData: data,
+        builderHtml: builderHtml,
+        builderCss: builderCss,
+        usePageBuilder: true, // Automatically enable page builder when saving
+        updatedAt: new Date(),
+      },
+    });
+  } else {
+    // If translation doesn't exist, throw error (translations should be created first)
+    throw new Error(`Translation for language '${language}' does not exist for brochure ${brochureId}`);
+  }
+};
+
 module.exports = {
   findMany,
   count,
@@ -90,5 +127,6 @@ module.exports = {
   update,
   deleteById,
   findActiveByCategory,
-  findAllActive
+  findAllActive,
+  updateBuilderData
 };

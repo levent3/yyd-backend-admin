@@ -128,6 +128,35 @@ const getAllActiveBrochures = async (language) => {
   return brochures.map(brochure => formatEntityWithTranslation(brochure, language));
 };
 
+// ========== PAGE BUILDER FUNCTIONS ==========
+
+const updateBuilderData = async (id, language, builderData) => {
+  // Check if brochure exists
+  const brochure = await brochureRepo.findById(id);
+  if (!brochure) {
+    throw { status: 404, message: 'Brochure not found' };
+  }
+
+  // Update builder data for specific language translation
+  return await brochureRepo.updateBuilderData(id, language, builderData);
+};
+
+const getBuilderData = async (id, language = 'tr') => {
+  const brochure = await brochureRepo.findById(id);
+  if (!brochure) {
+    throw { status: 404, message: 'Brochure not found' };
+  }
+
+  // Return builder data from translation
+  const translation = brochure.translations.find(t => t.language === language);
+  return {
+    builderData: translation?.builderData || null,
+    builderHtml: translation?.builderHtml || null,
+    builderCss: translation?.builderCss || null,
+    usePageBuilder: translation?.usePageBuilder || false,
+  };
+};
+
 module.exports = {
   getAllBrochures,
   getBrochureById,
@@ -135,5 +164,7 @@ module.exports = {
   updateBrochure,
   deleteBrochure,
   getBrochuresByCategory,
-  getAllActiveBrochures
+  getAllActiveBrochures,
+  updateBuilderData,
+  getBuilderData
 };

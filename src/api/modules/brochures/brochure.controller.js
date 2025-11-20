@@ -68,6 +68,58 @@ const getBrochuresByCategory = async (req, res, next) => {
   }
 };
 
+// ========== PAGE BUILDER CONTROLLERS ==========
+
+// PUT /api/brochures/:id/builder - Save builder data
+const updateBuilderData = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { language = 'tr', builderData, builderHtml, builderCss } = req.body;
+
+    const result = await brochureService.updateBuilderData(parseInt(id), language, {
+      builderData,
+      builderHtml,
+      builderCss
+    });
+
+    res.status(200).json({
+      message: 'Builder data başarıyla güncellendi',
+      data: result
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// GET /api/brochures/:id/builder - Get builder data
+const getBuilderData = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const language = req.query.language || 'tr';
+
+    const builderData = await brochureService.getBuilderData(parseInt(id), language);
+    res.status(200).json(builderData);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// POST /api/brochures/migrate-to-builder - Migrate content to page builder
+const migrateContentToBuilder = async (req, res, next) => {
+  try {
+    const { migrateBrochureContents } = require('./migrations/content-to-builder');
+
+    const result = await migrateBrochureContents();
+
+    res.status(200).json({
+      message: 'Migration tamamlandı',
+      data: result
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // ========== EXPORT ==========
 
 module.exports = {
@@ -81,4 +133,9 @@ module.exports = {
   // Özel metodlar
   getAllActiveBrochures,
   getBrochuresByCategory,
+
+  // Page Builder
+  updateBuilderData,
+  getBuilderData,
+  migrateContentToBuilder,
 };

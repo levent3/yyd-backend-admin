@@ -613,6 +613,13 @@ model BrochureTranslation {
   language    String
   title       String
   description String?
+
+  // Page Builder fields
+  builderData    Json?    // Widget array for page builder
+  builderHtml    String?  @db.Text // Rendered HTML (cache)
+  builderCss     String?  @db.Text // Custom CSS
+  usePageBuilder Boolean  @default(false) // Flag to enable/disable page builder
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   brochure    Brochure @relation(fields: [brochureId], references: [id], onDelete: Cascade)

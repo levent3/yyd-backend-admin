@@ -343,4 +343,138 @@ router.put('/:id', checkPermission('media', 'update'), brochureController.update
  */
 router.delete('/:id', checkPermission('media', 'delete'), brochureController.deleteBrochure);
 
+// ========== PAGE BUILDER ROUTES ==========
+
+/**
+ * @swagger
+ * /api/brochures/{id}/builder:
+ *   put:
+ *     summary: Update brochure page builder data
+ *     description: Save page builder content for a specific brochure and language
+ *     tags: [Brochures]
+ *     security:
+ *       - bearerAuth: []
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Brochure ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               language:
+ *                 type: string
+ *                 enum: [tr, en, ar]
+ *                 default: tr
+ *               builderData:
+ *                 type: array
+ *                 description: Widget array for page builder
+ *               builderHtml:
+ *                 type: string
+ *                 description: Rendered HTML (cache)
+ *               builderCss:
+ *                 type: string
+ *                 description: Custom CSS
+ *     responses:
+ *       200:
+ *         description: Builder data successfully updated
+ *       404:
+ *         description: Brochure not found
+ */
+router.put('/:id/builder',
+  checkPermission('media', 'update'),
+  brochureController.updateBuilderData
+);
+
+/**
+ * @swagger
+ * /api/brochures/{id}/builder:
+ *   get:
+ *     summary: Get brochure page builder data
+ *     description: Retrieve page builder content for a specific brochure and language
+ *     tags: [Brochures]
+ *     security:
+ *       - bearerAuth: []
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Brochure ID
+ *       - in: query
+ *         name: language
+ *         schema:
+ *           type: string
+ *           enum: [tr, en, ar]
+ *           default: tr
+ *     responses:
+ *       200:
+ *         description: Builder data successfully retrieved
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 builderData:
+ *                   type: array
+ *                 builderHtml:
+ *                   type: string
+ *                 builderCss:
+ *                   type: string
+ *                 usePageBuilder:
+ *                   type: boolean
+ *       404:
+ *         description: Brochure not found
+ */
+router.get('/:id/builder',
+  checkPermission('media', 'read'),
+  brochureController.getBuilderData
+);
+
+/**
+ * @swagger
+ * /api/brochures/migrate-to-builder:
+ *   post:
+ *     summary: Migrate brochure descriptions to page builder
+ *     description: One-time migration to convert existing descriptions to page builder widgets
+ *     tags: [Brochures]
+ *     security:
+ *       - bearerAuth: []
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: Migration completed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     total:
+ *                       type: integer
+ *                     success:
+ *                       type: integer
+ *                     skipped:
+ *                       type: integer
+ *                     error:
+ *                       type: integer
+ */
+router.post('/migrate-to-builder',
+  checkPermission('media', 'create'),
+  brochureController.migrateContentToBuilder
+);
+
 module.exports = router;
