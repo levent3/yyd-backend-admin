@@ -92,13 +92,18 @@ const createProject = async (data) => {
     throw error;
   }
 
-  // Her bir translation için slug generate et
+  // Her bir translation için slug generate et ve builder data'yı ekle
   const translationsWithSlug = translations.map(trans => ({
     language: trans.language,
     title: trans.title,
     slug: trans.slug || generateSlug(trans.title),
     description: trans.description || null,
-    content: trans.content || null
+    content: trans.content || null,
+    // Page Builder alanları
+    builderData: trans.builderData || null,
+    builderHtml: trans.builderHtml || null,
+    builderCss: trans.builderCss || null,
+    usePageBuilder: trans.usePageBuilder || false
   }));
 
   // Dil-bağımsız alanları map et
@@ -202,13 +207,23 @@ const updateProject = async (id, data) => {
         title: trans.title,
         slug: trans.slug || generateSlug(trans.title),
         description: trans.description || null,
-        content: trans.content || null
+        content: trans.content || null,
+        // Page Builder alanları
+        builderData: trans.builderData || null,
+        builderHtml: trans.builderHtml || null,
+        builderCss: trans.builderCss || null,
+        usePageBuilder: trans.usePageBuilder || false
       },
       update: {
         title: trans.title,
         slug: trans.slug || generateSlug(trans.title),
         description: trans.description || null,
-        content: trans.content || null
+        content: trans.content || null,
+        // Page Builder alanları
+        builderData: trans.builderData || null,
+        builderHtml: trans.builderHtml || null,
+        builderCss: trans.builderCss || null,
+        usePageBuilder: trans.usePageBuilder || false
       }
     }));
 

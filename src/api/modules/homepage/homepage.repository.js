@@ -48,8 +48,8 @@ const createSlider = (data) => {
       displayOrder: rest.displayOrder || 0,
       isActive: rest.isActive !== undefined ? rest.isActive : true,
       showTitle: rest.showTitle !== undefined ? rest.showTitle : true,
-      startDate: rest.startDate || null,
-      endDate: rest.endDate || null,
+      startDate: rest.startDate ? new Date(rest.startDate) : null,
+      endDate: rest.endDate ? new Date(rest.endDate) : null,
       translations: translations ? {
         create: translations.map(trans => ({
           language: trans.language,
@@ -86,8 +86,8 @@ const updateSlider = (id, data) => {
   if (rest.displayOrder !== undefined) updateData.displayOrder = rest.displayOrder;
   if (rest.isActive !== undefined) updateData.isActive = rest.isActive;
   if (rest.showTitle !== undefined) updateData.showTitle = rest.showTitle;
-  if (rest.startDate !== undefined) updateData.startDate = rest.startDate;
-  if (rest.endDate !== undefined) updateData.endDate = rest.endDate;
+  if (rest.startDate !== undefined) updateData.startDate = rest.startDate ? new Date(rest.startDate) : null;
+  if (rest.endDate !== undefined) updateData.endDate = rest.endDate ? new Date(rest.endDate) : null;
 
   // Translations güncelleme (varsa)
   if (translations && translations.length > 0) {
