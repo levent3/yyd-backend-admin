@@ -6,6 +6,42 @@ const router = express.Router();
 
 /**
  * @swagger
+ * /api/banks/import-from-mssql:
+ *   post:
+ *     summary: Import banks and BIN codes from MSSQL
+ *     description: One-time import to load banks and BIN codes from MSSQL database dump
+ *     tags: [Banks]
+ *     security:
+ *       - bearerAuth: []
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: Import completed successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     banks:
+ *                       type: integer
+ *                     binCodes:
+ *                       type: integer
+ */
+router.post('/import-from-mssql',
+  authMiddleware,
+  checkPermission('banks', 'create'),
+  bankController.importFromMSSQL
+);
+
+/**
+ * @swagger
  * /api/banks:
  *   get:
  *     summary: Get all banks

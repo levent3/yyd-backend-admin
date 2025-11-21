@@ -43,11 +43,28 @@ const getOurBanks = async (req, res, next) => {
   }
 };
 
+// Import banks from MSSQL
+const importFromMSSQL = async (req, res, next) => {
+  try {
+    const { importBanksFromMSSQL } = require('../../../scripts/import-banks-from-mssql');
+    const result = await importBanksFromMSSQL();
+
+    res.status(200).json({
+      success: true,
+      message: 'Bank ve BIN Code import tamamlandı',
+      data: result
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getAllBanks: crudController.getAll,
   getBankById: crudController.getById,
   createBank: crudController.create,
   updateBank: crudController.update,
   deleteBank: crudController.delete,
-  getOurBanks
+  getOurBanks,
+  importFromMSSQL
 };
